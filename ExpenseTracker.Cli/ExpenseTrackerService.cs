@@ -1,8 +1,16 @@
+using System.Text.Json;
+
 namespace ExpenseTracker.Cli;
 
 class ExpenseTracker
 {
     private readonly List<Expense> _expenses = [];
+    private readonly string _filePath = "expenses.json";
+
+    public ExpenseTracker()
+    {
+        LoadExpenses();
+    }
 
     public Expense AddExpense(string name, decimal amount)
     {
@@ -13,6 +21,7 @@ class ExpenseTracker
         };
 
         _expenses.Add(expense);
+        SaveExpenses();
 
         return expense;
     }
@@ -35,5 +44,34 @@ class ExpenseTracker
     public void ShowSummary()
     {
         Console.WriteLine("Show summary");
+    }
+
+    private void LoadExpenses()
+    {
+        if (!File.Exists(_filePath))
+        {
+            return;
+        }
+
+        var json = File.ReadAllText(_filePath);
+        var expenses = JsonSerializer.Deserialize<List<Expense>>(json, new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        });
+
+        if (expenses != null)
+        {
+            _expenses.AddRange(expenses);
+        }
+    }
+
+    private void SaveExpenses()
+    {
+        var json = JsonSerializer.Serialize(_expenses, new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        });
+        File.WriteAllText(_filePath, json);
     }
 }
