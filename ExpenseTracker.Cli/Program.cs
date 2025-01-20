@@ -38,7 +38,13 @@ class Program
 
             case "list":
                 {
-                    _expenseTracker.ListExpenses();
+                    var expenses = _expenseTracker.ListExpenses();
+
+                    foreach (var expense in expenses)
+                    {
+                        Console.WriteLine($"{expense.Name} - {expense.Amount}");
+                    }
+
                     break;
                 }
 

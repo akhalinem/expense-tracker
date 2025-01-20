@@ -23,9 +23,9 @@ class ExpenseTracker
         return expense;
     }
 
-        public void ListExpenses()
+    public List<Expense> ListExpenses()
     {
-            Console.WriteLine("List expenses");
+        return _expenses;
     }
 
     public void UpdateExpense()
