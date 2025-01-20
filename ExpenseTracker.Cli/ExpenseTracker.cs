@@ -1,31 +1,45 @@
-namespace ExpenseTracker.Cli
-{
+namespace ExpenseTracker.Cli;
 
-    class ExpenseTracker
+class Expense
+{
+    public required string Name { get; set; }
+    public decimal Amount { get; set; }
+}
+
+class ExpenseTracker
+{
+    private readonly List<Expense> _expenses = [];
+
+    public Expense AddExpense(string name, decimal amount)
     {
-        public void AddExpense()
+        var expense = new Expense
         {
-            Console.WriteLine("Add expense");
-        }
+            Name = name,
+            Amount = amount
+        };
+
+        _expenses.Add(expense);
+
+        return expense;
+    }
 
         public void ListExpenses()
-        {
+    {
             Console.WriteLine("List expenses");
-        }
+    }
 
-        public void UpdateExpense()
-        {
-            Console.WriteLine("Update expense");
-        }
+    public void UpdateExpense()
+    {
+        Console.WriteLine("Update expense");
+    }
 
-        public void DeleteExpense()
-        {
-            Console.WriteLine("Delete expense");
-        }
+    public void DeleteExpense()
+    {
+        Console.WriteLine("Delete expense");
+    }
 
-        public void ShowSummary()
-        {
-            Console.WriteLine("Show summary");
-        }
+    public void ShowSummary()
+    {
+        Console.WriteLine("Show summary");
     }
 }
