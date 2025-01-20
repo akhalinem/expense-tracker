@@ -1,5 +1,9 @@
-﻿class Program
+﻿namespace ExpenseTracker.Cli;
+
+class Program
 {
+    private static readonly ExpenseTracker _expenseTracker = new();
+
     static void Main(string[] args)
     {
         if (args.Length == 0)
@@ -13,23 +17,23 @@
         switch (command)
         {
             case "add":
-                Console.WriteLine("Add expense");
+                _expenseTracker.AddExpense();
                 break;
 
             case "list":
-                Console.WriteLine("List expenses");
+                _expenseTracker.ListExpenses();
                 break;
 
             case "update":
-                Console.WriteLine("Update expense");
+                _expenseTracker.UpdateExpense();
                 break;
 
             case "delete":
-                Console.WriteLine("Delete expense");
+                _expenseTracker.DeleteExpense();
                 break;
 
             case "summary":
-                Console.WriteLine("Show summary");
+                _expenseTracker.ShowSummary();
                 break;
 
             default:
