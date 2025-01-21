@@ -1,4 +1,4 @@
-﻿namespace ExpenseTracker.Cli;
+namespace ExpenseTracker.Cli;
 
 class Program
 {
@@ -58,9 +58,17 @@ class Program
                 {
                     var expenses = _expenseTracker.ListExpenses();
 
+                    var format = "{0,-50} {1,-15} {2,10} {3,12}";
+                    Console.WriteLine(format, "ID", "Name", "Amount", "Created On");
+                    Console.WriteLine(new string('-', 100));
+
                     foreach (var expense in expenses)
                     {
-                        Console.WriteLine($"{expense.Name} - {expense.Amount}");
+                        Console.WriteLine(format,
+                            expense.Id.ToString(),
+                            expense.Name,
+                            expense.Amount.ToString("C"),
+                            expense.CreatedOn.ToString("MM/dd/yyyy"));
                     }
 
                     break;
