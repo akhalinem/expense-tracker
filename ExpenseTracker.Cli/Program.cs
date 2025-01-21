@@ -59,7 +59,7 @@ class Program
                     var expenses = _expenseTracker.ListExpenses();
 
                     var format = "{0,-50} {1,-15} {2,10} {3,12}";
-                    Console.WriteLine(format, "ID", "Name", "Amount", "Created On", "Updated On");
+                    Console.WriteLine(format, "ID", "Name", "Amount", "Created At", "Updated At");
                     Console.WriteLine(new string('-', 100));
 
                     foreach (var expense in expenses)
@@ -68,8 +68,8 @@ class Program
                             expense.Id.ToString(),
                             expense.Name,
                             expense.Amount.ToString(),
-                            expense.CreatedOn.ToString("MM/dd/yyyy"),
-                            expense.UpdatedOn?.ToString("MM/dd/yyyy") ?? string.Empty
+                            expense.CreatedAt.ToString("MM/dd/yyyy"),
+                            expense.UpdatedAt?.ToString("MM/dd/yyyy") ?? string.Empty
                         );
                     }
 
