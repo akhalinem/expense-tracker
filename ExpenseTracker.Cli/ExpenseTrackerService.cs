@@ -31,9 +31,22 @@ class ExpenseTracker
         return _expenses;
     }
 
-    public void UpdateExpense()
+    public Expense? UpdateExpense(Guid id, string name, decimal amount)
     {
-        Console.WriteLine("Update expense");
+        var expense = _expenses.FirstOrDefault(e => e.Id == id);
+
+        if (expense == null)
+        {
+            return null;
+        }
+
+        expense.Name = name;
+        expense.Amount = amount;
+        expense.UpdatedAt = DateTime.Now;
+
+        SaveExpenses();
+
+        return expense;
     }
 
     public void DeleteExpense()
@@ -55,15 +68,15 @@ class ExpenseTracker
 
         try
         {
-        var json = File.ReadAllText(_filePath);
-        var expenses = JsonSerializer.Deserialize<List<Expense>>(json, new JsonSerializerOptions
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        });
+            var json = File.ReadAllText(_filePath);
+            var expenses = JsonSerializer.Deserialize<List<Expense>>(json, new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
 
-        if (expenses != null)
-        {
-            _expenses.AddRange(expenses);
+            if (expenses != null)
+            {
+                _expenses.AddRange(expenses);
             }
         }
         catch (JsonException e)

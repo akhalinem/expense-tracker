@@ -1,4 +1,4 @@
-namespace ExpenseTracker.Cli;
+﻿namespace ExpenseTracker.Cli;
 
 class Program
 {
@@ -76,9 +76,33 @@ class Program
                     break;
                 }
 
-            case "update":
+            case "update" when args.Length == 4:
                 {
-                    _expenseTracker.UpdateExpense();
+                    if (!Guid.TryParse(args[1], out Guid id))
+                    {
+                        Console.WriteLine("Invalid ID");
+                        return;
+                    }
+
+                    if (!decimal.TryParse(args[3], out decimal amount))
+                    {
+                        Console.WriteLine("Invalid amount");
+                        return;
+                    }
+
+                    var name = args[2];
+                    var expense = _expenseTracker.UpdateExpense(id, name, amount);
+
+                    if (expense == null)
+                    {
+                        Console.WriteLine("Expense not found");
+                        return;
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Updated expense: {expense.Name} - {expense.Amount}");
+                    }
+
                     break;
                 }
 
