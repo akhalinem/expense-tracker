@@ -5,6 +5,6 @@ class Expense
     public required string Name { get; set; }
     public decimal Amount { get; set; }
     public DateTime CreatedOn { get; set; } = DateTime.Now;
-
+    public DateTime? UpdatedOn { get; set; } = null;
 }
 
