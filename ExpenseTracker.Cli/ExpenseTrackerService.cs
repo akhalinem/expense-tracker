@@ -53,6 +53,8 @@ class ExpenseTracker
             return;
         }
 
+        try
+        {
         var json = File.ReadAllText(_filePath);
         var expenses = JsonSerializer.Deserialize<List<Expense>>(json, new JsonSerializerOptions
         {
@@ -62,6 +64,11 @@ class ExpenseTracker
         if (expenses != null)
         {
             _expenses.AddRange(expenses);
+            }
+        }
+        catch (JsonException e)
+        {
+            Console.WriteLine($"Error loading expenses: {e.Message}");
         }
     }
 
@@ -72,6 +79,7 @@ class ExpenseTracker
             WriteIndented = true,
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         });
+
         File.WriteAllText(_filePath, json);
     }
 }
