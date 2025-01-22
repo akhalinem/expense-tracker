@@ -113,7 +113,7 @@ public class ExpenseTrackerServiceTests : IDisposable
     }
 
     [Fact]
-    public void ShouldGetSummary()
+    public void ShouldGetOverallSummary()
     {
         // Arrange
         _expenseTrackerService.AddExpense("Coffee", 2.5m);
@@ -139,5 +139,29 @@ public class ExpenseTrackerServiceTests : IDisposable
         // Assert
         Assert.Equal(4m, summary.Total);
         Assert.Equal(0, DateTime.Now.Month - 1);
+    }
+
+    [Fact]
+    public void ShouldGetSummaryByMonthAndYear()
+    {
+        // Arrange
+        var expense1 = new Expense { Name = "Coffee", Amount = 1.5m, CreatedAt = new DateTime(DateTime.Now.Year, 1, 1) };
+        var expense2 = new Expense { Name = "Tea", Amount = 2.5m, CreatedAt = new DateTime(DateTime.Now.Year, 1, 2) };
+        var expense3 = new Expense { Name = "Juice", Amount = 3.5m, CreatedAt = new DateTime(DateTime.Now.Year + 1, 1, 1) };
+        var expenses = new List<Expense> { expense1, expense2, expense3 };
+        File.WriteAllText(_testFilePath, JsonSerializer.Serialize(expenses, new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        }));
+        var expenseTrackerService = new ExpenseTrackerService(_testFilePath);
+
+        // Act
+        var currentJanSummary = expenseTrackerService.GetSummary(1, DateTime.Now.Year);
+        var nextJanSummary = expenseTrackerService.GetSummary(1, DateTime.Now.Year + 1);
+
+        // Assert
+        Assert.Equal(1.5m + 2.5m, currentJanSummary.Total);
+        Assert.Equal(3.5m, nextJanSummary.Total);
     }
 }

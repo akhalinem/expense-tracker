@@ -151,6 +151,27 @@ class Program
                     break;
                 }
 
+            case "summary" when args.Length == 3:
+                {
+                    if (!int.TryParse(args[1], out int month))
+                    {
+                        Console.WriteLine("Invalid month");
+                        return;
+                    }
+
+                    if (!int.TryParse(args[2], out int year))
+                    {
+                        Console.WriteLine("Invalid year");
+                        return;
+                    }
+
+                    var summary = _expenseTrackerService.GetSummary(month, year);
+                    var monthName = CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(month);
+
+                    Console.WriteLine($"Total expenses for {monthName} {year}: {_expenseTrackerService.DisplayAmount(summary.Total)}");
+                    break;
+                }
+
             default:
                 {
                     Console.WriteLine("Invalid command");

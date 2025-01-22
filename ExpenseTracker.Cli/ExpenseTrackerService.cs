@@ -72,10 +72,12 @@ public class ExpenseTrackerService
         return new Summary { Total = total };
     }
 
-    public Summary GetSummary(int month)
+    public Summary GetSummary(int month, int? year = null)
     {
+        var activeYear = year ?? DateTime.Now.Year;
+
         var total = _expenses
-            .Where(e => e.CreatedAt.Month == month)
+            .Where(e => e.CreatedAt.Month == month && e.CreatedAt.Year == activeYear)
             .Sum(e => e.Amount);
 
         return new Summary { Total = total };
