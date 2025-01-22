@@ -1,4 +1,4 @@
-namespace ExpenseTracker.Cli;
+﻿namespace ExpenseTracker.Cli;
 
 class Program
 {
@@ -106,9 +106,23 @@ class Program
                     break;
                 }
 
-            case "delete":
+            case "delete" when args.Length == 2:
                 {
-                    _expenseTracker.DeleteExpense();
+                    if (!Guid.TryParse(args[1], out Guid id))
+                    {
+                        Console.WriteLine("Invalid ID");
+                        return;
+                    }
+
+                    if (_expenseTrackerService.DeleteExpense(id))
+                    {
+                        Console.WriteLine("Expense deleted");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Expense not found");
+                    }
+
                     break;
                 }
 

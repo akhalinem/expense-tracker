@@ -49,9 +49,18 @@ class ExpenseTrackerService
         return expense;
     }
 
-    public void DeleteExpense()
+    public bool DeleteExpense(Guid id)
     {
-        Console.WriteLine("Delete expense");
+        var expense = _expenses.FirstOrDefault(e => e.Id == id);
+
+        if (expense == null)
+        {
+            return false;
+        }
+
+        _expenses.Remove(expense);
+
+        return true;
     }
 
     public void ShowSummary()
