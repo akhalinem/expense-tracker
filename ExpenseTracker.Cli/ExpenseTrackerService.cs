@@ -2,13 +2,15 @@ using System.Text.Json;
 
 namespace ExpenseTracker.Cli;
 
-class ExpenseTrackerService
+public class ExpenseTrackerService
 {
     private readonly List<Expense> _expenses = [];
-    private readonly string _filePath = "expenses.json";
+    private readonly string _filePath;
 
-    public ExpenseTrackerService()
+    public ExpenseTrackerService(string filePath = "expenses.json")
     {
+        _filePath = filePath;
+
         LoadExpenses();
     }
 
