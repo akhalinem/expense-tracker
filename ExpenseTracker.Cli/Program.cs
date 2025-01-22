@@ -1,4 +1,4 @@
-﻿namespace ExpenseTracker.Cli;
+namespace ExpenseTracker.Cli;
 
 class Program
 {
@@ -48,7 +48,7 @@ class Program
 
                     if (expense != null)
                     {
-                        Console.WriteLine($"Added expense: {expense.Name} - {expense.Amount}");
+                        Console.WriteLine($"Added expense: {expense.Name} - {_expenseTrackerService.DisplayAmount(expense.Amount)}");
                     }
 
                     break;
@@ -67,7 +67,7 @@ class Program
                         Console.WriteLine(format,
                             expense.Id.ToString(),
                             expense.Name,
-                            expense.Amount.ToString(),
+                            _expenseTrackerService.DisplayAmount(expense.Amount),
                             expense.CreatedAt.ToString("MM/dd/yyyy hh:mm:ss tt"),
                             expense.UpdatedAt?.ToString("MM/dd/yyyy hh:mm:ss tt") ?? string.Empty
                         );
@@ -100,7 +100,7 @@ class Program
                     }
                     else
                     {
-                        Console.WriteLine($"Updated expense: {expense.Name} - {expense.Amount}");
+                        Console.WriteLine($"Updated expense: {expense.Name} - {_expenseTrackerService.DisplayAmount(expense.Amount)}");
                     }
 
                     break;

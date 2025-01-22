@@ -67,7 +67,10 @@ public class ExpenseTrackerService
 
     public void ShowSummary()
     {
-        Console.WriteLine("Show summary");
+
+    public string DisplayAmount(decimal amount)
+    {
+        return amount.ToString("#,##0.00");
     }
 
     private void LoadExpenses()
