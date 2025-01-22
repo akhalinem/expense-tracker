@@ -1,8 +1,8 @@
-﻿namespace ExpenseTracker.Cli;
+namespace ExpenseTracker.Cli;
 
 class Program
 {
-    private static readonly ExpenseTracker _expenseTracker = new();
+    private static readonly ExpenseTrackerService _expenseTrackerService = new();
 
     static void Main(string[] args)
     {
@@ -44,7 +44,7 @@ class Program
                         return;
                     }
 
-                    var expense = _expenseTracker.AddExpense(name, amount);
+                    var expense = _expenseTrackerService.AddExpense(name, amount);
 
                     if (expense != null)
                     {
@@ -56,7 +56,7 @@ class Program
 
             case "list":
                 {
-                    var expenses = _expenseTracker.ListExpenses();
+                    var expenses = _expenseTrackerService.ListExpenses();
 
                     var format = "{0,-40} {1,-15} {2,10} {3,25} {4,25}";
                     Console.WriteLine(format, "ID", "Name", "Amount", "Created At", "Updated At");
@@ -91,7 +91,7 @@ class Program
                     }
 
                     var name = args[2];
-                    var expense = _expenseTracker.UpdateExpense(id, name, amount);
+                    var expense = _expenseTrackerService.UpdateExpense(id, name, amount);
 
                     if (expense == null)
                     {
@@ -114,7 +114,7 @@ class Program
 
             case "summary":
                 {
-                    _expenseTracker.ShowSummary();
+                    _expenseTrackerService.ShowSummary();
                     break;
                 }
 
