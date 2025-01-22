@@ -125,4 +125,19 @@ public class ExpenseTrackerServiceTests : IDisposable
         // Assert
         Assert.Equal(4m, summary.Total);
     }
+
+    [Fact]
+    public void ShouldGetSummaryByMonth()
+    {
+        // Arrange
+        _expenseTrackerService.AddExpense("Coffee", 2.5m);
+        _expenseTrackerService.AddExpense("Tea", 1.5m);
+
+        // Act
+        var summary = _expenseTrackerService.GetSummary(DateTime.Now.Month);
+
+        // Assert
+        Assert.Equal(4m, summary.Total);
+        Assert.Equal(0, DateTime.Now.Month - 1);
+    }
 }

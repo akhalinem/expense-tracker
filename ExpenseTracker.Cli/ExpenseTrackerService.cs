@@ -72,9 +72,18 @@ public class ExpenseTrackerService
         return new Summary { Total = total };
     }
 
+    public Summary GetSummary(int month)
+    {
+        var total = _expenses
+            .Where(e => e.CreatedAt.Month == month)
+            .Sum(e => e.Amount);
+
+        return new Summary { Total = total };
+    }
+
     public string DisplayAmount(decimal amount)
     {
-        return amount.ToString("#,##0.00");
+        return amount.ToString();
     }
 
     private void LoadExpenses()

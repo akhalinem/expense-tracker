@@ -1,4 +1,6 @@
-﻿namespace ExpenseTracker.Cli;
+﻿using System.Globalization;
+
+namespace ExpenseTracker.Cli;
 
 class Program
 {
@@ -131,6 +133,21 @@ class Program
                     var summary = _expenseTrackerService.GetSummary();
 
                     Console.WriteLine($"Total expenses: {_expenseTrackerService.DisplayAmount(summary.Total)}");
+                    break;
+                }
+
+            case "summary" when args.Length == 2:
+                {
+                    if (!int.TryParse(args[1], out int month))
+                    {
+                        Console.WriteLine("Invalid month");
+                        return;
+                    }
+
+                    var summary = _expenseTrackerService.GetSummary(month);
+                    var monthName = CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(month);
+
+                    Console.WriteLine($"Total expenses for {monthName}: {_expenseTrackerService.DisplayAmount(summary.Total)}");
                     break;
                 }
 
