@@ -1,4 +1,4 @@
-namespace ExpenseTracker.Cli;
+﻿namespace ExpenseTracker.Cli;
 
 class Program
 {
@@ -126,9 +126,11 @@ class Program
                     break;
                 }
 
-            case "summary":
+            case "summary" when args.Length == 1:
                 {
-                    _expenseTrackerService.ShowSummary();
+                    var summary = _expenseTrackerService.GetSummary();
+
+                    Console.WriteLine($"Total expenses: {_expenseTrackerService.DisplayAmount(summary.Total)}");
                     break;
                 }
 

@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 
 namespace ExpenseTracker.Cli.Tests;
 
@@ -110,5 +110,19 @@ public class ExpenseTrackerServiceTests : IDisposable
 
         // Assert
         Assert.False(result);
+    }
+
+    [Fact]
+    public void ShouldGetSummary()
+    {
+        // Arrange
+        _expenseTrackerService.AddExpense("Coffee", 2.5m);
+        _expenseTrackerService.AddExpense("Tea", 1.5m);
+
+        // Act
+        var summary = _expenseTrackerService.GetSummary();
+
+        // Assert
+        Assert.Equal(4m, summary.Total);
     }
 }

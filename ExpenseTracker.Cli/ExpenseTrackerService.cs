@@ -65,8 +65,12 @@ public class ExpenseTrackerService
         return true;
     }
 
-    public void ShowSummary()
+    public Summary GetSummary()
     {
+        var total = _expenses.Sum(e => e.Amount);
+
+        return new Summary { Total = total };
+    }
 
     public string DisplayAmount(decimal amount)
     {
