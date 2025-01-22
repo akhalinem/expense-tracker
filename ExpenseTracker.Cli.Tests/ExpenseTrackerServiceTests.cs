@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 
 namespace ExpenseTracker.Cli.Tests;
 
@@ -70,6 +70,16 @@ public class ExpenseTrackerServiceTests : IDisposable
     }
 
     [Fact]
+    public void ShouldNotUpdateExpenseIfNotFound()
+    {
+        // Act
+        var result = _expenseTrackerService.UpdateExpense(Guid.NewGuid(), "Tea", 1.5m);
+
+        // Assert
+        Assert.Null(result);
+    }
+
+    [Fact]
     public void ShouldListExpenses()
     {
         // Act
@@ -90,5 +100,15 @@ public class ExpenseTrackerServiceTests : IDisposable
 
         // Assert
         Assert.Empty(_expenseTrackerService.ListExpenses());
+    }
+
+    [Fact]
+    public void ShouldNotDeleteExpenseIfNotFound()
+    {
+        // Act
+        var result = _expenseTrackerService.DeleteExpense(Guid.NewGuid());
+
+        // Assert
+        Assert.False(result);
     }
 }
