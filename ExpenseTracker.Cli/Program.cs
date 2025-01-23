@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System.CommandLine;
+using System.Globalization;
 
 namespace ExpenseTracker.Cli;
 
@@ -6,7 +7,7 @@ class Program
 {
     private static readonly ExpenseTrackerService _expenseTrackerService = new();
 
-    static void Main(string[] args)
+    static async Task Main(string[] args)
     {
         while (true)
         {
@@ -20,163 +21,126 @@ class Program
                 break;
 
             var commandArgs = input.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            RunCommand(commandArgs);
+
+            await RunCommand(commandArgs);
         }
     }
 
-    private static void RunCommand(string[] args)
+    private static async Task<int> RunCommand(string[] args)
     {
-        if (args.Length == 0)
+        var rootCommand = new RootCommand("Expense Tracker CLI");
+
+        #region add
+        var addCommand = new Command("add", "Add a new expense");
+        var addNameOption = new Option<string>("--name", "Name of the expense") { IsRequired = true };
+        var addAmountOption = new Option<decimal>("--amount", "Amount of the expense") { IsRequired = true };
+        addCommand.AddOption(addNameOption);
+        addCommand.AddOption(addAmountOption);
+        addCommand.SetHandler((name, amount) =>
         {
-            Console.WriteLine("Please provide a command");
-            return;
-        }
+            var expense = _expenseTrackerService.AddExpense(name, amount);
+            if (expense != null)
+            {
+                Console.WriteLine($"Added expense: {expense.Name} - {_expenseTrackerService.DisplayAmount(expense.Amount)}");
+            }
+        }, addNameOption, addAmountOption);
+        #endregion
 
-        var command = args[0].ToLower();
-
-        switch (command)
+        #region list
+        var listCommand = new Command("list", "List all expenses");
+        listCommand.SetHandler(() =>
         {
-            case "add" when args.Length == 3:
-                {
-                    var name = args[1];
+            var expenses = _expenseTrackerService.ListExpenses();
+            var format = "{0,-40} {1,-15} {2,10} {3,25} {4,25}";
+            Console.WriteLine(format, "ID", "Name", "Amount", "Created At", "Updated At");
+            Console.WriteLine(new string('-', 120));
 
-                    if (!decimal.TryParse(args[2], out decimal amount))
-                    {
-                        Console.WriteLine("Invalid amount");
-                        return;
-                    }
+            foreach (var expense in expenses)
+            {
+                Console.WriteLine(format,
+                    expense.Id.ToString(),
+                    expense.Name,
+                    _expenseTrackerService.DisplayAmount(expense.Amount),
+                    expense.CreatedAt.ToString("MM/dd/yyyy hh:mm:ss tt"),
+                    expense.UpdatedAt?.ToString("MM/dd/yyyy hh:mm:ss tt") ?? string.Empty
+                );
+            }
+        });
+        #endregion
 
-                    var expense = _expenseTrackerService.AddExpense(name, amount);
+        #region update
+        var updateCommand = new Command("update", "Update an expense");
+        var updateIdOption = new Option<Guid>("--id", "ID of the expense") { IsRequired = true };
+        var updateNameOption = new Option<string>("--name", "New name of the expense") { IsRequired = true };
+        var updateAmountOption = new Option<decimal>("--amount", "New amount of the expense") { IsRequired = true };
+        updateCommand.AddOption(updateIdOption);
+        updateCommand.AddOption(updateNameOption);
+        updateCommand.AddOption(updateAmountOption);
+        updateCommand.SetHandler((id, name, amount) =>
+        {
+            var expense = _expenseTrackerService.UpdateExpense(id, name, amount);
+            if (expense == null)
+            {
+                Console.WriteLine("Expense not found");
+            }
+            else
+            {
+                Console.WriteLine($"Updated expense: {expense.Name} - {_expenseTrackerService.DisplayAmount(expense.Amount)}");
+            }
+        }, updateIdOption, updateNameOption, updateAmountOption);
+        #endregion
 
-                    if (expense != null)
-                    {
-                        Console.WriteLine($"Added expense: {expense.Name} - {_expenseTrackerService.DisplayAmount(expense.Amount)}");
-                    }
+        #region delete
+        var deleteCommand = new Command("delete", "Delete an expense");
+        var deleteIdOption = new Option<Guid>("--id", "ID of the expense") { IsRequired = true };
+        deleteCommand.AddOption(deleteIdOption);
+        deleteCommand.SetHandler((id) =>
+        {
+            if (_expenseTrackerService.DeleteExpense(id))
+            {
+                Console.WriteLine("Expense deleted");
+            }
+            else
+            {
+                Console.WriteLine("Expense not found");
+            }
+        }, deleteIdOption);
+        #endregion
 
-                    break;
-                }
+        #region summary
+        var summaryCommand = new Command("summary", "Get expense summary");
+        var monthOption = new Option<int?>("--month", "Month number (1-12)");
+        var yearOption = new Option<int?>("--year", "Year");
+        summaryCommand.AddOption(monthOption);
+        summaryCommand.AddOption(yearOption);
+        summaryCommand.SetHandler((month, year) =>
+        {
+            var summary = (month, year) switch
+            {
+                (null, null) => _expenseTrackerService.GetSummary(),
+                (int m, null) => _expenseTrackerService.GetSummary(m),
+                (int m, int y) => _expenseTrackerService.GetSummary(m, y),
+                _ => throw new ArgumentException("Invalid month/year combination")
+            };
 
-            case "list":
-                {
-                    var expenses = _expenseTrackerService.ListExpenses();
+            var period = (month, year) switch
+            {
+                (null, null) => "Total",
+                (int m, null) => CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(m),
+                (int m, int y) => $"{CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(m)} {y}",
+                _ => "Invalid period"
+            };
 
-                    var format = "{0,-40} {1,-15} {2,10} {3,25} {4,25}";
-                    Console.WriteLine(format, "ID", "Name", "Amount", "Created At", "Updated At");
-                    Console.WriteLine(new string('-', 120));
+            Console.WriteLine($"Total expenses for {period}: {_expenseTrackerService.DisplayAmount(summary.Total)}");
+        }, monthOption, yearOption);
 
-                    foreach (var expense in expenses)
-                    {
-                        Console.WriteLine(format,
-                            expense.Id.ToString(),
-                            expense.Name,
-                            _expenseTrackerService.DisplayAmount(expense.Amount),
-                            expense.CreatedAt.ToString("MM/dd/yyyy hh:mm:ss tt"),
-                            expense.UpdatedAt?.ToString("MM/dd/yyyy hh:mm:ss tt") ?? string.Empty
-                        );
-                    }
+        rootCommand.AddCommand(addCommand);
+        rootCommand.AddCommand(listCommand);
+        rootCommand.AddCommand(updateCommand);
+        rootCommand.AddCommand(deleteCommand);
+        rootCommand.AddCommand(summaryCommand);
+        #endregion
 
-                    break;
-                }
-
-            case "update" when args.Length == 4:
-                {
-                    if (!Guid.TryParse(args[1], out Guid id))
-                    {
-                        Console.WriteLine("Invalid ID");
-                        return;
-                    }
-
-                    if (!decimal.TryParse(args[3], out decimal amount))
-                    {
-                        Console.WriteLine("Invalid amount");
-                        return;
-                    }
-
-                    var name = args[2];
-                    var expense = _expenseTrackerService.UpdateExpense(id, name, amount);
-
-                    if (expense == null)
-                    {
-                        Console.WriteLine("Expense not found");
-                        return;
-                    }
-                    else
-                    {
-                        Console.WriteLine($"Updated expense: {expense.Name} - {_expenseTrackerService.DisplayAmount(expense.Amount)}");
-                    }
-
-                    break;
-                }
-
-            case "delete" when args.Length == 2:
-                {
-                    if (!Guid.TryParse(args[1], out Guid id))
-                    {
-                        Console.WriteLine("Invalid ID");
-                        return;
-                    }
-
-                    if (_expenseTrackerService.DeleteExpense(id))
-                    {
-                        Console.WriteLine("Expense deleted");
-                    }
-                    else
-                    {
-                        Console.WriteLine("Expense not found");
-                    }
-
-                    break;
-                }
-
-            case "summary" when args.Length == 1:
-                {
-                    var summary = _expenseTrackerService.GetSummary();
-
-                    Console.WriteLine($"Total expenses: {_expenseTrackerService.DisplayAmount(summary.Total)}");
-                    break;
-                }
-
-            case "summary" when args.Length == 2:
-                {
-                    if (!int.TryParse(args[1], out int month))
-                    {
-                        Console.WriteLine("Invalid month");
-                        return;
-                    }
-
-                    var summary = _expenseTrackerService.GetSummary(month);
-                    var monthName = CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(month);
-
-                    Console.WriteLine($"Total expenses for {monthName}: {_expenseTrackerService.DisplayAmount(summary.Total)}");
-                    break;
-                }
-
-            case "summary" when args.Length == 3:
-                {
-                    if (!int.TryParse(args[1], out int month))
-                    {
-                        Console.WriteLine("Invalid month");
-                        return;
-                    }
-
-                    if (!int.TryParse(args[2], out int year))
-                    {
-                        Console.WriteLine("Invalid year");
-                        return;
-                    }
-
-                    var summary = _expenseTrackerService.GetSummary(month, year);
-                    var monthName = CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(month);
-
-                    Console.WriteLine($"Total expenses for {monthName} {year}: {_expenseTrackerService.DisplayAmount(summary.Total)}");
-                    break;
-                }
-
-            default:
-                {
-                    Console.WriteLine("Invalid command");
-                    break;
-                }
-        }
+        return await rootCommand.InvokeAsync(args);
     }
 }
