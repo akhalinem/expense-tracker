@@ -61,6 +61,7 @@ public class ExpenseTrackerService
         }
 
         _expenses.Remove(expense);
+        SaveExpenses();
 
         return true;
     }
