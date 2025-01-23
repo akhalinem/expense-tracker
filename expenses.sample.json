@@ -1,0 +1,128 @@
+[
+  {
+    "id": "729a8c4d-5025-4def-a5e8-8f3c45d0b7f9",
+    "name": "groceries",
+    "amount": 15000,
+    "createdAt": "2025-02-15T10:30:00+05:00",
+    "updatedAt": null
+  },
+  {
+    "id": "8f6d2e1a-3b9c-4f7d-9c5b-2d8e7a9f4c3b",
+    "name": "utilities",
+    "amount": 8000,
+    "createdAt": "2025-03-01T09:15:00+05:00",
+    "updatedAt": null
+  },
+  {
+    "id": "b5c7a9e2-6f4d-4c8b-ae3f-1d9b5c8e7f6a",
+    "name": "rent",
+    "amount": 45000,
+    "createdAt": "2025-04-05T14:20:00+05:00",
+    "updatedAt": null
+  },
+  {
+    "id": "d2e4f6a8-b0c2-4e6d-8f1a-3b5c7d9e1f2b",
+    "name": "gym membership",
+    "amount": 12000,
+    "createdAt": "2025-05-10T08:00:00+05:00",
+    "updatedAt": null
+  },
+  {
+    "id": "e3f5d7c9-a1b3-4d5f-9e8d-2c4b6a8f0e2d",
+    "name": "car maintenance",
+    "amount": 35000,
+    "createdAt": "2025-06-15T11:45:00+05:00",
+    "updatedAt": null
+  },
+  {
+    "id": "f4e6d8c0-b2a4-4f6e-8d0c-1a3b5c7e9f2d",
+    "name": "vacation",
+    "amount": 150000,
+    "createdAt": "2025-07-20T16:30:00+05:00",
+    "updatedAt": null
+  },
+  {
+    "id": "a1b3c5d7-e9f2-4d6b-8a0c-2e4f6a8b0c2d",
+    "name": "electronics",
+    "amount": 75000,
+    "createdAt": "2025-08-25T13:20:00+05:00",
+    "updatedAt": null
+  },
+  {
+    "id": "b2c4d6e8-f0a2-4b6d-9c1e-3f5a7b9c1d3e",
+    "name": "insurance",
+    "amount": 28000,
+    "createdAt": "2025-09-01T10:10:00+05:00",
+    "updatedAt": null
+  },
+  {
+    "id": "c3d5e7f9-a1b3-4c6e-8d0f-2a4b6c8e0a2b",
+    "name": "dining out",
+    "amount": 18000,
+    "createdAt": "2025-10-05T19:45:00+05:00",
+    "updatedAt": null
+  },
+  {
+    "id": "d4e6f8a0-b2c4-4d6f-8b0a-1a3c5e7a9b1c",
+    "name": "home repairs",
+    "amount": 65000,
+    "createdAt": "2025-11-10T15:15:00+05:00",
+    "updatedAt": null
+  },
+  {
+    "id": "e5f7a9b1-c3d5-4e7a-9c1b-2b4d6f8a0b2c",
+    "name": "gifts",
+    "amount": 22000,
+    "createdAt": "2025-12-15T12:30:00+05:00",
+    "updatedAt": null
+  },
+  {
+    "id": "f6a8b0c2-d4e6-4f8a-0d2b-3c5e7a9b1c3d",
+    "name": "education",
+    "amount": 85000,
+    "createdAt": "2026-01-20T14:40:00+05:00",
+    "updatedAt": null
+  },
+  {
+    "id": "a7b9c1d3-e5f7-4a9b-1e3c-4d6f8a0b2c4d",
+    "name": "clothing",
+    "amount": 32000,
+    "createdAt": "2026-02-25T17:50:00+05:00",
+    "updatedAt": null
+  },
+  {
+    "id": "b8c0d2e4-f6a8-4b0c-2f4a-5e7a9b1c3d5e",
+    "name": "healthcare",
+    "amount": 42000,
+    "createdAt": "2026-03-01T09:25:00+05:00",
+    "updatedAt": null
+  },
+  {
+    "id": "c9d1e3f5-a7b9-4c1d-3a5b-6f8a0b2c4d6e",
+    "name": "rent",
+    "amount": 45000,
+    "createdAt": "2026-04-05T14:20:00+05:00",
+    "updatedAt": null
+  },
+  {
+    "id": "d0e2f4a6-b8c0-4d2e-4f6a-7a9b1c3d5e7f",
+    "name": "utilities",
+    "amount": 8000,
+    "createdAt": "2026-04-01T09:15:00+05:00",
+    "updatedAt": null
+  },
+  {
+    "id": "e1f3a5b7-c9d1-4e3f-5a7b-8a0b2c4d6e8f",
+    "name": "internet",
+    "amount": 5000,
+    "createdAt": "2026-04-02T10:00:00+05:00",
+    "updatedAt": null
+  },
+  {
+    "id": "f2a4b6c8-d0e2-4f4a-6b8c-9a1b3c5d7e9f",
+    "name": "phone bill",
+    "amount": 3000,
+    "createdAt": "2026-04-03T11:30:00+05:00",
+    "updatedAt": null
+  }
+]
