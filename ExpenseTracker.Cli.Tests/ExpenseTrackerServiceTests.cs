@@ -316,4 +316,58 @@ public class ExpenseTrackerServiceTests : IDisposable
         Assert.NotNull(summary);
         Assert.False(summary.IsOverBudget);
     }
+
+    [Fact]
+    public void ShouldExportExpensesToCsv()
+    {
+        // Arrange
+        var testCsvFilePath = Path.Combine(Path.GetTempPath(), "test-expenses.csv");
+        _expenseTrackerService.AddExpense("Coffee", 2.5m, "Beverage");
+        _expenseTrackerService.AddExpense("Tea", 1.5m, "Beverage");
+
+        // Act
+        _expenseTrackerService.ExportToCsv(testCsvFilePath);
+
+        // Assert
+        Assert.True(File.Exists(testCsvFilePath));
+        var csvLines = File.ReadAllLines(testCsvFilePath);
+        Assert.Equal(3, csvLines.Length);
+        Assert.Contains("Name,Amount,Category", csvLines[0]);
+        Assert.Contains("Coffee", csvLines[1]);
+        Assert.Contains("Tea", csvLines[2]);
+
+        // Clean up
+        File.Delete(testCsvFilePath);
+    }
+
+    [Fact]
+    public void ShouldExportExpensesForSpecificMonth()
+    {
+        // Arrange
+        var testCsvFilePath = Path.Combine(Path.GetTempPath(), "test-expenses.csv");
+        var jan2024 = new DateTime(2024, 1, 1);
+        var feb2024 = new DateTime(2024, 2, 1);
+
+        var expense1 = new Expense { Name = "Coffee", Amount = 2.5m, Category = "Beverage", CreatedAt = jan2024 };
+        var expense2 = new Expense { Name = "Tea", Amount = 1.5m, Category = "Beverage", CreatedAt = feb2024 };
+
+        File.WriteAllText(_testExpensesFilePath, JsonSerializer.Serialize(new List<Expense> { expense1, expense2 }, new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        }));
+
+        var service = new ExpenseTrackerService(_testExpensesFilePath);
+
+        // Act
+        service.ExportToCsv(testCsvFilePath, 1, 2024);
+
+        // Assert
+        Assert.True(File.Exists(testCsvFilePath));
+        var csvLines = File.ReadAllLines(testCsvFilePath);
+        Assert.Equal(2, csvLines.Length);
+        Assert.Contains("Coffee", csvLines[1]);
+
+        // Clean up
+        File.Delete(testCsvFilePath);
+    }
 }

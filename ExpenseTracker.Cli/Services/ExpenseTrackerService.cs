@@ -132,6 +132,29 @@ public class ExpenseTrackerService
         return budget;
     }
 
+    public void ExportToCsv(string filePath, int? month = null, int? year = null)
+    {
+        var expenses = _expenses.AsEnumerable();
+
+        if (month.HasValue && year.HasValue)
+        {
+            expenses = expenses.Where(e => e.CreatedAt.Month == month && e.CreatedAt.Year == year).ToList();
+        }
+        else if (month.HasValue)
+        {
+            expenses = expenses.Where(e => e.CreatedAt.Month == month).ToList();
+        }
+
+        using var writer = new StreamWriter(filePath);
+
+        writer.WriteLine("ID,Name,Amount,Category,CreatedAt,UpdatedAt");
+
+        foreach (var expense in expenses)
+        {
+            writer.WriteLine($"{expense.Id},{expense.Name},{expense.Amount},{expense.Category},{expense.CreatedAt},{expense.UpdatedAt}");
+        }
+    }
+
     private void LoadExpenses()
     {
         if (!File.Exists(_expensesFilePath))

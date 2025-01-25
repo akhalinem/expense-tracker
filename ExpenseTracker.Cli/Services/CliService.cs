@@ -21,8 +21,8 @@ public class CliService
         rootCommand.AddCommand(BuildUpdateCommand());
         rootCommand.AddCommand(BuildDeleteCommand());
         rootCommand.AddCommand(BuildSummaryCommand());
-
         rootCommand.AddCommand(BuildBudgetCommand());
+        rootCommand.AddCommand(BuildExportCommand());
 
         return rootCommand;
     }
@@ -37,6 +37,7 @@ public class CliService
         addCommand.AddOption(addNameOption);
         addCommand.AddOption(addAmountOption);
         addCommand.AddOption(addCategoryOption);
+
         addCommand.SetHandler((name, amount, category) =>
         {
             var expense = _expenseTrackerService.AddExpense(name, amount, category);
@@ -197,6 +198,34 @@ public class CliService
         }, monthOption, yearOption, amountOption);
 
         return budgetCommand;
+    }
+
+    private Command BuildExportCommand()
+    {
+        var exportCommand = new Command("export", "Export expenses to a file");
+        var pathOption = new Option<string>("--path", "Path to export file") { IsRequired = true };
+        var monthOption = new Option<int?>("--month", "Month number (1-12)");
+        var yearOption = new Option<int?>("--year", "Year");
+
+        exportCommand.AddOption(pathOption);
+        exportCommand.AddOption(monthOption);
+        exportCommand.AddOption(yearOption);
+
+        exportCommand.SetHandler((filePath, month, year) =>
+        {
+            try
+            {
+                _expenseTrackerService.ExportToCsv(filePath, month, year);
+                var period = GetPeriod(month, year);
+                Console.WriteLine($"Expenses exported to {filePath} for {period}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error exporting expenses: {ex.Message}");
+            }
+        }, pathOption, monthOption, yearOption);
+
+        return exportCommand;
     }
 
     private static string GetPeriod(int? month, int? year)
