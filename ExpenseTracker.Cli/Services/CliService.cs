@@ -75,8 +75,8 @@ public class CliService
     {
         var updateCommand = new Command("update", "Update an expense");
         var updateIdOption = new Option<Guid>("--id", "ID of the expense") { IsRequired = true };
-        var updateNameOption = new Option<string>("--name", "New name of the expense") { IsRequired = false };
-        var updateAmountOption = new Option<decimal>("--amount", "New amount of the expense") { IsRequired = false };
+        var updateNameOption = new Option<string>("--name", "New name of the expense") { IsRequired = true };
+        var updateAmountOption = new Option<decimal>("--amount", "New amount of the expense") { IsRequired = true };
 
         updateCommand.AddOption(updateIdOption);
         updateCommand.AddOption(updateNameOption);
