@@ -1,5 +1,8 @@
 ﻿using System.CommandLine;
+using ExpenseTracker.Cli.Interfaces;
+using ExpenseTracker.Cli.Models;
 using ExpenseTracker.Cli.Services;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace ExpenseTracker.Cli;
 
@@ -7,8 +10,8 @@ class Program
 {
     static async Task Main(string[] args)
     {
-        var expenseTrackerService = new ExpenseTrackerService();
-        var cliService = new CliService(expenseTrackerService);
+        var services = ConfigureServices();
+        var cliService = services.GetRequiredService<CliService>();
         var rootCommand = cliService.BuildCommandLine();
 
         if (args.Length == 0)
@@ -18,6 +21,19 @@ class Program
         }
 
         await rootCommand.InvokeAsync(args);
+    }
+
+    private static IServiceProvider ConfigureServices()
+    {
+        return new ServiceCollection()
+            .AddSingleton<IStorageService<Expense>>(x =>
+                new JsonStorageService<Expense>("expenses.json"))
+            .AddSingleton<IStorageService<Budget>>(x =>
+                new JsonStorageService<Budget>("budgets.json"))
+            .AddSingleton<IExpenseService, ExpenseService>()
+            .AddSingleton<IBudgetService, BudgetService>()
+            .AddSingleton<CliService>()
+            .BuildServiceProvider();
     }
 
     private static async Task RunInteractiveMode(RootCommand rootCommand)

@@ -1,9 +1,9 @@
 namespace ExpenseTracker.Cli.Models;
 
-public class Summary
+public record Summary(
+    decimal Total,
+    decimal? BudgetAmount = null)
 {
-    public decimal Total { get; set; }
-    public decimal? Budget { get; set; }
-    public bool IsOverBudget => Budget.HasValue && Total > Budget;
-    public decimal Remaining => Budget.HasValue ? Budget.Value - Total : Total;
+    public bool IsOverBudget => BudgetAmount.HasValue && Total > BudgetAmount;
+    public decimal? Remaining => BudgetAmount.HasValue ? BudgetAmount - Total : null;
 }

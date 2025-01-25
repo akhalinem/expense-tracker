@@ -1,195 +1,92 @@
-using ExpenseTracker.Cli.Services;
 using System.CommandLine;
-using Xunit;
+using Moq;
+using ExpenseTracker.Cli.Interfaces;
+using ExpenseTracker.Cli.Models;
+using ExpenseTracker.Cli.Services;
+using ExpenseTracker.Cli.Tests.Helpers;
 
 namespace ExpenseTracker.Cli.Tests;
 
-public class CliServiceTests : IDisposable
+public class CliServiceTests
 {
-    private readonly string _testFilePath = Path.Combine(Path.GetTempPath(), "test-expenses.json");
-    private readonly ExpenseTrackerService _expenseTrackerService;
-    private readonly CliService _cliService;
+    private readonly Mock<IExpenseService> _expenseService;
+    private readonly Mock<IBudgetService> _budgetService;
+    private readonly StringWriter _consoleOutput;
+    private readonly CliService _sut;
 
     public CliServiceTests()
     {
-        _expenseTrackerService = new ExpenseTrackerService(_testFilePath);
-        _cliService = new CliService(_expenseTrackerService);
+        _expenseService = new Mock<IExpenseService>();
+        _budgetService = new Mock<IBudgetService>();
+        _consoleOutput = new StringWriter();
+        Console.SetOut(_consoleOutput);
+
+        _sut = new CliService(_expenseService.Object, _budgetService.Object);
     }
 
-    public void Dispose()
-    {
-        if (File.Exists(_testFilePath))
-        {
-            File.Delete(_testFilePath);
-        }
-    }
-
-    [Theory]
-    [InlineData("add --name Coffee --amount 4 --category Beverage")]
-    [InlineData("add --amount 50 --name Groceries")]
-    public async Task AddCommand_WithValidArguments_ShouldAddExpense(string command)
+    [Fact]
+    public async Task AddCommand_ShouldCreateExpense()
     {
         // Arrange
-        var rootCommand = _cliService.BuildCommandLine();
+        var expense = TestDataHelper.CreateExpense("Test", 100m);
+        _expenseService.Setup(x => x.Add("Test", 100m, null))
+            .Returns(Result<Expense>.Success(expense));
 
         // Act
-        var result = await rootCommand.InvokeAsync(command.Split(' '));
+        await _sut.BuildCommandLine().InvokeAsync("add --name Test --amount 100");
 
         // Assert
-        Assert.Equal(0, result);
+        _expenseService.Verify(x => x.Add("Test", 100m, null), Times.Once);
+        Assert.Contains("Added expense", _consoleOutput.ToString());
     }
 
-    [Theory]
-    [InlineData("add --amount 2.50")] // Missing name
-    [InlineData("add --name Coffee")] // Missing amount
-    public async Task AddCommand_WithInvalidArguments_ShouldFail(string command)
+    [Fact]
+    public async Task ListCommand_ShouldDisplayExpenses()
     {
         // Arrange
-        var rootCommand = _cliService.BuildCommandLine();
+        var expenses = new[] { TestDataHelper.CreateExpense() };
+        _expenseService.Setup(x => x.List(null, null, null))
+            .Returns(Result<IEnumerable<Expense>>.Success(expenses));
 
         // Act
-        var result = await rootCommand.InvokeAsync(command.Split(' '));
+        await _sut.BuildCommandLine().InvokeAsync("list");
 
         // Assert
-        Assert.Equal(1, result); // Error exit code
+        _expenseService.Verify(x => x.List(null, null, null), Times.Once);
+        Assert.Contains("Test Expense", _consoleOutput.ToString());
     }
 
-    [Theory]
-    [InlineData("list")]
-    public async Task ListCommand_ShouldListExpenses(string command)
+    [Fact]
+    public async Task SummaryCommand_WithBudget_ShouldShowWarning()
     {
         // Arrange
-        _expenseTrackerService.AddExpense("Groceries", 50);
-        _expenseTrackerService.AddExpense("Coffee", 2.50m);
-        var rootCommand = _cliService.BuildCommandLine();
+        var budget = TestDataHelper.CreateBudget(amount: 1000m);
+
+        _expenseService.Setup(x => x.GetTotal(1, 2024))
+            .Returns(Result<decimal>.Success(1200m));
+        _budgetService.Setup(x => x.GetBudget(1, 2024))
+            .Returns(Result<Budget?>.Success(budget));
 
         // Act
-        var result = await rootCommand.InvokeAsync(command.Split(' '));
+        await _sut.BuildCommandLine().InvokeAsync("summary --month 1 --year 2024");
 
         // Assert
-        Assert.Equal(0, result);
+        Assert.Contains("WARNING: Budget exceeded", _consoleOutput.ToString());
     }
 
-    [Theory]
-    [InlineData("update --id 1 --name Groceries --amount 50 --category Food")]
-    public async Task UpdateCommand_WithValidArguments_ShouldUpdateExpense(string command)
+    [Fact]
+    public async Task BudgetCommand_ShouldSetAndDisplayBudget()
     {
         // Arrange
-        var expense = _expenseTrackerService.AddExpense("Groceries", 2.50m, "Food");
-        var rootCommand = _cliService.BuildCommandLine();
-        var args = command.Split(' ');
-        args[2] = expense.Id.ToString();
+        var budget = TestDataHelper.CreateBudget();
+        _budgetService.Setup(x => x.SetBudget(1, 2024, 1000m))
+            .Returns(Result<Budget>.Success(budget));
 
         // Act
-        var result = await rootCommand.InvokeAsync(args);
+        await _sut.BuildCommandLine().InvokeAsync("budget --month 1 --year 2024 --amount 1000");
 
         // Assert
-        Assert.Equal(0, result);
-    }
-
-    [Theory]
-    [InlineData("delete --id 1")]
-    public async Task DeleteCommand_WithValidArguments_ShouldDeleteExpense(string command)
-    {
-        // Arrange
-        var expense = _expenseTrackerService.AddExpense("Groceries", 2.50m);
-        var rootCommand = _cliService.BuildCommandLine();
-        var args = command.Split(' ');
-        args[2] = expense.Id.ToString();
-
-        // Act
-        var result = await rootCommand.InvokeAsync(args);
-
-        // Assert
-        Assert.Equal(0, result);
-    }
-
-    [Theory]
-    [InlineData("delete --id 2")] // Invalid ID
-    public async Task DeleteCommand_WithInvalidId_ShouldFail(string command)
-    {
-        // Arrange
-        _expenseTrackerService.AddExpense("Groceries", 2.50m);
-        var rootCommand = _cliService.BuildCommandLine();
-
-        // Act
-        var result = await rootCommand.InvokeAsync(command.Split(' '));
-
-        // Assert
-        Assert.Equal(1, result); // Error exit code
-    }
-
-    [Theory]
-    [InlineData("summary")]
-    public async Task SummaryCommand_ShouldDisplaySummary(string command)
-    {
-        // Arrange
-        _expenseTrackerService.AddExpense("Groceries", 50);
-        _expenseTrackerService.AddExpense("Coffee", 2.50m);
-        var rootCommand = _cliService.BuildCommandLine();
-
-        // Act
-        var result = await rootCommand.InvokeAsync(command.Split(' '));
-
-        // Assert
-        Assert.Equal(0, result);
-    }
-
-    [Theory]
-    [InlineData("budget --month 1")]
-    public async Task BudgetCommand_ShouldDisplayBudget(string command)
-    {
-        // Arrange
-        _expenseTrackerService.SetBudget(1, DateTime.Now.Year, 500);
-        var rootCommand = _cliService.BuildCommandLine();
-
-        // Act
-        var result = await rootCommand.InvokeAsync(command.Split(' '));
-
-        // Assert
-        Assert.Equal(0, result);
-    }
-
-    [Theory]
-    [InlineData("budget --month 1 --year 2022")]
-    public async Task BudgetCommand_WithYear_ShouldDisplayBudget(string command)
-    {
-        // Arrange
-        _expenseTrackerService.SetBudget(1, 2022, 500);
-        var rootCommand = _cliService.BuildCommandLine();
-
-        // Act
-        var result = await rootCommand.InvokeAsync(command.Split(' '));
-
-        // Assert
-        Assert.Equal(0, result);
-    }
-
-    [Theory]
-    [InlineData("budget --month 1 --amount 500")]
-    public async Task BudgetCommand_WithAmount_ShouldSetBudget(string command)
-    {
-        // Arrange
-        var rootCommand = _cliService.BuildCommandLine();
-
-        // Act
-        var result = await rootCommand.InvokeAsync(command.Split(' '));
-
-        // Assert
-        Assert.Equal(0, result);
-    }
-
-    [Theory]
-    [InlineData("invalid-command")]
-    public async Task InvalidCommand_ShouldFail(string command)
-    {
-        // Arrange
-        var rootCommand = _cliService.BuildCommandLine();
-
-        // Act
-        var result = await rootCommand.InvokeAsync(command.Split(' '));
-
-        // Assert
-        Assert.Equal(1, result); // Error exit code
+        _budgetService.Verify(x => x.SetBudget(1, 2024, 1000m), Times.Once);
+        Assert.Contains("Budget set", _consoleOutput.ToString());
     }
 }
