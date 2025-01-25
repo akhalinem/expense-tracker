@@ -48,7 +48,10 @@ public class ExpenseService : IExpenseService
 
     public Result<decimal> GetTotal(int? month = null, int? year = null)
     {
-        var expenses = List(month, year);
+        var currentMonth = month ?? DateTime.Now.Month;
+        var currentYear = year ?? DateTime.Now.Year;
+
+        var expenses = List(currentMonth, currentYear);
         if (!expenses.IsSuccess)
             return Result<decimal>.Failure(expenses.Error!);
 

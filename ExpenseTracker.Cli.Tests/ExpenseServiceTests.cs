@@ -32,24 +32,44 @@ public class ExpenseServiceTests : IDisposable
     }
 
     [Fact]
-    public void List_WithMonthAndYear_ShouldFilterExpenses()
+    public void GetTotal_WithoutParameters_ShouldReturnCurrentMonthTotal()
     {
         // Arrange
-        _storage.Save(
-        [
-            new Expense { Name = "Jan Expense", Amount = 100m, CreatedAt = new DateTime(2024, 1, 1) },
-            new Expense { Name = "Feb Expense", Amount = 200m, CreatedAt = new DateTime(2024, 2, 1) }
+        var now = DateTime.Now;
+        var lastMonth = now.AddMonths(-1);
+        _storage.Save([
+           new Expense { Name = "Current Month Expense", Amount = 100m, CreatedAt = now },
+            new Expense { Name = "Last Month Expense", Amount = 200m, CreatedAt = lastMonth }
         ]);
         var expenseService = new ExpenseService(_storage);
 
         // Act
-        var result = expenseService.List(1, 2024);
+        var result = expenseService.GetTotal();
 
         // Assert
         Assert.True(result.IsSuccess);
-        var expenses = result.Value!.ToList();
-        Assert.Single(expenses);
-        Assert.Equal("Jan Expense", expenses[0].Name);
+        Assert.Equal(100m, result.Value);
+    }
+
+    [Fact]
+    public void GetTotal_WithSpecificMonthAndYear_ShouldReturnFilteredTotal()
+    {
+        // Arrange
+        var date2024Jan = new DateTime(2024, 1, 1);
+        var date2024Feb = new DateTime(2024, 2, 1);
+
+        _storage.Save([
+            new Expense { Name = "Jan Expense", Amount = 100m, CreatedAt = date2024Jan },
+            new Expense { Name = "Feb Expense", Amount = 200m, CreatedAt = date2024Feb }
+        ]);
+        var expenseService = new ExpenseService(_storage);
+
+        // Act
+        var result = expenseService.GetTotal(1, 2024);
+
+        // Assert 
+        Assert.True(result.IsSuccess);
+        Assert.Equal(100m, result.Value);
     }
 
     [Fact]
