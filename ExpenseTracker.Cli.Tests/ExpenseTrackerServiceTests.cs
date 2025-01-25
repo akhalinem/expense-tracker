@@ -46,6 +46,26 @@ public class ExpenseTrackerServiceTests : IDisposable
     }
 
     [Fact]
+    public void ShouldSaveExpensesToFile()
+    {
+        // Arrange
+        var expense = new Expense { Name = "Coffee", Amount = 2.5m, Category = "Beverage" };
+
+        // Act
+        _expenseTrackerService.AddExpense(expense.Name, expense.Amount, expense.Category);
+
+        // Assert
+        var savedExpenses = JsonSerializer.Deserialize<List<Expense>>(File.ReadAllText(_testFilePath), new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        });
+        Assert.Single(savedExpenses);
+        Assert.Equal(expense.Name, savedExpenses.First().Name);
+        Assert.Equal(expense.Amount, savedExpenses.First().Amount);
+        Assert.Equal(expense.Category, savedExpenses.First().Category);
+    }
+
+    [Fact]
     public void ShouldAddExpense()
     {
         // Act
