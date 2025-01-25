@@ -21,6 +21,11 @@ public class ExpenseTrackerServiceTests : IDisposable
         {
             File.Delete(_testExpensesFilePath);
         }
+
+        if (File.Exists(_testBudgetFilePath))
+        {
+            File.Delete(_testBudgetFilePath);
+        }
     }
 
     [Fact]
