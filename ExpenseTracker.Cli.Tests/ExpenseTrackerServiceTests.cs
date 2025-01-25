@@ -1,4 +1,6 @@
 ﻿using System.Text.Json;
+using ExpenseTracker.Cli.Models;
+using ExpenseTracker.Cli.Services;
 
 namespace ExpenseTracker.Cli.Tests;
 

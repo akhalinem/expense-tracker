@@ -1,5 +1,4 @@
-
-namespace ExpenseTracker.Cli;
+namespace ExpenseTracker.Cli.Models;
 
 public class Summary
 {

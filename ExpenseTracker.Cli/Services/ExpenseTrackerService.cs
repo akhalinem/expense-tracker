@@ -1,6 +1,7 @@
 using System.Text.Json;
+using ExpenseTracker.Cli.Models;
 
-namespace ExpenseTracker.Cli;
+namespace ExpenseTracker.Cli.Services;
 
 public class ExpenseTrackerService
 {

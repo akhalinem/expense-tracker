@@ -1,4 +1,5 @@
-namespace ExpenseTracker.Cli;
+namespace ExpenseTracker.Cli.Models;
+
 public class Expense
 {
     public Guid Id { get; set; } = Guid.NewGuid();
