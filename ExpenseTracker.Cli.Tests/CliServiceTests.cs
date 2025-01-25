@@ -1,5 +1,6 @@
 using System.CommandLine;
 using Moq;
+
 using ExpenseTracker.Cli.Interfaces;
 using ExpenseTracker.Cli.Models;
 using ExpenseTracker.Cli.Services;

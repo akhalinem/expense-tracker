@@ -1,5 +1,6 @@
 using System.CommandLine;
 using System.Globalization;
+
 using ExpenseTracker.Cli.Helpers;
 using ExpenseTracker.Cli.Interfaces;
 
