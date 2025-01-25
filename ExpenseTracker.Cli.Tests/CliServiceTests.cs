@@ -25,7 +25,7 @@ public class CliServiceTests : IDisposable
     }
 
     [Theory]
-    [InlineData("add --name Coffee --amount 4")]
+    [InlineData("add --name Coffee --amount 4 --category Beverage")]
     [InlineData("add --amount 50 --name Groceries")]
     public async Task AddCommand_WithValidArguments_ShouldAddExpense(string command)
     {
@@ -71,11 +71,11 @@ public class CliServiceTests : IDisposable
     }
 
     [Theory]
-    [InlineData("update --id 1 --name Groceries --amount 50")]
+    [InlineData("update --id 1 --name Groceries --amount 50 --category Food")]
     public async Task UpdateCommand_WithValidArguments_ShouldUpdateExpense(string command)
     {
         // Arrange
-        var expense = _expenseTrackerService.AddExpense("Groceries", 2.50m);
+        var expense = _expenseTrackerService.AddExpense("Groceries", 2.50m, "Food");
         var rootCommand = _cliService.BuildCommandLine();
         var args = command.Split(' ');
         args[2] = expense.Id.ToString();
@@ -85,24 +85,6 @@ public class CliServiceTests : IDisposable
 
         // Assert
         Assert.Equal(0, result);
-    }
-
-    [Theory]
-    [InlineData("update --id 1 --name Groceries")] // Missing amount
-    [InlineData("update --id 1 --amount 50")] // Missing name
-    public async Task UpdateCommand_WithInvalidArguments_ShouldFail(string command)
-    {
-        // Arrange
-        var expense = _expenseTrackerService.AddExpense("Groceries", 2.50m);
-        var rootCommand = _cliService.BuildCommandLine();
-        var args = command.Split(' ');
-        args[2] = expense.Id.ToString();
-
-        // Act
-        var result = await rootCommand.InvokeAsync(args);
-
-        // Assert
-        Assert.Equal(1, result); // Error exit code
     }
 
     [Theory]

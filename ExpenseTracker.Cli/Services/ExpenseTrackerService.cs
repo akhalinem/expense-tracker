@@ -15,12 +15,13 @@ public class ExpenseTrackerService
         LoadExpenses();
     }
 
-    public Expense AddExpense(string name, decimal amount)
+    public Expense AddExpense(string name, decimal amount, string? category = null)
     {
         var expense = new Expense
         {
             Name = name,
-            Amount = amount
+            Amount = amount,
+            Category = category,
         };
 
         _expenses.Add(expense);
@@ -29,12 +30,14 @@ public class ExpenseTrackerService
         return expense;
     }
 
-    public List<Expense> ListExpenses()
+    public List<Expense> ListExpenses(string? category = null)
     {
-        return _expenses;
+        return string.IsNullOrEmpty(category)
+            ? _expenses
+            : _expenses.Where(e => e.Category == category).ToList();
     }
 
-    public Expense? UpdateExpense(Guid id, string name, decimal amount)
+    public Expense? UpdateExpense(Guid id, string? name, decimal? amount, string? category = null)
     {
         var expense = _expenses.FirstOrDefault(e => e.Id == id);
 
@@ -43,8 +46,9 @@ public class ExpenseTrackerService
             return null;
         }
 
-        expense.Name = name;
-        expense.Amount = amount;
+        expense.Name = name ?? expense.Name;
+        expense.Amount = amount ?? expense.Amount;
+        expense.Category = category ?? expense.Category;
         expense.UpdatedAt = DateTime.Now;
 
         SaveExpenses();

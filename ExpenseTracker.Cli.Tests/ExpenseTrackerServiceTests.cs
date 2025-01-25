@@ -26,7 +26,7 @@ public class ExpenseTrackerServiceTests : IDisposable
     public void ShouldLoadExpensesFromFile()
     {
         // Arrange
-        var expense = new Expense { Name = "Coffee", Amount = 2.5m, };
+        var expense = new Expense { Name = "Coffee", Amount = 2.5m, Category = "Beverage" };
         var expenses = new List<Expense> { expense };
         File.WriteAllText(_testFilePath, JsonSerializer.Serialize(expenses, new JsonSerializerOptions
         {
@@ -42,18 +42,20 @@ public class ExpenseTrackerServiceTests : IDisposable
         Assert.Single(loadedExpenses);
         Assert.Equal(expense.Name, loadedExpenses.First().Name);
         Assert.Equal(expense.Amount, loadedExpenses.First().Amount);
+        Assert.Equal(expense.Category, loadedExpenses.First().Category);
     }
 
     [Fact]
     public void ShouldAddExpense()
     {
         // Act
-        _expenseTrackerService.AddExpense("Coffee", 2.5m);
+        _expenseTrackerService.AddExpense("Coffee", 2.5m, "Beverage");
 
         // Assert
         Assert.Single(_expenseTrackerService.ListExpenses());
         Assert.Equal("Coffee", _expenseTrackerService.ListExpenses().First().Name);
         Assert.Equal(2.5m, _expenseTrackerService.ListExpenses().First().Amount);
+        Assert.Equal("Beverage", _expenseTrackerService.ListExpenses().First().Category);
     }
 
     [Fact]
@@ -63,12 +65,13 @@ public class ExpenseTrackerServiceTests : IDisposable
         var expense = _expenseTrackerService.AddExpense("Coffee", 2.5m);
 
         // Act
-        _expenseTrackerService.UpdateExpense(expense.Id, "Tea", 1.5m);
+        _expenseTrackerService.UpdateExpense(expense.Id, "Tea", 1.5m, "Beverage");
 
         // Assert
         Assert.Single(_expenseTrackerService.ListExpenses());
         Assert.Equal("Tea", _expenseTrackerService.ListExpenses().First().Name);
         Assert.Equal(1.5m, _expenseTrackerService.ListExpenses().First().Amount);
+        Assert.Equal("Beverage", _expenseTrackerService.ListExpenses().First().Category);
     }
 
     [Fact]
@@ -89,6 +92,23 @@ public class ExpenseTrackerServiceTests : IDisposable
 
         // Assert
         Assert.Empty(expenses);
+    }
+
+    [Fact]
+    public void ShouldListExpensesByCategory()
+    {
+        // Arrange
+        _expenseTrackerService.AddExpense("Coffee", 2.5m, "Beverage");
+        _expenseTrackerService.AddExpense("Tea", 1.5m, "Beverage");
+        _expenseTrackerService.AddExpense("Lunch", 10m, "Food");
+
+        // Act
+        var beverages = _expenseTrackerService.ListExpenses("Beverage");
+        var foods = _expenseTrackerService.ListExpenses("Food");
+
+        // Assert
+        Assert.Equal(2, beverages.Count);
+        Assert.Single(foods);
     }
 
     [Fact]

@@ -30,17 +30,19 @@ public class CliService
         var addCommand = new Command("add", "Add a new expense");
         var addNameOption = new Option<string>("--name", "Name of the expense") { IsRequired = true };
         var addAmountOption = new Option<decimal>("--amount", "Amount of the expense") { IsRequired = true };
+        var addCategoryOption = new Option<string>("--category", "Category of the expense");
 
         addCommand.AddOption(addNameOption);
         addCommand.AddOption(addAmountOption);
-        addCommand.SetHandler((name, amount) =>
+        addCommand.AddOption(addCategoryOption);
+        addCommand.SetHandler((name, amount, category) =>
         {
-            var expense = _expenseTrackerService.AddExpense(name, amount);
+            var expense = _expenseTrackerService.AddExpense(name, amount, category);
             if (expense != null)
             {
                 Console.WriteLine($"Added expense: {expense.Name} - {_expenseTrackerService.DisplayAmount(expense.Amount)}");
             }
-        }, addNameOption, addAmountOption);
+        }, addNameOption, addAmountOption, addCategoryOption);
 
         return addCommand;
     }
@@ -52,9 +54,9 @@ public class CliService
         listCommand.SetHandler(() =>
         {
             var expenses = _expenseTrackerService.ListExpenses();
-            var format = "{0,-40} {1,-15} {2,10} {3,25} {4,25}";
-            Console.WriteLine(format, "ID", "Name", "Amount", "Created At", "Updated At");
-            Console.WriteLine(new string('-', 120));
+            var format = "{0,-40} {1,-15} {2,10} {3, 12} {4,25} {5,25}";
+            Console.WriteLine(format, "ID", "Name", "Amount", "Category", "Created At", "Updated At");
+            Console.WriteLine(new string('-', 135));
 
             foreach (var expense in expenses)
             {
@@ -62,6 +64,7 @@ public class CliService
                     expense.Id.ToString(),
                     expense.Name,
                     _expenseTrackerService.DisplayAmount(expense.Amount),
+                    expense.Category,
                     expense.CreatedAt.ToString("MM/dd/yyyy hh:mm:ss tt"),
                     expense.UpdatedAt?.ToString("MM/dd/yyyy hh:mm:ss tt") ?? string.Empty
                 );
@@ -75,15 +78,17 @@ public class CliService
     {
         var updateCommand = new Command("update", "Update an expense");
         var updateIdOption = new Option<Guid>("--id", "ID of the expense") { IsRequired = true };
-        var updateNameOption = new Option<string>("--name", "New name of the expense") { IsRequired = true };
-        var updateAmountOption = new Option<decimal>("--amount", "New amount of the expense") { IsRequired = true };
+        var updateNameOption = new Option<string>("--name", "New name of the expense") { IsRequired = false };
+        var updateAmountOption = new Option<decimal>("--amount", "New amount of the expense") { IsRequired = false };
+        var updateCategoryOption = new Option<string>("--category", "New category of the expense") { IsRequired = false };
 
         updateCommand.AddOption(updateIdOption);
         updateCommand.AddOption(updateNameOption);
         updateCommand.AddOption(updateAmountOption);
-        updateCommand.SetHandler((id, name, amount) =>
+        updateCommand.AddOption(updateCategoryOption);
+        updateCommand.SetHandler((id, name, amount, category) =>
         {
-            var expense = _expenseTrackerService.UpdateExpense(id, name, amount);
+            var expense = _expenseTrackerService.UpdateExpense(id, name, amount, category);
             if (expense == null)
             {
                 Console.WriteLine("Expense not found");
@@ -92,7 +97,7 @@ public class CliService
             {
                 Console.WriteLine($"Updated expense: {expense.Name} - {_expenseTrackerService.DisplayAmount(expense.Amount)}");
             }
-        }, updateIdOption, updateNameOption, updateAmountOption);
+        }, updateIdOption, updateNameOption, updateAmountOption, updateCategoryOption);
 
         return updateCommand;
     }
