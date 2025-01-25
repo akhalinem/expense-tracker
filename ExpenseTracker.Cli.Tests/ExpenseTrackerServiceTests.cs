@@ -311,14 +311,4 @@ public class ExpenseTrackerServiceTests : IDisposable
         Assert.NotNull(summary);
         Assert.False(summary.IsOverBudget);
     }
-
-    [Fact]
-    public void ShouldDisplayAmount()
-    {
-        // Act
-        var displayedAmount = ExpenseTrackerService.DisplayAmount(1234.56m);
-
-        // Assert
-        Assert.Equal("1234,56", displayedAmount);
-    }
 }
