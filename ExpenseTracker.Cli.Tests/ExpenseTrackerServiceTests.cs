@@ -6,19 +6,20 @@ namespace ExpenseTracker.Cli.Tests;
 
 public class ExpenseTrackerServiceTests : IDisposable
 {
-    private readonly string _testFilePath = Path.Combine(Path.GetTempPath(), "test-expenses.json");
+    private readonly string _testExpensesFilePath = Path.Combine(Path.GetTempPath(), "test-expenses.json");
+    private readonly string _testBudgetFilePath = Path.Combine(Path.GetTempPath(), "test-budgets.json");
     private readonly ExpenseTrackerService _expenseTrackerService;
 
     public ExpenseTrackerServiceTests()
     {
-        _expenseTrackerService = new ExpenseTrackerService(_testFilePath);
+        _expenseTrackerService = new ExpenseTrackerService(_testExpensesFilePath, _testBudgetFilePath);
     }
 
     public void Dispose()
     {
-        if (File.Exists(_testFilePath))
+        if (File.Exists(_testExpensesFilePath))
         {
-            File.Delete(_testFilePath);
+            File.Delete(_testExpensesFilePath);
         }
     }
 
@@ -28,12 +29,12 @@ public class ExpenseTrackerServiceTests : IDisposable
         // Arrange
         var expense = new Expense { Name = "Coffee", Amount = 2.5m, Category = "Beverage" };
         var expenses = new List<Expense> { expense };
-        File.WriteAllText(_testFilePath, JsonSerializer.Serialize(expenses, new JsonSerializerOptions
+        File.WriteAllText(_testExpensesFilePath, JsonSerializer.Serialize(expenses, new JsonSerializerOptions
         {
             WriteIndented = true,
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         }));
-        var expenseTrackerService = new ExpenseTrackerService(_testFilePath);
+        var expenseTrackerService = new ExpenseTrackerService(_testExpensesFilePath);
 
         // Act
         var loadedExpenses = expenseTrackerService.ListExpenses();
@@ -46,6 +47,30 @@ public class ExpenseTrackerServiceTests : IDisposable
     }
 
     [Fact]
+    public void ShouldLoadBudgetsFromFile()
+    {
+        // Arrange
+        var budgets = new List<Budget> {
+            new() { Month = 1, Year = 2022, Amount = 100m },
+        };
+        File.WriteAllText(_testBudgetFilePath, JsonSerializer.Serialize(budgets, new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        }));
+        var expenseTrackerService = new ExpenseTrackerService(_testExpensesFilePath, _testBudgetFilePath);
+
+        // Act
+        var budget = expenseTrackerService.GetBudget(1, 2022);
+
+        // Assert
+        Assert.NotNull(budget);
+        Assert.Equal(1, budget.Month);
+        Assert.Equal(2022, budget.Year);
+        Assert.Equal(100m, budget.Amount);
+    }
+
+    [Fact]
     public void ShouldSaveExpensesToFile()
     {
         // Arrange
@@ -55,7 +80,7 @@ public class ExpenseTrackerServiceTests : IDisposable
         _expenseTrackerService.AddExpense(expense.Name, expense.Amount, expense.Category);
 
         // Assert
-        var savedExpenses = JsonSerializer.Deserialize<List<Expense>>(File.ReadAllText(_testFilePath), new JsonSerializerOptions
+        var savedExpenses = JsonSerializer.Deserialize<List<Expense>>(File.ReadAllText(_testExpensesFilePath), new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         });
@@ -63,6 +88,27 @@ public class ExpenseTrackerServiceTests : IDisposable
         Assert.Equal(expense.Name, savedExpenses.First().Name);
         Assert.Equal(expense.Amount, savedExpenses.First().Amount);
         Assert.Equal(expense.Category, savedExpenses.First().Category);
+    }
+
+    [Fact]
+    public void ShouldSaveBudgetsToFile()
+    {
+        // Arrange
+        var budget = new Budget { Month = 1, Year = 2022, Amount = 100m };
+
+        // Act
+        _expenseTrackerService.SetBudget(budget.Month, budget.Year, budget.Amount.Value);
+
+        // Assert
+        var savedBudgets = JsonSerializer.Deserialize<List<Budget>>(File.ReadAllText(_testBudgetFilePath), new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        });
+        Assert.NotNull(savedBudgets);
+        Assert.Single(savedBudgets);
+        Assert.Equal(budget.Month, savedBudgets.First().Month);
+        Assert.Equal(budget.Year, savedBudgets.First().Year);
+        Assert.Equal(budget.Amount, savedBudgets.First().Amount);
     }
 
     [Fact]
@@ -191,12 +237,12 @@ public class ExpenseTrackerServiceTests : IDisposable
         var expense2 = new Expense { Name = "Tea", Amount = 2.5m, CreatedAt = new DateTime(DateTime.Now.Year, 1, 2) };
         var expense3 = new Expense { Name = "Juice", Amount = 3.5m, CreatedAt = new DateTime(DateTime.Now.Year + 1, 1, 1) };
         var expenses = new List<Expense> { expense1, expense2, expense3 };
-        File.WriteAllText(_testFilePath, JsonSerializer.Serialize(expenses, new JsonSerializerOptions
+        File.WriteAllText(_testExpensesFilePath, JsonSerializer.Serialize(expenses, new JsonSerializerOptions
         {
             WriteIndented = true,
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         }));
-        var expenseTrackerService = new ExpenseTrackerService(_testFilePath);
+        var expenseTrackerService = new ExpenseTrackerService(_testExpensesFilePath);
 
         // Act
         var currentJanSummary = expenseTrackerService.GetSummary(1, DateTime.Now.Year);
@@ -205,5 +251,74 @@ public class ExpenseTrackerServiceTests : IDisposable
         // Assert
         Assert.Equal(1.5m + 2.5m, currentJanSummary.Total);
         Assert.Equal(3.5m, nextJanSummary.Total);
+    }
+
+    [Fact]
+    public void ShouldSummaryDisplayBudget()
+    {
+        // Arrange
+        _expenseTrackerService.SetBudget(DateTime.Now.Month, DateTime.Now.Year, 100m);
+
+        // Act
+        var summary = _expenseTrackerService.GetSummary(DateTime.Now.Month, DateTime.Now.Year);
+
+        // Assert
+        Assert.Equal(100m, summary.Budget);
+    }
+
+    [Fact]
+    public void ShouldUpdateExistingBudget()
+    {
+        // Arrange
+        var initialBudget = _expenseTrackerService.SetBudget(1, 2024, 1000m);
+
+        // Act
+        var updatedBudget = _expenseTrackerService.SetBudget(1, 2024, 1500m);
+
+        // Assert
+        Assert.NotNull(updatedBudget);
+        Assert.Equal(1500m, updatedBudget.Amount);
+        Assert.Equal(initialBudget.Month, updatedBudget.Month);
+        Assert.Equal(initialBudget.Year, updatedBudget.Year);
+    }
+
+    [Fact]
+    public void ShouldDetectBudgetOverspending()
+    {
+        // Arrange
+        _expenseTrackerService.SetBudget(DateTime.Now.Month, DateTime.Now.Year, 100m);
+        _expenseTrackerService.AddExpense("Coffee", 150m);
+
+        // Act
+        var summary = _expenseTrackerService.GetSummary(DateTime.Now.Month, DateTime.Now.Year);
+
+        // Assert
+        Assert.NotNull(summary.Budget);
+        Assert.True(summary.IsOverBudget);
+    }
+
+    [Fact]
+    public void ShouldNotReportOverspendingWhenUnderBudget()
+    {
+        // Arrange
+        _expenseTrackerService.SetBudget(DateTime.Now.Month, DateTime.Now.Year, 100m);
+        _expenseTrackerService.AddExpense("Coffee", 50m);
+
+        // Act
+        var summary = _expenseTrackerService.GetSummary(DateTime.Now.Month, DateTime.Now.Year);
+
+        // Assert
+        Assert.NotNull(summary);
+        Assert.False(summary.IsOverBudget);
+    }
+
+    [Fact]
+    public void ShouldDisplayAmount()
+    {
+        // Act
+        var displayedAmount = ExpenseTrackerService.DisplayAmount(1234.56m);
+
+        // Assert
+        Assert.Equal("1234,56", displayedAmount);
     }
 }

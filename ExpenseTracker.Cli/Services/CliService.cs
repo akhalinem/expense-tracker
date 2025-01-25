@@ -22,6 +22,8 @@ public class CliService
         rootCommand.AddCommand(BuildDeleteCommand());
         rootCommand.AddCommand(BuildSummaryCommand());
 
+        rootCommand.AddCommand(BuildBudgetCommand());
+
         return rootCommand;
     }
 
@@ -40,7 +42,7 @@ public class CliService
             var expense = _expenseTrackerService.AddExpense(name, amount, category);
             if (expense != null)
             {
-                Console.WriteLine($"Added expense: {expense.Name} - {_expenseTrackerService.DisplayAmount(expense.Amount)}");
+                Console.WriteLine($"Added expense: {expense.Name} - {ExpenseTrackerService.DisplayAmount(expense.Amount)}");
             }
         }, addNameOption, addAmountOption, addCategoryOption);
 
@@ -63,7 +65,7 @@ public class CliService
                 Console.WriteLine(format,
                     expense.Id.ToString(),
                     expense.Name,
-                    _expenseTrackerService.DisplayAmount(expense.Amount),
+                    ExpenseTrackerService.DisplayAmount(expense.Amount),
                     expense.Category,
                     expense.CreatedAt.ToString("MM/dd/yyyy hh:mm:ss tt"),
                     expense.UpdatedAt?.ToString("MM/dd/yyyy hh:mm:ss tt") ?? string.Empty
@@ -95,7 +97,7 @@ public class CliService
             }
             else
             {
-                Console.WriteLine($"Updated expense: {expense.Name} - {_expenseTrackerService.DisplayAmount(expense.Amount)}");
+                Console.WriteLine($"Updated expense: {expense.Name} - {ExpenseTrackerService.DisplayAmount(expense.Amount)}");
             }
         }, updateIdOption, updateNameOption, updateAmountOption, updateCategoryOption);
 
@@ -127,8 +129,10 @@ public class CliService
         var summaryCommand = new Command("summary", "Get expense summary");
         var monthOption = new Option<int?>("--month", "Month number (1-12)");
         var yearOption = new Option<int?>("--year", "Year");
+
         summaryCommand.AddOption(monthOption);
         summaryCommand.AddOption(yearOption);
+
         summaryCommand.SetHandler((month, year) =>
         {
             var summary = (month, year) switch
@@ -139,17 +143,72 @@ public class CliService
                 _ => throw new ArgumentException("Invalid month/year combination")
             };
 
-            var period = (month, year) switch
-            {
-                (null, null) => "Total",
-                (int m, null) => CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(m),
-                (int m, int y) => $"{CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(m)} {y}",
-                _ => "Invalid period"
-            };
+            var period = GetPeriod(month, year);
 
-            Console.WriteLine($"Total expenses for {period}: {_expenseTrackerService.DisplayAmount(summary.Total)}");
+            if (summary.IsOverBudget)
+            {
+                Console.WriteLine($"WARNING: You have exceeded your budget by {ExpenseTrackerService.DisplayAmount(summary.Total - summary.Budget.Value)}!");
+            }
+            else
+            {
+                Console.WriteLine($"{period} Expenses: {ExpenseTrackerService.DisplayAmount(summary.Total)}");
+                if (summary.Budget != null)
+                {
+                    Console.WriteLine($"{period} Budget: {ExpenseTrackerService.DisplayAmount(summary.Budget.Value)}");
+                    Console.WriteLine($"{period} Remaining: {ExpenseTrackerService.DisplayAmount(summary.Remaining)}");
+                }
+            }
         }, monthOption, yearOption);
 
         return summaryCommand;
+    }
+
+    private Command BuildBudgetCommand()
+    {
+        var budgetCommand = new Command("budget", "Set or view monthly budget");
+        var monthOption = new Option<int>("--month", "Month number (1-12)") { IsRequired = true };
+        var yearOption = new Option<int?>("--year", "Year");
+        var amountOption = new Option<decimal?>("--amount", "Budget amount");
+
+        budgetCommand.AddOption(monthOption);
+        budgetCommand.AddOption(yearOption);
+        budgetCommand.AddOption(amountOption);
+
+        budgetCommand.SetHandler((month, year, amount) =>
+        {
+            var activeYear = year ?? DateTime.Now.Year;
+            var budget = _expenseTrackerService.GetBudget(month, activeYear);
+
+            if (amount.HasValue)
+            {
+                budget = _expenseTrackerService.SetBudget(month, activeYear, amount.Value);
+            }
+
+            var period = GetPeriod(month, year);
+
+            if (budget?.Amount == null)
+            {
+                Console.WriteLine($"No budget set for {CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(month)} {year}");
+            }
+            else
+            {
+                Console.WriteLine($"Budget for {CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(month)} {year}: {ExpenseTrackerService.DisplayAmount(budget.Amount.Value)}");
+            }
+        }, monthOption, yearOption, amountOption);
+
+        return budgetCommand;
+    }
+
+    private static string GetPeriod(int? month, int? year)
+    {
+        var period = (month, year) switch
+        {
+            (null, null) => "Total",
+            (int m, null) => $"{CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(m)} {DateTime.Now.Year}",
+            (int m, int y) => $"{CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(m)} {y}",
+            _ => "Invalid period"
+        };
+
+        return period;
     }
 }

@@ -136,6 +136,50 @@ public class CliServiceTests : IDisposable
     }
 
     [Theory]
+    [InlineData("budget --month 1")]
+    public async Task BudgetCommand_ShouldDisplayBudget(string command)
+    {
+        // Arrange
+        _expenseTrackerService.SetBudget(1, DateTime.Now.Year, 500);
+        var rootCommand = _cliService.BuildCommandLine();
+
+        // Act
+        var result = await rootCommand.InvokeAsync(command.Split(' '));
+
+        // Assert
+        Assert.Equal(0, result);
+    }
+
+    [Theory]
+    [InlineData("budget --month 1 --year 2022")]
+    public async Task BudgetCommand_WithYear_ShouldDisplayBudget(string command)
+    {
+        // Arrange
+        _expenseTrackerService.SetBudget(1, 2022, 500);
+        var rootCommand = _cliService.BuildCommandLine();
+
+        // Act
+        var result = await rootCommand.InvokeAsync(command.Split(' '));
+
+        // Assert
+        Assert.Equal(0, result);
+    }
+
+    [Theory]
+    [InlineData("budget --month 1 --amount 500")]
+    public async Task BudgetCommand_WithAmount_ShouldSetBudget(string command)
+    {
+        // Arrange
+        var rootCommand = _cliService.BuildCommandLine();
+
+        // Act
+        var result = await rootCommand.InvokeAsync(command.Split(' '));
+
+        // Assert
+        Assert.Equal(0, result);
+    }
+
+    [Theory]
     [InlineData("invalid-command")]
     public async Task InvalidCommand_ShouldFail(string command)
     {

@@ -6,13 +6,17 @@ namespace ExpenseTracker.Cli.Services;
 public class ExpenseTrackerService
 {
     private readonly List<Expense> _expenses = [];
-    private readonly string _filePath;
+    private readonly List<Budget> _budgets = [];
+    private readonly string _expensesFilePath;
+    private readonly string _budgetFilePath;
 
-    public ExpenseTrackerService(string filePath = "expenses.json")
+    public ExpenseTrackerService(string expensesFilePath = "expenses.json", string budgetFilePath = "budgets.json")
     {
-        _filePath = filePath;
+        _expensesFilePath = expensesFilePath;
+        _budgetFilePath = budgetFilePath;
 
         LoadExpenses();
+        LoadBudgets();
     }
 
     public Expense AddExpense(string name, decimal amount, string? category = null)
@@ -86,24 +90,58 @@ public class ExpenseTrackerService
             .Where(e => e.CreatedAt.Month == month && e.CreatedAt.Year == activeYear)
             .Sum(e => e.Amount);
 
-        return new Summary { Total = total };
+        var budget = GetBudget(month, activeYear);
+
+        return new Summary { Total = total, Budget = budget?.Amount };
     }
 
-    public string DisplayAmount(decimal amount)
+    public static string DisplayAmount(decimal amount)
     {
-        return amount.ToString("#,##0.00");
+        return amount.ToString();
+    }
+
+    public Budget? GetBudget(int month, int? year)
+    {
+        var activeYear = year ?? DateTime.Now.Year;
+
+        return _budgets.FirstOrDefault(b => b.Month == month && b.Year == activeYear);
+    }
+
+    public Budget? SetBudget(int month, int year, decimal amount)
+    {
+        var budget = _budgets.FirstOrDefault(b => b.Month == month && b.Year == year);
+
+        if (budget == null)
+        {
+            budget = new Budget
+            {
+                Month = month,
+                Year = year,
+                Amount = amount
+            };
+
+            _budgets.Add(budget);
+        }
+        else
+        {
+            budget.Amount = amount;
+        }
+
+        SaveBudgets();
+
+        return budget;
     }
 
     private void LoadExpenses()
     {
-        if (!File.Exists(_filePath))
+        if (!File.Exists(_expensesFilePath))
         {
             return;
         }
 
         try
         {
-            var json = File.ReadAllText(_filePath);
+            var json = File.ReadAllText(_expensesFilePath);
             var expenses = JsonSerializer.Deserialize<List<Expense>>(json, new JsonSerializerOptions
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase
@@ -128,6 +166,43 @@ public class ExpenseTrackerService
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         });
 
-        File.WriteAllText(_filePath, json);
+        File.WriteAllText(_expensesFilePath, json);
+    }
+
+    private void LoadBudgets()
+    {
+        if (!File.Exists(_budgetFilePath))
+        {
+            return;
+        }
+
+        try
+        {
+            var json = File.ReadAllText(_budgetFilePath);
+            var budgets = JsonSerializer.Deserialize<List<Budget>>(json, new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
+
+            if (budgets != null)
+            {
+                _budgets.AddRange(budgets);
+            }
+        }
+        catch (JsonException e)
+        {
+            Console.WriteLine($"Error loading budgets: {e.Message}");
+        }
+    }
+
+    private void SaveBudgets()
+    {
+        var json = JsonSerializer.Serialize(_budgets, new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        });
+
+        File.WriteAllText(_budgetFilePath, json);
     }
 }
