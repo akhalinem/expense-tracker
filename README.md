@@ -1,6 +1,6 @@
 # Expense Tracker CLI
 
-[![codecov](https://codecov.io/gh/{username}/expense-tracker/branch/master/graph/badge.svg)](https://codecov.io/gh/{username}/expense-tracker)
+[![codecov](https://codecov.io/gh/akhalinem/expense-tracker/branch/master/graph/badge.svg)](https://codecov.io/gh/akhalinem/expense-tracker)
 
 A command-line expense tracker application built as part of the [Roadmap.sh Projects](https://roadmap.sh/projects/expense-tracker) collection.
 
