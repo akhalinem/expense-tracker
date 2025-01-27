@@ -21,7 +21,7 @@ public class ExpensesController : ControllerBase
     {
         var result = _expenseService.List(month, year, category);
 
-        return result.IsSuccess ? Ok(result) : BadRequest(result.Error);
+        return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
     }
 
     [HttpPost]
@@ -35,20 +35,20 @@ public class ExpensesController : ControllerBase
         };
 
         var result = _expenseService.Add(expense.Name, expense.Amount, expense.Category);
-        return result.IsSuccess ? Ok(result) : BadRequest(result.Error);
+        return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
     }
 
     [HttpDelete("{id:guid}")]
     public IActionResult DeleteExpense(Guid id)
     {
         var result = _expenseService.Delete(id);
-        return result.IsSuccess ? Ok(result) : BadRequest(result.Error);
+        return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
     }
 
     [HttpPut("{id:guid}")]
     public IActionResult UpdateExpense(Guid id, UpdateExpenseDto dto)
     {
         var result = _expenseService.Update(id, dto.Description, dto.Amount, dto.Category);
-        return result.IsSuccess ? Ok(result) : BadRequest(result.Error);
+        return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
     }
 }
