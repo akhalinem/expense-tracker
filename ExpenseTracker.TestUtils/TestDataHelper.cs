@@ -1,6 +1,6 @@
-using ExpenseTracker.Cli.Models;
+using ExpenseTracker.Core.Models;
 
-namespace ExpenseTracker.Cli.Tests.Helpers;
+namespace ExpenseTracker.TestUtils;
 
 public static class TestDataHelper
 {

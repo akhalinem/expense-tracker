@@ -1,9 +1,9 @@
 using System.Text.Json;
 
-using ExpenseTracker.Cli.Interfaces;
-using ExpenseTracker.Cli.Models;
+using ExpenseTracker.Core.Interfaces;
+using ExpenseTracker.Core.Models;
 
-namespace ExpenseTracker.Cli.Services;
+namespace ExpenseTracker.Core.Services;
 
 public class JsonStorageService<T> : IStorageService<T>
 {

@@ -35,4 +35,4 @@ jobs:
       uses: codecov/codecov-action@v5
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
-        files: ./ExpenseTracker.Cli.Tests/TestResults/*/coverage.cobertura.xml
+        files: ./ExpenseTracker.Cli.Tests/TestResults/*/coverage.cobertura.xml,./ExpenseTracker.Core.Tests/TestResults/*/coverage.cobertura.xml

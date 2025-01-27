@@ -1,8 +1,8 @@
 ﻿using System.CommandLine;
 using Microsoft.Extensions.DependencyInjection;
-
-using ExpenseTracker.Cli.Interfaces;
-using ExpenseTracker.Cli.Models;
+using ExpenseTracker.Core.Interfaces;
+using ExpenseTracker.Core.Models;
+using ExpenseTracker.Core.Services;
 using ExpenseTracker.Cli.Services;
 
 namespace ExpenseTracker.Cli;

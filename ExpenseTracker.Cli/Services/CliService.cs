@@ -1,8 +1,7 @@
 using System.CommandLine;
 using System.Globalization;
-
-using ExpenseTracker.Cli.Helpers;
-using ExpenseTracker.Cli.Interfaces;
+using ExpenseTracker.Core.Helpers;
+using ExpenseTracker.Core.Interfaces;
 
 namespace ExpenseTracker.Cli.Services;
 

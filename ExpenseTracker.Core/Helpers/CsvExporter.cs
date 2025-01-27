@@ -1,6 +1,6 @@
-using ExpenseTracker.Cli.Models;
+using ExpenseTracker.Core.Models;
 
-namespace ExpenseTracker.Cli.Helpers;
+namespace ExpenseTracker.Core.Helpers;
 
 public static class CsvExporter
 {

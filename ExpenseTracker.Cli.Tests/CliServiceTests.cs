@@ -1,10 +1,9 @@
 using System.CommandLine;
 using Moq;
-
-using ExpenseTracker.Cli.Interfaces;
-using ExpenseTracker.Cli.Models;
+using ExpenseTracker.Core.Interfaces;
+using ExpenseTracker.Core.Models;
+using ExpenseTracker.TestUtils;
 using ExpenseTracker.Cli.Services;
-using ExpenseTracker.Cli.Tests.Helpers;
 
 namespace ExpenseTracker.Cli.Tests;
 

@@ -1,4 +1,4 @@
-namespace ExpenseTracker.Cli.Models;
+namespace ExpenseTracker.Core.Models;
 
 public record Summary(
     decimal Total,

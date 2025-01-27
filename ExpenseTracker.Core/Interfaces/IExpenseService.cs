@@ -1,6 +1,6 @@
-using ExpenseTracker.Cli.Models;
+using ExpenseTracker.Core.Models;
 
-namespace ExpenseTracker.Cli.Interfaces;
+namespace ExpenseTracker.Core.Interfaces;
 
 public interface IExpenseService
 {

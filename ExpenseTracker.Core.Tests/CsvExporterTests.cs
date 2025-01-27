@@ -1,8 +1,8 @@
-using ExpenseTracker.Cli.Helpers;
-using ExpenseTracker.Cli.Models;
-using ExpenseTracker.Cli.Tests.Helpers;
+using ExpenseTracker.Core.Helpers;
+using ExpenseTracker.Core.Models;
+using ExpenseTracker.TestUtils;
 
-namespace ExpenseTracker.Cli.Tests;
+namespace ExpenseTracker.Core.Tests;
 
 public class CsvExporterTests
 {

@@ -1,8 +1,8 @@
-using ExpenseTracker.Cli.Models;
-using ExpenseTracker.Cli.Services;
-using ExpenseTracker.Cli.Tests.Helpers;
+using ExpenseTracker.Core.Models;
+using ExpenseTracker.Core.Services;
+using ExpenseTracker.TestUtils;
 
-namespace ExpenseTracker.Cli.Tests;
+namespace ExpenseTracker.Core.Tests;
 
 public class JsonStorageServiceTests : IDisposable
 {

@@ -1,8 +1,8 @@
-using ExpenseTracker.Cli.Interfaces;
-using ExpenseTracker.Cli.Models;
-using ExpenseTracker.Cli.Services;
+using ExpenseTracker.Core.Interfaces;
+using ExpenseTracker.Core.Models;
+using ExpenseTracker.Core.Services;
 
-namespace ExpenseTracker.Cli.Tests;
+namespace ExpenseTracker.Core.Tests;
 
 public class BudgetServiceTests : IDisposable
 {
