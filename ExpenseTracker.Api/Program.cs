@@ -1,6 +1,6 @@
 using ExpenseTracker.Core.Interfaces;
 using ExpenseTracker.Core.Models;
-using ExpenseTracker.Core.Services;
+using ExpenseTracker.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 

@@ -1,5 +1,5 @@
 using ExpenseTracker.Core.Models;
-using ExpenseTracker.Core.Services;
+using ExpenseTracker.Infrastructure.Services;
 using ExpenseTracker.TestUtils;
 
 namespace ExpenseTracker.Core.Tests;

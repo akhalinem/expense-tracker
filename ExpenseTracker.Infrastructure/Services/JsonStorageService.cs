@@ -3,7 +3,7 @@ using System.Text.Json;
 using ExpenseTracker.Core.Interfaces;
 using ExpenseTracker.Core.Models;
 
-namespace ExpenseTracker.Core.Services;
+namespace ExpenseTracker.Infrastructure.Services;
 
 public class JsonStorageService<T> : IStorageService<T>
 {

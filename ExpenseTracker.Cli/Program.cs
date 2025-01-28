@@ -2,7 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using ExpenseTracker.Core.Interfaces;
 using ExpenseTracker.Core.Models;
-using ExpenseTracker.Core.Services;
+using ExpenseTracker.Infrastructure.Services;
 using ExpenseTracker.Cli.Services;
 
 namespace ExpenseTracker.Cli;
