@@ -5,39 +5,23 @@ namespace ExpenseTracker.Infrastructure.Services;
 
 public class BudgetService : IBudgetService
 {
-    private readonly IStorageService<Budget> _storage;
-    private readonly List<Budget> _budgets;
+    private readonly IBudgetRepository _repository;
 
-    public BudgetService(IStorageService<Budget> storage)
+    public BudgetService(IBudgetRepository repository)
     {
-        _storage = storage;
-        var result = _storage.Load();
-        _budgets = result.IsSuccess ? result.Value!.ToList() : [];
+        _repository = repository;
     }
 
-    public Result<Budget> SetBudget(int month, int year, decimal amount)
+    public async Task<Result<Budget>> SetBudget(int month, int year, decimal amount)
     {
-        var budget = _budgets.FirstOrDefault(b => b.Month == month && b.Year == year);
+        if (amount <= 0)
+            return Result<Budget>.Failure("Budget amount must be greater than zero");
 
-        if (budget != null)
-        {
-            budget.Amount = amount;
-        }
-        else
-        {
-            budget = new Budget { Month = month, Year = year, Amount = amount };
-            _budgets.Add(budget);
-        }
-
-        var result = _storage.Save(_budgets);
-        return result.IsSuccess
-            ? Result<Budget>.Success(budget)
-            : Result<Budget>.Failure(result.Error!);
+        return await _repository.SetAsync(month, year, amount);
     }
 
-    public Result<Budget?> GetBudget(int month, int year)
+    public async Task<Result<Budget?>> GetBudget(int month, int year)
     {
-        var budget = _budgets.FirstOrDefault(b => b.Month == month && b.Year == year);
-        return Result<Budget?>.Success(budget);
+        return await _repository.GetAsync(month, year);
     }
 }

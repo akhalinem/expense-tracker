@@ -44,9 +44,9 @@ public class CliService
         addCommand.AddOption(amountOption);
         addCommand.AddOption(categoryOption);
 
-        addCommand.SetHandler((name, amount, category) =>
+        addCommand.SetHandler(async (name, amount, category) =>
         {
-            var result = _expenseService.Add(name, amount, category);
+            var result = await _expenseService.Add(name, amount, category);
             if (result.IsSuccess)
             {
                 Console.WriteLine($"Added expense: {result.Value!.Name} ({FormatAmount(result.Value.Amount)})");
@@ -71,9 +71,9 @@ public class CliService
         listCommand.AddOption(monthOption);
         listCommand.AddOption(yearOption);
 
-        listCommand.SetHandler((category, month, year) =>
+        listCommand.SetHandler(async (category, month, year) =>
         {
-            var result = _expenseService.List(month, year);
+            var result = await _expenseService.List(month, year);
             if (!result.IsSuccess)
             {
                 Console.WriteLine($"Error: {result.Error}");
@@ -119,9 +119,9 @@ public class CliService
         updateCommand.AddOption(amountOption);
         updateCommand.AddOption(categoryOption);
 
-        updateCommand.SetHandler((id, name, amount, category) =>
+        updateCommand.SetHandler(async (id, name, amount, category) =>
         {
-            var result = _expenseService.Update(id, name, amount, category);
+            var result = await _expenseService.Update(id, name, amount, category);
             if (result.IsSuccess)
             {
                 Console.WriteLine($"Updated expense: {result.Value!.Name} ({FormatAmount(result.Value.Amount)})");
@@ -142,9 +142,9 @@ public class CliService
 
         deleteCommand.AddOption(idOption);
 
-        deleteCommand.SetHandler(id =>
+        deleteCommand.SetHandler(async id =>
         {
-            var result = _expenseService.Delete(id);
+            var result = await _expenseService.Delete(id);
             if (result.IsSuccess)
             {
                 Console.WriteLine("Expense deleted successfully");
@@ -167,9 +167,9 @@ public class CliService
         summaryCommand.AddOption(monthOption);
         summaryCommand.AddOption(yearOption);
 
-        summaryCommand.SetHandler((month, year) =>
+        summaryCommand.SetHandler(async (month, year) =>
         {
-            var totalExpensesResult = _expenseService.GetTotal(month, year);
+            var totalExpensesResult = await _expenseService.GetTotal(month, year);
             if (!totalExpensesResult.IsSuccess)
             {
                 Console.WriteLine($"Error: {totalExpensesResult.Error}");
@@ -183,7 +183,7 @@ public class CliService
 
             if (month != null && year != null)
             {
-                var budgetResult = _budgetService.GetBudget(month.Value, year.Value);
+                var budgetResult = await _budgetService.GetBudget(month.Value, year.Value);
                 if (!budgetResult.IsSuccess)
                 {
                     Console.WriteLine($"Error: {budgetResult.Error}");
@@ -220,13 +220,13 @@ public class CliService
         budgetCommand.AddOption(yearOption);
         budgetCommand.AddOption(amountOption);
 
-        budgetCommand.SetHandler((month, year, amount) =>
+        budgetCommand.SetHandler(async (month, year, amount) =>
         {
             var activeYear = year ?? DateTime.Now.Year;
 
             if (amount.HasValue)
             {
-                var setResult = _budgetService.SetBudget(month, activeYear, amount.Value);
+                var setResult = await _budgetService.SetBudget(month, activeYear, amount.Value);
                 if (!setResult.IsSuccess)
                 {
                     Console.WriteLine($"Error: {setResult.Error}");
@@ -239,7 +239,7 @@ public class CliService
                 }
             }
 
-            var getResult = _budgetService.GetBudget(month, activeYear);
+            var getResult = await _budgetService.GetBudget(month, activeYear);
             if (!getResult.IsSuccess)
             {
                 Console.WriteLine($"Error: {getResult.Error}");
@@ -273,9 +273,9 @@ public class CliService
         exportCommand.AddOption(monthOption);
         exportCommand.AddOption(yearOption);
 
-        exportCommand.SetHandler((path, month, year) =>
+        exportCommand.SetHandler(async (path, month, year) =>
     {
-        var expenses = _expenseService.List(month, year);
+        var expenses = await _expenseService.List(month, year);
         if (!expenses.IsSuccess)
         {
             Console.WriteLine($"Error: {expenses.Error}");

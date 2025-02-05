@@ -17,15 +17,15 @@ public class ExpensesController : ControllerBase
     }
 
     [HttpGet]
-    public IActionResult GetExpenses([FromQuery] int? month, [FromQuery] int? year, [FromQuery] string? category)
+    public async Task<IActionResult> GetExpenses([FromQuery] int? month, [FromQuery] int? year, [FromQuery] string? category)
     {
-        var result = _expenseService.List(month, year, category);
+        var result = await _expenseService.List(month, year, category);
 
         return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
     }
 
     [HttpPost]
-    public IActionResult AddExpense(CreateExpenseDto dto)
+    public async Task<IActionResult> AddExpense(CreateExpenseDto dto)
     {
         Expense expense = new()
         {
@@ -34,21 +34,21 @@ public class ExpensesController : ControllerBase
             Category = dto.Category
         };
 
-        var result = _expenseService.Add(expense.Name, expense.Amount, expense.Category);
+        var result = await _expenseService.Add(expense.Name, expense.Amount, expense.Category);
         return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
     }
 
     [HttpDelete("{id:guid}")]
-    public IActionResult DeleteExpense(Guid id)
+    public async Task<IActionResult> DeleteExpense(Guid id)
     {
-        var result = _expenseService.Delete(id);
+        var result = await _expenseService.Delete(id);
         return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
     }
 
     [HttpPut("{id:guid}")]
-    public IActionResult UpdateExpense(Guid id, UpdateExpenseDto dto)
+    public async Task<IActionResult> UpdateExpense(Guid id, UpdateExpenseDto dto)
     {
-        var result = _expenseService.Update(id, dto.Description, dto.Amount, dto.Category);
+        var result = await _expenseService.Update(id, dto.Description, dto.Amount, dto.Category);
         return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
     }
 }

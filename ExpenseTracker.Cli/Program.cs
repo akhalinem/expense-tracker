@@ -1,8 +1,8 @@
 ﻿using System.CommandLine;
 using Microsoft.Extensions.DependencyInjection;
 using ExpenseTracker.Core.Interfaces;
-using ExpenseTracker.Core.Models;
 using ExpenseTracker.Infrastructure.Services;
+using ExpenseTracker.Infrastructure.Repositories;
 using ExpenseTracker.Cli.Services;
 
 namespace ExpenseTracker.Cli;
@@ -24,16 +24,14 @@ class Program
         await rootCommand.InvokeAsync(args);
     }
 
-    private static IServiceProvider ConfigureServices()
+    private static ServiceProvider ConfigureServices()
     {
         return new ServiceCollection()
-            .AddSingleton<IStorageService<Expense>>(x =>
-                new JsonStorageService<Expense>("expenses.json"))
-            .AddSingleton<IStorageService<Budget>>(x =>
-                new JsonStorageService<Budget>("budgets.json"))
-            .AddSingleton<IExpenseService, ExpenseService>()
-            .AddSingleton<IBudgetService, BudgetService>()
-            .AddSingleton<CliService>()
+            .AddScoped<IExpenseRepository, ExpenseRepository>()
+            .AddScoped<IBudgetRepository, BudgetRepository>()
+            .AddScoped<IExpenseService, ExpenseService>()
+            .AddScoped<IBudgetService, BudgetService>()
+            .AddScoped<CliService>()
             .BuildServiceProvider();
     }
 

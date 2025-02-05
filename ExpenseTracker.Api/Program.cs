@@ -1,5 +1,5 @@
 using ExpenseTracker.Core.Interfaces;
-using ExpenseTracker.Core.Models;
+using ExpenseTracker.Infrastructure.Repositories;
 using ExpenseTracker.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,14 +10,10 @@ builder.Services.AddOpenApi();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
-builder.Services.AddSingleton<IStorageService<Expense>>(
-    x => new JsonStorageService<Expense>("expenses.json")
-);
-builder.Services.AddSingleton<IStorageService<Budget>>(
-    x => new JsonStorageService<Budget>("budgets.json")
-);
-builder.Services.AddSingleton<IExpenseService, ExpenseService>();
-builder.Services.AddSingleton<IBudgetService, BudgetService>();
+builder.Services.AddScoped<IExpenseRepository, ExpenseRepository>();
+builder.Services.AddScoped<IBudgetRepository, BudgetRepository>();
+builder.Services.AddScoped<IExpenseService, ExpenseService>();
+builder.Services.AddScoped<IBudgetService, BudgetService>();
 
 var app = builder.Build();
 
