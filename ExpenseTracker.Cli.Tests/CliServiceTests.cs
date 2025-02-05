@@ -30,7 +30,7 @@ public class CliServiceTests
         // Arrange
         var expense = TestDataHelper.CreateExpense("Test", 100m);
         _expenseService.Setup(x => x.Add("Test", 100m, null))
-            .Returns(Result<Expense>.Success(expense));
+            .ReturnsAsync(Result<Expense>.Success(expense));
 
         // Act
         await _sut.BuildCommandLine().InvokeAsync("add --name Test --amount 100");
@@ -46,7 +46,7 @@ public class CliServiceTests
         // Arrange
         var expenses = new[] { TestDataHelper.CreateExpense() };
         _expenseService.Setup(x => x.List(null, null, null))
-            .Returns(Result<IEnumerable<Expense>>.Success(expenses));
+            .ReturnsAsync(Result<IEnumerable<Expense>>.Success(expenses));
 
         // Act
         await _sut.BuildCommandLine().InvokeAsync("list");
@@ -63,9 +63,9 @@ public class CliServiceTests
         var budget = TestDataHelper.CreateBudget(amount: 1000m);
 
         _expenseService.Setup(x => x.GetTotal(1, 2024))
-            .Returns(Result<decimal>.Success(1200m));
+            .ReturnsAsync(Result<decimal>.Success(1200m));
         _budgetService.Setup(x => x.GetBudget(1, 2024))
-            .Returns(Result<Budget?>.Success(budget));
+            .ReturnsAsync(Result<Budget?>.Success(budget));
 
         // Act
         await _sut.BuildCommandLine().InvokeAsync("summary --month 1 --year 2024");
@@ -80,7 +80,7 @@ public class CliServiceTests
         // Arrange
         var budget = TestDataHelper.CreateBudget();
         _budgetService.Setup(x => x.SetBudget(1, 2024, 1000m))
-            .Returns(Result<Budget>.Success(budget));
+            .ReturnsAsync(Result<Budget>.Success(budget));
 
         // Act
         await _sut.BuildCommandLine().InvokeAsync("budget --month 1 --year 2024 --amount 1000");

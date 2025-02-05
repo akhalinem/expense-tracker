@@ -1,27 +1,32 @@
 using ExpenseTracker.Core.Interfaces;
-using ExpenseTracker.Core.Models;
+using ExpenseTracker.Infrastructure.Data;
+using ExpenseTracker.Infrastructure.Repositories;
 using ExpenseTracker.Infrastructure.Services;
+using Microsoft.EntityFrameworkCore;
 
-namespace ExpenseTracker.Core.Tests;
+namespace ExpenseTracker.Infrastructure.Tests;
 
-public class BudgetServiceTests : IDisposable
+public class BudgetServiceTests
 {
-    private readonly string _testFilePath;
-    private readonly JsonStorageService<Budget> _storage;
-    private readonly IBudgetService _budgetService;
+    private readonly ExpenseTrackerDbContext _dbContext;
+    private readonly IBudgetRepository _budgetRepository;
+    private readonly BudgetService _budgetService;
 
     public BudgetServiceTests()
     {
-        _testFilePath = Path.Combine(Path.GetTempPath(), "test-budgets.json");
-        _storage = new JsonStorageService<Budget>(_testFilePath);
-        _budgetService = new BudgetService(_storage);
+        var options = new DbContextOptionsBuilder<ExpenseTrackerDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options;
+        _dbContext = new ExpenseTrackerDbContext(options);
+        _budgetRepository = new BudgetRepository(_dbContext);
+        _budgetService = new BudgetService(_budgetRepository);
     }
 
     [Fact]
-    public void SetBudget_ShouldCreateNewBudget()
+    public async Task SetBudget_ShouldCreateNewBudget()
     {
         // Act
-        var result = _budgetService.SetBudget(1, 2024, 1000m);
+        var result = await _budgetService.SetBudget(1, 2024, 1000m);
 
         // Assert
         Assert.True(result.IsSuccess);
@@ -31,13 +36,13 @@ public class BudgetServiceTests : IDisposable
     }
 
     [Fact]
-    public void GetBudget_ShouldRetrieveBudget()
+    public async Task GetBudget_ShouldRetrieveBudget()
     {
         // Arrange
-        _budgetService.SetBudget(1, 2024, 1000m);
+        await _budgetService.SetBudget(1, 2024, 1000m);
 
         // Act
-        var result = _budgetService.GetBudget(1, 2024);
+        var result = await _budgetService.GetBudget(1, 2024);
 
         // Assert
         Assert.True(result.IsSuccess);
@@ -46,21 +51,13 @@ public class BudgetServiceTests : IDisposable
     }
 
     [Fact]
-    public void GetBudget_NonExistent_ShouldReturnNull()
+    public async Task GetBudget_NonExistent_ShouldReturnNull()
     {
         // Act
-        var result = _budgetService.GetBudget(1, 2024);
+        var result = await _budgetService.GetBudget(1, 2024);
 
         // Assert
         Assert.True(result.IsSuccess);
         Assert.Null(result.Value);
-    }
-
-    public void Dispose()
-    {
-        if (File.Exists(_testFilePath))
-        {
-            File.Delete(_testFilePath);
-        }
     }
 }

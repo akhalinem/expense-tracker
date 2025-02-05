@@ -1,29 +1,37 @@
 using ExpenseTracker.Core.Interfaces;
 using ExpenseTracker.Core.Models;
+using ExpenseTracker.Infrastructure.Data;
+using ExpenseTracker.Infrastructure.Repositories;
 using ExpenseTracker.Infrastructure.Services;
+using Microsoft.EntityFrameworkCore;
 
-namespace ExpenseTracker.Core.Tests;
+namespace ExpenseTracker.Infrastructure.Tests;
 
-public class ExpenseServiceTests : IDisposable
+public class ExpenseServiceTests
 {
-    private readonly string _testFilePath;
-    private readonly JsonStorageService<Expense> _storage;
+    private readonly ExpenseTrackerDbContext _dbContext;
+    private readonly IExpenseRepository _expenseRepository;
     private readonly IExpenseService _expenseService;
 
     public ExpenseServiceTests()
     {
-        _testFilePath = Path.Combine(Path.GetTempPath(), $"test-{Guid.NewGuid()}.json");
-        _storage = new JsonStorageService<Expense>(_testFilePath);
-        _expenseService = new ExpenseService(_storage);
+        var options = new DbContextOptionsBuilder<ExpenseTrackerDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options;
+        _dbContext = new ExpenseTrackerDbContext(options);
+        _expenseRepository = new ExpenseRepository(_dbContext);
+        _expenseService = new ExpenseService(_expenseRepository);
     }
 
+
+
     [Fact]
-    public void Add_ShouldCreateNewExpense()
+    public async Task Add_ShouldCreateNewExpense()
     {
         // Arrange
 
         // Act
-        var result = _expenseService.Add("Test", 100m);
+        var result = await _expenseService.Add("Test", 100m);
 
         // Assert
         Assert.True(result.IsSuccess);
@@ -32,19 +40,20 @@ public class ExpenseServiceTests : IDisposable
     }
 
     [Fact]
-    public void GetTotal_WithoutParameters_ShouldReturnCurrentMonthTotal()
+    public async Task GetTotal_WithoutParameters_ShouldReturnCurrentMonthTotal()
     {
         // Arrange
         var now = DateTime.Now;
         var lastMonth = now.AddMonths(-1);
-        _storage.Save([
-           new Expense { Name = "Current Month Expense", Amount = 100m, CreatedAt = now },
+        await _expenseRepository.AddAsync(
+            new Expense { Name = "Current Month Expense", Amount = 100m, CreatedAt = now }
+        );
+        await _expenseRepository.AddAsync(
             new Expense { Name = "Last Month Expense", Amount = 200m, CreatedAt = lastMonth }
-        ]);
-        var expenseService = new ExpenseService(_storage);
+        );
 
         // Act
-        var result = expenseService.GetTotal();
+        var result = await _expenseService.GetTotal();
 
         // Assert
         Assert.True(result.IsSuccess);
@@ -52,20 +61,21 @@ public class ExpenseServiceTests : IDisposable
     }
 
     [Fact]
-    public void GetTotal_WithSpecificMonthAndYear_ShouldReturnFilteredTotal()
+    public async Task GetTotal_WithSpecificMonthAndYear_ShouldReturnFilteredTotal()
     {
         // Arrange
         var date2024Jan = new DateTime(2024, 1, 1);
         var date2024Feb = new DateTime(2024, 2, 1);
 
-        _storage.Save([
-            new Expense { Name = "Jan Expense", Amount = 100m, CreatedAt = date2024Jan },
+        await _expenseRepository.AddAsync(
+            new Expense { Name = "Jan Expense", Amount = 100m, CreatedAt = date2024Jan }
+        );
+        await _expenseRepository.AddAsync(
             new Expense { Name = "Feb Expense", Amount = 200m, CreatedAt = date2024Feb }
-        ]);
-        var expenseService = new ExpenseService(_storage);
+         );
 
         // Act
-        var result = expenseService.GetTotal(1, 2024);
+        var result = await _expenseService.GetTotal(1, 2024);
 
         // Assert 
         Assert.True(result.IsSuccess);
@@ -73,14 +83,14 @@ public class ExpenseServiceTests : IDisposable
     }
 
     [Fact]
-    public void Update_ShouldModifyExpense()
+    public async Task Update_ShouldModifyExpense()
     {
         // Arrange
-        var addResult = _expenseService.Add("Test", 100m);
+        var addResult = await _expenseService.Add("Test", 100m);
         var id = addResult.Value!.Id;
 
         // Act
-        var updateResult = _expenseService.Update(id, "Updated", 200m);
+        var updateResult = await _expenseService.Update(id, "Updated", 200m);
 
         // Assert
         Assert.True(updateResult.IsSuccess);
@@ -89,41 +99,33 @@ public class ExpenseServiceTests : IDisposable
     }
 
     [Fact]
-    public void Delete_ShouldRemoveExpense()
+    public async Task Delete_ShouldRemoveExpense()
     {
         // Arrange
-        var addResult = _expenseService.Add("Test", 100m);
+        var addResult = await _expenseService.Add("Test", 100m);
         var id = addResult.Value!.Id;
 
         // Act
-        var deleteResult = _expenseService.Delete(id);
+        var deleteResult = await _expenseService.Delete(id);
 
         // Assert
         Assert.True(deleteResult.IsSuccess);
-        var listResult = _expenseService.List();
+        var listResult = await _expenseService.List();
         Assert.Empty(listResult.Value!);
     }
 
     [Fact]
-    public void GetSummary_ShouldCalculateTotal()
+    public async Task GetSummary_ShouldCalculateTotal()
     {
         // Arrange
-        _expenseService.Add("Test1", 100m);
-        _expenseService.Add("Test2", 200m);
+        await _expenseService.Add("Test1", 100m);
+        await _expenseService.Add("Test2", 200m);
 
         // Act
-        var result = _expenseService.GetTotal();
+        var result = await _expenseService.GetTotal();
 
         // Assert
         Assert.True(result.IsSuccess);
         Assert.Equal(300m, result.Value!);
-    }
-
-    public void Dispose()
-    {
-        if (File.Exists(_testFilePath))
-        {
-            File.Delete(_testFilePath);
-        }
     }
 }
