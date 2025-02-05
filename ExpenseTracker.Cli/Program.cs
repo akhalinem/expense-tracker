@@ -1,8 +1,11 @@
 ﻿using System.CommandLine;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
+using Microsoft.EntityFrameworkCore;
 using ExpenseTracker.Core.Interfaces;
 using ExpenseTracker.Infrastructure.Services;
 using ExpenseTracker.Infrastructure.Repositories;
+using ExpenseTracker.Infrastructure.Data;
 using ExpenseTracker.Cli.Services;
 
 namespace ExpenseTracker.Cli;
@@ -26,12 +29,19 @@ class Program
 
     private static ServiceProvider ConfigureServices()
     {
+
+        IConfiguration configuration = new ConfigurationBuilder()
+            .AddJsonFile("appsettings.json")
+            .Build();
+
         return new ServiceCollection()
             .AddScoped<IExpenseRepository, ExpenseRepository>()
             .AddScoped<IBudgetRepository, BudgetRepository>()
             .AddScoped<IExpenseService, ExpenseService>()
             .AddScoped<IBudgetService, BudgetService>()
             .AddScoped<CliService>()
+            .AddDbContext<ExpenseTrackerDbContext>(options =>
+                options.UseSqlite(configuration.GetConnectionString("DefaultConnection")))
             .BuildServiceProvider();
     }
 

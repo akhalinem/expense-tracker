@@ -1,6 +1,4 @@
 bin/
 obj/
-.vscode/
+/data/
 .DS_Store
-expenses.json
-budget.json
