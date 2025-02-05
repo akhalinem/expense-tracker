@@ -1,8 +1,10 @@
-# Expense Tracker CLI
+# Expense Tracker
+
+A .NET application to track personal expenses.
 
 [![codecov](https://codecov.io/gh/akhalinem/expense-tracker/branch/master/graph/badge.svg)](https://codecov.io/gh/akhalinem/expense-tracker)
 
-A command-line expense tracker application built as part of the [Roadmap.sh Projects](https://roadmap.sh/projects/expense-tracker) collection.
+This project was initially built as part of the [Roadmap.sh Projects](https://roadmap.sh/projects/expense-tracker) collection.
 
 ## Overview
 
@@ -59,18 +61,62 @@ expense-tracker summary
 
 ## Project Structure
 
-- `ExpenseTracker.Cli/` - Main application project
-- `ExpenseTracker.Cli.Tests/` - Unit tests
-- `README.md` - Project documentation
+The solution follows a clean architecture approach with the following projects:
 
-## Development
+- **ExpenseTracker.Core**: Contains domain entities, interfaces and business logic
+- **ExpenseTracker.Core.Tests**: Unit tests for the Core project
+- **ExpenseTracker.Infrastructure**: Data access and external services implementation
+- **ExpenseTracker.Infrastructure.Tests**: Unit tests for the Infrastructure project
+- **ExpenseTracker.Cli**: Command-line interface application
+- **ExpenseTracker.Cli.Tests**: Unit tests for the CLI application
+- **ExpenseTracker.Api**: REST API implementation
+- **ExpenseTracker.TestUtils**: Shared testing utilities
 
-The project follows standard C# coding conventions and uses:
+## Technology Stack
 
-- System.CommandLine for CLI parsing
-- Microsoft.Extensions.DependencyInjection for dependency injection
-- xUnit for unit testing
-- Moq for mocking in tests
+- .NET 9
+- Entity Framework Core
+- SQLite
+- xUnit for testing
+- System.CommandLine for CLI interface
+- ASP.NET Core for Web API
+
+## Getting Started
+
+### Prerequisites
+
+- .NET 9 SDK
+
+### Building the Solution
+
+```bash
+dotnet restore
+dotnet build
+```
+
+### Running Tests
+
+```bash
+dotnet test
+```
+
+### Running the CLI Application
+
+```bash
+cd ExpenseTracker.Cli
+dotnet run
+```
+
+### Running the API
+
+```bash
+cd ExpenseTracker.Api
+dotnet run
+```
+
+## Project Status
+
+Currently under development.
 
 ## Contributing
 
