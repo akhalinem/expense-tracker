@@ -1,7 +1,7 @@
 'use client'
 
-import axios from 'axios';
-import { QueryClient, useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
+import { api } from './layout';
 
 interface IExpense {
   id: number;
@@ -11,12 +11,6 @@ interface IExpense {
   name: string;
   category: string;
 }
-
-const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL
-})
-
-const queryClient = new QueryClient()
 
 export default function Home() {
   const expensesQuery = useQuery({
