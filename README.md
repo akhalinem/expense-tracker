@@ -27,7 +27,7 @@ This application helps users manage their personal finances by tracking expenses
 
 1. Clone the repository:
 ```bash
-git clone [repository-url]
+git clone https://codecov.io/gh/akhalinem/expense-tracker
 cd expense-tracker
 ```
 
@@ -42,22 +42,6 @@ dotnet run --project ExpenseTracker.Cli
 ```
 
 ## Usage
-
-The application supports the following commands:
-
-```bash
-# Add a new expense
-expense-tracker add --amount 50.00 --category "Food" --description "Lunch"
-
-# Delete an expense
-expense-tracker delete --id 1
-
-# List all expenses
-expense-tracker list
-
-# View expense summary
-expense-tracker summary
-```
 
 ## Project Structure
 
