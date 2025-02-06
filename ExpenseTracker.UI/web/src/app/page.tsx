@@ -1,5 +1,5 @@
 import { IExpense } from "@/types";
-import { api, displayCurrency } from "@/utils";
+import { api, displayCurrency, displayDate } from "@/utils";
 
 export default async function Home() {
   const { data: expenses } = await api.get<IExpense[]>("/expenses")
@@ -25,7 +25,7 @@ export default async function Home() {
               <span className="text-lg">{displayCurrency(expense.amount)}</span>
             </div>
             <div className="text-sm text-gray-600">
-              <span>{new Date(expense.createdAt).toLocaleString()}</span>
+              <span>{displayDate(expense.createdAt)}</span>
               <span className="ml-4">{expense.category}</span>
             </div>
           </div>
