@@ -1,29 +1,8 @@
-'use client'
+import { IExpense } from "@/types";
+import { api } from "@/utils";
 
-import { useQuery } from '@tanstack/react-query';
-import { api } from './layout';
-
-interface IExpense {
-  id: number;
-  createdAt: string;
-  updatedAt: string | null;
-  amount: number;
-  name: string;
-  category: string;
-}
-
-export default function Home() {
-  const expensesQuery = useQuery({
-    queryKey: ['expenses'],
-    queryFn: async () => {
-      const response = await api.get<IExpense[]>('/expenses');
-      return response.data;
-    }
-  });
-
-  if (expensesQuery.isLoading) return <div>Loading...</div>
-
-  const expenses = expensesQuery.data ?? []
+export default async function Home() {
+  const { data: expenses } = await api.get<IExpense[]>("/expenses")
 
   return (
     <main className="p-8">
