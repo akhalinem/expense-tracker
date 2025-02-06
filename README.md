@@ -33,7 +33,7 @@ This application helps users manage their personal finances by tracking expenses
 
 1. Clone the repository:
 ```bash
-git clone https://codecov.io/gh/akhalinem/expense-tracker
+git clone https://github.com/akhalinem/expense-tracker
 cd expense-tracker
 ```
 
