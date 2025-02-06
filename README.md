@@ -1,6 +1,6 @@
 # Expense Tracker
 
-A .NET application to track personal expenses.
+A full-stack expense tracking application with CLI, Web API, and React frontend.
 
 [![codecov](https://codecov.io/gh/akhalinem/expense-tracker/branch/master/graph/badge.svg)](https://codecov.io/gh/akhalinem/expense-tracker)
 
@@ -8,19 +8,25 @@ This project was initially built as part of the [Roadmap.sh Projects](https://ro
 
 ## Overview
 
-This application helps users manage their personal finances by tracking expenses through a command-line interface. It provides basic functionality for expense management including adding, deleting, and viewing expenses, along with expense summaries.
+This application helps users manage their personal finances by tracking expenses and budgets through multiple interfaces:
+- Command-line interface for quick access
+- Web API for integration
+- React-based web interface for user-friendly interaction
 
 ## Features
 
-- Add new expenses with amount, category, and description
-- Delete existing expenses
-- View all expenses
-- Get expense summaries
-- Command-line interface for easy interaction
+- Add, update, and delete expenses with amount, category, and description
+- Set and manage monthly budgets
+- View expense summaries with budget tracking
+- Export expenses to CSV
+- Interactive CLI with command history
+- RESTful API with OpenAPI documentation
+- Modern React frontend with real-time updates
 
 ## Prerequisites
 
 - .NET 9.0 or higher
+- Node.js 18+ for the frontend
 - Command-line terminal
 
 ## Installation
@@ -31,83 +37,85 @@ git clone https://codecov.io/gh/akhalinem/expense-tracker
 cd expense-tracker
 ```
 
-2. Build the project:
+2. Build the .NET solution:
 ```bash
 dotnet build
 ```
 
-3. Run the application:
+3. Install frontend dependencies:
 ```bash
-dotnet run --project ExpenseTracker.Cli
+cd ExpenseTracker.UI/web
+npm install
 ```
 
-## Usage
+## Running the Applications
 
-## Project Structure
-
-The solution follows a clean architecture approach with the following projects:
-
-- **ExpenseTracker.Core**: Contains domain entities, interfaces and business logic
-- **ExpenseTracker.Core.Tests**: Unit tests for the Core project
-- **ExpenseTracker.Infrastructure**: Data access and external services implementation
-- **ExpenseTracker.Infrastructure.Tests**: Unit tests for the Infrastructure project
-- **ExpenseTracker.Cli**: Command-line interface application
-- **ExpenseTracker.Cli.Tests**: Unit tests for the CLI application
-- **ExpenseTracker.Api**: REST API implementation
-- **ExpenseTracker.TestUtils**: Shared testing utilities
-
-## Technology Stack
-
-- .NET 9
-- Entity Framework Core
-- SQLite
-- xUnit for testing
-- System.CommandLine for CLI interface
-- ASP.NET Core for Web API
-
-## Getting Started
-
-### Prerequisites
-
-- .NET 9 SDK
-
-### Building the Solution
-
-```bash
-dotnet restore
-dotnet build
-```
-
-### Running Tests
-
-```bash
-dotnet test
-```
-
-### Running the CLI Application
-
+### CLI Application
 ```bash
 cd ExpenseTracker.Cli
 dotnet run
 ```
 
-### Running the API
-
+### Web API
 ```bash
 cd ExpenseTracker.Api
 dotnet run
 ```
 
+### Frontend
+```bash
+cd ExpenseTracker.UI/web
+npm run dev
+```
+
+## Project Structure
+
+The solution follows a clean architecture approach with the following projects:
+
+- **ExpenseTracker.Core**: Domain entities, interfaces, and business logic
+- **ExpenseTracker.Infrastructure**: Data access and service implementations
+- **ExpenseTracker.Api**: REST API with CORS support
+- **ExpenseTracker.Cli**: Interactive command-line interface
+- **ExpenseTracker.UI**: React-based web frontend
+- **ExpenseTracker.TestUtils**: Shared testing utilities
+- **\*.Tests**: Unit tests for respective projects
+
+## Technology Stack
+
+### Backend
+- .NET 9
+- Entity Framework Core with SQLite
+- ASP.NET Core Web API
+- System.CommandLine for CLI
+- xUnit for testing
+
+### Frontend
+- Next.js 15
+- React 19
+- Tailwind CSS
+- Axios for API communication
+
+## CLI Commands
+
+- `add`: Add a new expense
+- `list`: List expenses with optional filters
+- `update`: Modify existing expense
+- `delete`: Remove an expense
+- `summary`: View expense summaries
+- `budget`: Set or view monthly budgets
+- `export`: Export expenses to CSV
+
+## API Endpoints
+
+- `GET /api/expenses`: List expenses
+- `POST /api/expenses`: Create expense
+- `PUT /api/expenses/{id}`: Update expense
+- `DELETE /api/expenses/{id}`: Delete expense
+- `GET /api/budgets/current`: Get current month's budget
+
 ## Project Status
 
-Currently under development.
-
-## Contributing
-
-1. Fork the repository
-2. Create a new branch
-3. Make your changes
-4. Submit a pull request
+Currently under development
 
 ## License
 
