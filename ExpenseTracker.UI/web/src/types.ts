@@ -6,3 +6,9 @@ export interface IExpense {
     name: string;
     category: string;
 }
+
+export interface IBudget {
+    amount: number;
+    month: number;
+    year: number;
+}
