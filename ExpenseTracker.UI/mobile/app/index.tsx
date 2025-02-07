@@ -35,7 +35,7 @@ export default function HomeScreen() {
                 data={expensesQuery.data}
                 keyExtractor={(item) => item.id}
                 renderItem={({ item }) => (
-                    <Text>{item.description} - {item.amount}</Text>
+                    <Text>{item.name} - {item.amount}</Text>
                 )}
             />
         </View>
