@@ -9,24 +9,27 @@ export default async function Home() {
 
   return (
     <main className="p-8">
-      <h2 className="text-2xl font-bold mb-6">Overview</h2>
-
-      <div className="grid gap-4 mb-8">
-        {currentBudget && (
-          <div className="border p-4 rounded-lg shadow">
-            <h2 className="font-semibold">Budget</h2>
-            <span className="text-lg">{displayCurrency(currentBudget.amount)}</span>
-            <div className="text-sm text-gray-600 mt-2">
-              Remaining: {displayCurrency(currentBudget.amount - totalExpenses)}
+      <fieldset title="asd" className="border p-4 rounded-lg shadow mb-8">
+        <legend className="text-xl font-semibold">Overview</legend>
+        <div>
+          {currentBudget ? (
+            <div>
+              <h2 className="font-semibold">Budget</h2>
+              <span className="text-lg">{displayCurrency(currentBudget.amount)}</span>
+              <div className="text-sm text-gray-600 mt-2">
+                Remaining: {displayCurrency(currentBudget.amount - totalExpenses)}
+              </div>
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="text-sm text-gray-600 mt-2">No budget set</div>
+          )}
 
-        <div className="border p-4 rounded-lg shadow">
-          <h2 className="font-semibold">Total Expenses</h2>
-          <span className="text-lg">{displayCurrency(totalExpenses)}</span>
+          <div>
+            <h2 className="font-semibold mt-4">Total Expenses</h2>
+            <span className="text-lg">{displayCurrency(totalExpenses)}</span>
+          </div>
         </div>
-      </div>
+      </fieldset>
 
       <h2 className="text-xl font-semibold mb-4">Recent Expenses</h2>
       <div className="grid gap-4">
