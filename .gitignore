@@ -1,6 +1,4 @@
 .DS_Store
 bin/
 obj/
-data/expense-tracker.db
-data/expense-tracker.db-shm
-data/expense-tracker.db-wal
+/data/*.db*
