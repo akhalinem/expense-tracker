@@ -22,9 +22,20 @@ builder.Services.AddDbContext<ExpenseTrackerDbContext>(options =>
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowFrontend", builder =>
+    options.AddPolicy("AllowWebApp", builder =>
     {
         builder.WithOrigins("http://localhost:3000")
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials();
+    });
+});
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowMobileApp", builder =>
+    {
+        builder.WithOrigins("http://localhost:8081")
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials();
@@ -43,7 +54,8 @@ else
     app.UseHttpsRedirection();
 }
 
-app.UseCors("AllowFrontend");
+app.UseCors("AllowWebApp");
+app.UseCors("AllowMobileApp");
 app.UseRouting();
 app.MapControllers();
 
