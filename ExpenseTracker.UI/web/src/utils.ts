@@ -13,5 +13,10 @@ export function displayCurrency(amount: number) {
 }
 
 export function displayDate(date: string) {
-    return new Date(date).toLocaleString()
+    return new Date(date).toLocaleString(
+        "uz-UZ",
+        {
+            dateStyle: 'long',
+        }
+    )
 }
