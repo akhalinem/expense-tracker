@@ -9,7 +9,7 @@ export default async function Home() {
 
   return (
     <main className="p-8">
-      <fieldset title="asd" className="border p-4 rounded-lg shadow mb-8">
+      <fieldset className="border p-4 rounded-lg shadow mb-8">
         <legend className="text-xl font-semibold">Overview</legend>
         <div>
           {currentBudget ? (
