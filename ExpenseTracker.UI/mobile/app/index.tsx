@@ -1,9 +1,27 @@
-import { Text, View, FlatList, StyleSheet } from "react-native";
+import { FC } from "react";
+import { Text, View, FlatList, StyleSheet, TextProps, ViewProps } from "react-native";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useQuery } from "@tanstack/react-query";
 import { IBudget, IExpense } from "../types";
 import { displayCurrency, displayDate } from "../utils";
 import { api } from "../services/api";
+import { useTheme } from "../theme";
+
+export const ThemedText: FC<TextProps & { variant?: 'primary' | 'secondary' }> = ({ variant = 'primary', style, ...props }) => {
+    const { theme, isDark } = useTheme();
+    return <Text style={[{ color: variant === 'primary' ? theme.text : theme.textSecondary }, style]} {...props} />;
+}
+
+export const ThemedView: FC<ViewProps> = ({ style, ...props }) => {
+    const { theme } = useTheme();
+    return <View style={[{ backgroundColor: theme.background }, style]} {...props} />;
+}
+
+export const ThemedCard: FC<ViewProps> = ({ style, ...props }) => {
+    const { theme } = useTheme();
+    return <View style={[{ backgroundColor: theme.card, shadowColor: theme.shadow }, style]} {...props} />;
+}
+
 
 export default function HomeScreen() {
     const expensesQuery = useQuery({
@@ -24,67 +42,72 @@ export default function HomeScreen() {
 
     if (expensesQuery.isLoading || budgetQuery.isLoading) {
         return (
-            <SafeAreaView style={styles.container}>
-                <Text>Loading...</Text>
-            </SafeAreaView>
+            <ThemedView>
+                <SafeAreaView style={styles.container}>
+                    <ThemedText>Loading...</ThemedText>
+                </SafeAreaView>
+            </ThemedView>
         );
     }
 
     if (expensesQuery.isError || budgetQuery.isError) {
         return (
-            <SafeAreaView style={styles.container}>
-                <Text>Error loading data.</Text>
-            </SafeAreaView>
+            <ThemedView>
+                <SafeAreaView style={styles.container}>
+                    <ThemedText>Error loading data.</ThemedText>
+                </SafeAreaView>
+            </ThemedView>
         );
     }
 
     const totalExpenses = (expensesQuery.data ?? []).reduce((acc, expense) => acc + expense.amount, 0);
 
     return (
-        <SafeAreaView style={styles.container}>
-            <View style={styles.budgetCard}>
-                <Text style={styles.sectionTitle}>Overview</Text>
-                {budgetQuery.data ? (
-                    <View>
-                        <Text style={styles.label}>Budget</Text>
-                        <Text style={styles.amount}>{displayCurrency(budgetQuery.data.amount)}</Text>
-                        <Text style={styles.remaining}>
-                            Remaining: {displayCurrency(budgetQuery.data.amount - totalExpenses)}
-                        </Text>
-                    </View>
-                ) : (
-                    <Text style={styles.noBudget}>No budget set</Text>
-                )}
-                <View style={styles.totalExpenses}>
-                    <Text style={styles.label}>Total Expenses</Text>
-                    <Text style={styles.amount}>{displayCurrency(totalExpenses)}</Text>
-                </View>
-            </View>
-
-            <Text style={[styles.sectionTitle, { paddingHorizontal: 15 }]}>Recent Expenses</Text>
-            <FlatList
-                contentContainerStyle={styles.listContentContainer}
-                data={expensesQuery.data}
-                keyExtractor={(item) => item.id.toString()}
-                renderItem={({ item }) => (
-                    <View style={styles.expenseItem}>
+        <ThemedView style={styles.container}>
+            <SafeAreaView>
+                <ThemedCard style={styles.budgetCard}>
+                    <ThemedText style={styles.sectionTitle}>Overview</ThemedText>
+                    {budgetQuery.data ? (
                         <View>
-                            <Text style={styles.expenseName}>{item.name}</Text>
-                            <Text style={styles.expenseDate}>{displayDate(item.createdAt)}</Text>
-                            <Text style={styles.expenseCategory}>{item.category}</Text>
+                            <ThemedText style={styles.label}>Budget</ThemedText>
+                            <ThemedText style={styles.amount}>{displayCurrency(budgetQuery.data.amount)}</ThemedText>
+                            <ThemedText variant="secondary" style={styles.remaining}>
+                                Remaining: {displayCurrency(budgetQuery.data.amount - totalExpenses)}
+                            </ThemedText>
                         </View>
-                        <Text style={styles.expenseAmount}>{displayCurrency(item.amount)}</Text>
+                    ) : (
+                        <ThemedText style={styles.noBudget}>No budget set</ThemedText>
+                    )}
+                    <View style={styles.totalExpenses}>
+                        <ThemedText style={styles.label}>Total Expenses</ThemedText>
+                        <ThemedText style={styles.amount}>{displayCurrency(totalExpenses)}</ThemedText>
                     </View>
-                )}
-            />
-        </SafeAreaView>
+                </ThemedCard>
+
+                <ThemedText style={[styles.sectionTitle, { paddingHorizontal: 15 }]}>Recent Expenses</ThemedText>
+                <FlatList
+                    contentContainerStyle={styles.listContentContainer}
+                    data={expensesQuery.data}
+                    keyExtractor={(item) => item.id.toString()}
+                    renderItem={({ item }) => (
+                        <ThemedCard style={styles.expenseItem}>
+                            <View>
+                                <ThemedText style={styles.expenseName}>{item.name}</ThemedText>
+                                <ThemedText variant="secondary" style={styles.expenseDate}>{displayDate(item.createdAt)}</ThemedText>
+                                <ThemedText variant="secondary" style={styles.expenseCategory}>{item.category}</ThemedText>
+                            </View>
+                            <ThemedText style={styles.expenseAmount}>{displayCurrency(item.amount)}</ThemedText>
+                        </ThemedCard>
+                    )}
+                />
+            </SafeAreaView>
+        </ThemedView>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#f0f0f0',
     },
     listContentContainer: {
         padding: 20,
@@ -100,9 +123,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         padding: 10,
         marginBottom: 5,
-        backgroundColor: '#fff',
         borderRadius: 5,
-        shadowColor: '#000',
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.22,
         shadowRadius: 2.22,
@@ -117,20 +138,16 @@ const styles = StyleSheet.create({
     },
     expenseDate: {
         fontSize: 14,
-        color: 'gray',
     },
     expenseCategory: {
         fontSize: 14,
-        color: 'gray',
     },
     budgetCard: {
-        backgroundColor: '#fff',
         padding: 15,
         marginHorizontal: 20,
         marginTop: 20,
         marginBottom: 20,
         borderRadius: 10,
-        shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.25,
         shadowRadius: 3.84,
@@ -152,12 +169,10 @@ const styles = StyleSheet.create({
     },
     remaining: {
         fontSize: 14,
-        color: 'gray',
         marginTop: 5,
     },
     noBudget: {
         fontSize: 14,
-        color: 'gray',
         fontStyle: 'italic',
     },
     totalExpenses: {
