@@ -9,7 +9,6 @@ export default function HomeScreen() {
         queryKey: ['expenses'],
         queryFn: async () => {
             const response = await api.get<IExpense[]>('/expenses');
-            console.log({ response })
             return response.data
         },
     });
