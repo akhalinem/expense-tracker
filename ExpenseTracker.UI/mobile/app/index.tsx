@@ -1,8 +1,9 @@
 import { Text, View, FlatList, StyleSheet } from "react-native";
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useQuery } from "@tanstack/react-query";
-import { api } from "../services/api";
-import { displayCurrency, displayDate } from "../utils";
 import { IBudget, IExpense } from "../types";
+import { displayCurrency, displayDate } from "../utils";
+import { api } from "../services/api";
 
 export default function HomeScreen() {
     const expensesQuery = useQuery({
@@ -23,24 +24,24 @@ export default function HomeScreen() {
 
     if (expensesQuery.isLoading || budgetQuery.isLoading) {
         return (
-            <View style={styles.container}>
+            <SafeAreaView style={styles.container}>
                 <Text>Loading...</Text>
-            </View>
+            </SafeAreaView>
         );
     }
 
     if (expensesQuery.isError || budgetQuery.isError) {
         return (
-            <View style={styles.container}>
+            <SafeAreaView style={styles.container}>
                 <Text>Error loading data.</Text>
-            </View>
+            </SafeAreaView>
         );
     }
 
     const totalExpenses = (expensesQuery.data ?? []).reduce((acc, expense) => acc + expense.amount, 0);
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container}>
             <View style={styles.budgetCard}>
                 <Text style={styles.sectionTitle}>Overview</Text>
                 {budgetQuery.data ? (
@@ -76,7 +77,7 @@ export default function HomeScreen() {
                     </View>
                 )}
             />
-        </View>
+        </SafeAreaView>
     );
 }
 
