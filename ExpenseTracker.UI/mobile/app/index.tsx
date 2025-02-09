@@ -2,12 +2,13 @@ import { Text, View, FlatList, StyleSheet } from "react-native";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../services/api";
 import { displayCurrency, displayDate } from "../utils";
+import { IExpense } from "../types";
 
 export default function HomeScreen() {
     const expensesQuery = useQuery({
         queryKey: ['expenses'],
         queryFn: async () => {
-            const response = await api.get('/expenses');
+            const response = await api.get<IExpense[]>('/expenses');
             console.log({ response })
             return response.data
         },
@@ -34,7 +35,7 @@ export default function HomeScreen() {
             <FlatList
                 contentContainerStyle={styles.listContentContainer}
                 data={expensesQuery.data}
-                keyExtractor={(item) => item.id}
+                keyExtractor={(item) => item.id.toString()}
                 renderItem={({ item }) => (
                     <View style={styles.expenseItem}>
                         <View>
