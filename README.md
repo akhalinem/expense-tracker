@@ -1,6 +1,6 @@
 # Expense Tracker
 
-A full-stack expense tracking application with CLI, Web API, and React frontend.
+A full-stack expense tracking application with CLI, Web API, React frontend, and mobile app.
 
 [![codecov](https://codecov.io/gh/akhalinem/expense-tracker/branch/master/graph/badge.svg)](https://codecov.io/gh/akhalinem/expense-tracker)
 
@@ -12,6 +12,7 @@ This application helps users manage their personal finances by tracking expenses
 - Command-line interface for quick access
 - Web API for integration
 - React-based web interface for user-friendly interaction
+- React Native mobile app for on-the-go expense tracking
 
 ## Features
 
@@ -27,6 +28,7 @@ This application helps users manage their personal finances by tracking expenses
 
 - .NET 9.0 or higher
 - Node.js 18+ for the frontend
+- Expo CLI for mobile development
 - Command-line terminal
 
 ## Installation
@@ -45,6 +47,8 @@ dotnet build
 3. Install frontend dependencies:
 ```bash
 cd ExpenseTracker.UI/web
+npm install
+cd ../mobile
 npm install
 ```
 
@@ -68,6 +72,13 @@ cd ExpenseTracker.UI/web
 npm run dev
 ```
 
+### Mobile App
+```bash
+cd ExpenseTracker.UI/mobile
+npm start
+```
+Then use Expo Go app on your device or simulator to run the application.
+
 ## Project Structure
 
 The solution follows a clean architecture approach with the following projects:
@@ -76,7 +87,9 @@ The solution follows a clean architecture approach with the following projects:
 - **ExpenseTracker.Infrastructure**: Data access and service implementations
 - **ExpenseTracker.Api**: REST API with CORS support
 - **ExpenseTracker.Cli**: Interactive command-line interface
-- **ExpenseTracker.UI**: React-based web frontend
+- **ExpenseTracker.UI**: 
+  - React-based web frontend
+  - React Native mobile app using Expo
 - **ExpenseTracker.TestUtils**: Shared testing utilities
 - **\*.Tests**: Unit tests for respective projects
 
@@ -92,6 +105,7 @@ The solution follows a clean architecture approach with the following projects:
 ### Frontend
 - Next.js 15
 - React 19
+- React Native with Expo
 - Tailwind CSS
 - Axios for API communication
 
