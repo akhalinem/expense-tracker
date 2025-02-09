@@ -8,7 +8,7 @@ import { api } from "../services/api";
 import { useTheme } from "../theme";
 
 export const ThemedText: FC<TextProps & { variant?: 'primary' | 'secondary' }> = ({ variant = 'primary', style, ...props }) => {
-    const { theme, isDark } = useTheme();
+    const { theme, } = useTheme();
     return <Text style={[{ color: variant === 'primary' ? theme.text : theme.textSecondary }, style]} {...props} />;
 }
 
@@ -64,7 +64,7 @@ export default function HomeScreen() {
 
     return (
         <ThemedView style={styles.container}>
-            <SafeAreaView>
+            <SafeAreaView style={{ flex: 1 }}>
                 <ThemedCard style={styles.budgetCard}>
                     <ThemedText style={styles.sectionTitle}>Overview</ThemedText>
                     {budgetQuery.data ? (
