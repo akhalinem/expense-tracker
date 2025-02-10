@@ -20,7 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ExpenseTracker.TestUtils\ExpenseTracker.TestUtils.csproj" />
-    <ProjectReference Include="..\ExpenseTracker.Core\ExpenseTracker.Core.csproj" />
+    <ProjectReference Include="..\..\ExpenseTracker.Core\ExpenseTracker.Core.csproj" />
   </ItemGroup>
 
 </Project>
