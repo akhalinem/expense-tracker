@@ -4,17 +4,17 @@ VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExpenseTracker.Cli", "ExpenseTracker.Cli\ExpenseTracker.Cli.csproj", "{BA5F1251-B434-1B7B-16F7-90A60487A7C5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExpenseTracker.Cli.Tests", "ExpenseTracker.Cli.Tests\ExpenseTracker.Cli.Tests.csproj", "{B6BF20F0-3C58-4DF2-9A55-5ED93FA09548}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExpenseTracker.Cli.Tests", "ExpenseTracker.Tests\ExpenseTracker.Cli.Tests\ExpenseTracker.Cli.Tests.csproj", "{B6BF20F0-3C58-4DF2-9A55-5ED93FA09548}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExpenseTracker.Core", "ExpenseTracker.Core\ExpenseTracker.Core.csproj", "{9E80638B-44B8-47AA-9106-0792409E9A01}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExpenseTracker.Core.Tests", "ExpenseTracker.Core.Tests\ExpenseTracker.Core.Tests.csproj", "{2CF9F40A-B461-4CA2-80B5-527D4CE807C0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExpenseTracker.Core.Tests", "ExpenseTracker.Tests\ExpenseTracker.Core.Tests\ExpenseTracker.Core.Tests.csproj", "{2CF9F40A-B461-4CA2-80B5-527D4CE807C0}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExpenseTracker.Api", "ExpenseTracker.Api\ExpenseTracker.Api.csproj", "{79782D2F-BBAD-495F-A87B-46B04EB60C49}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExpenseTracker.Infrastructure", "ExpenseTracker.Infrastructure\ExpenseTracker.Infrastructure.csproj", "{0A5ACA0F-CF19-4383-8708-813B19B3DB39}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExpenseTracker.Infrastructure.Tests", "ExpenseTracker.Infrastructure.Tests\ExpenseTracker.Infrastructure.Tests.csproj", "{C25BC4E5-AAAC-4869-BDDE-9541568AEA69}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExpenseTracker.Infrastructure.Tests", "ExpenseTracker.Tests\ExpenseTracker.Infrastructure.Tests\ExpenseTracker.Infrastructure.Tests.csproj", "{C25BC4E5-AAAC-4869-BDDE-9541568AEA69}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
