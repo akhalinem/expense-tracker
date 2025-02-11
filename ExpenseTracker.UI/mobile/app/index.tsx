@@ -92,11 +92,19 @@ export default function HomeScreen() {
                     renderItem={({ item }) => (
                         <ThemedCard style={styles.expenseItem}>
                             <View>
-                                <ThemedText style={styles.expenseName}>{item.name}</ThemedText>
-                                <ThemedText variant="secondary" style={styles.expenseDate}>{displayDate(item.createdAt)}</ThemedText>
-                                <ThemedText variant="secondary" style={styles.expenseCategory}>{item.category}</ThemedText>
+                                <ThemedText style={styles.expenseAmount}>{displayCurrency(item.amount)}</ThemedText>
+                                <ThemedText variant="secondary" style={styles.expenseName}>{item.name}</ThemedText>
+                                <View style={styles.metadataContainer}>
+                                    <View style={styles.categoryContainer}>
+                                        <ThemedText variant="secondary" style={styles.expenseCategory}>
+                                            {item.category}
+                                        </ThemedText>
+                                    </View>
+                                    <ThemedText variant="secondary" style={styles.expenseDate}>
+                                        {displayDate(item.createdAt)}
+                                    </ThemedText>
+                                </View>
                             </View>
-                            <ThemedText style={styles.expenseAmount}>{displayCurrency(item.amount)}</ThemedText>
                         </ThemedCard>
                     )}
                 />
@@ -121,26 +129,40 @@ const styles = StyleSheet.create({
     expenseItem: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        padding: 10,
+        padding: 12,
         marginBottom: 5,
-        borderRadius: 5,
+        borderRadius: 8,
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.22,
         shadowRadius: 2.22,
         elevation: 3,
     },
+    metadataContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 8,
+        gap: 8,
+    },
+    categoryContainer: {
+        backgroundColor: 'rgba(0,0,0,0.05)',
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 4,
+    },
     expenseName: {
-        fontSize: 16,
+        fontSize: 14,
     },
     expenseAmount: {
-        fontSize: 16,
+        fontSize: 18,
         fontWeight: 'bold',
+        marginBottom: 4,
     },
     expenseDate: {
-        fontSize: 14,
+        fontSize: 12,
     },
     expenseCategory: {
-        fontSize: 14,
+        fontSize: 12,
+        textTransform: 'uppercase',
     },
     budgetCard: {
         padding: 15,
