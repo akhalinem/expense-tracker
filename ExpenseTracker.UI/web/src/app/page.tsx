@@ -36,7 +36,7 @@ export default async function Home() {
         {expenses.map((expense) => (
           <div key={expense.id} className="border p-4 rounded-lg shadow">
             <div className="flex justify-between items-center">
-              <h2 className="font-semibold">{expense.name}</h2>
+              <h2 className="font-semibold">{expense.description}</h2>
               <span className="text-lg">{displayCurrency(expense.amount)}</span>
             </div>
             <div className="text-sm text-gray-600">

@@ -93,7 +93,7 @@ export default function HomeScreen() {
                         <ThemedCard style={styles.expenseItem}>
                             <View>
                                 <ThemedText style={styles.expenseAmount}>{displayCurrency(item.amount)}</ThemedText>
-                                <ThemedText variant="secondary" style={styles.expenseName}>{item.name}</ThemedText>
+                                <ThemedText variant="secondary" style={styles.expenseDescription}>{item.description}</ThemedText>
                                 <View style={styles.metadataContainer}>
                                     <View style={styles.categoryContainer}>
                                         <ThemedText variant="secondary" style={styles.expenseCategory}>
@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
         paddingVertical: 4,
         borderRadius: 4,
     },
-    expenseName: {
+    expenseDescription: {
         fontSize: 14,
     },
     expenseAmount: {

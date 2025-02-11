@@ -3,7 +3,7 @@ export interface IExpense {
     createdAt: string;
     updatedAt: string | null;
     amount: number;
-    name: string;
+    description: string;
     category: string;
 }
 

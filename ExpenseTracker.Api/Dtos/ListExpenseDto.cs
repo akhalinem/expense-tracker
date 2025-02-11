@@ -5,7 +5,7 @@ namespace ExpenseTracker.Api.Dtos;
 public class ListExpenseDto
 {
     public Guid Id { get; set; }
-    public string Name { get; set; }
+    public string Description { get; set; }
     public decimal Amount { get; set; }
     public string? Category { get; set; }
     public DateTime CreatedAt { get; set; }
@@ -14,7 +14,7 @@ public class ListExpenseDto
     public ListExpenseDto(Expense expense)
     {
         Id = expense.Id;
-        Name = expense.Name;
+        Description = expense.Name;
         Amount = expense.Amount;
         Category = expense.Category;
         CreatedAt = expense.CreatedAt;
