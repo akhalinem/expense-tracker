@@ -22,7 +22,12 @@ public class ExpensesController : ControllerBase
         var result = await _expenseService.List(month, year, category);
 
         return result.IsSuccess
-            ? Ok(result.Value?.OrderByDescending(x => x.CreatedAt).ToList())
+            ? Ok(
+                result.Value
+                    ?.Select(x => new ListExpenseDto(x))
+                    .OrderByDescending(x => x.CreatedAt)
+                    .ToList()
+            )
             : BadRequest(result.Error);
     }
 
