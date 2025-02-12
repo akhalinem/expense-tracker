@@ -71,6 +71,11 @@ public class ExpenseService : IExpenseService
         return await _expenseRepository.GetAllAsync(month, year, categoryResult?.Value?.Id);
     }
 
+    public async Task<Result<IEnumerable<Expense>>> List(int? month = null, int? year = null, IEnumerable<Guid>? categoryIds = null)
+    {
+        return await _expenseRepository.GetAllAsync(month, year, categoryIds);
+    }
+
     public async Task<Result<Expense?>> Update(Guid id, string? name = null, decimal? amount = null)
     {
         return await _expenseRepository.UpdateAsync(id, name, amount);

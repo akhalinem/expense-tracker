@@ -1,8 +1,8 @@
-import { FC } from "react";
-import { Text, View, FlatList, StyleSheet, TextProps, ViewProps } from "react-native";
+import { FC, useState } from "react";
+import { Text, View, FlatList, StyleSheet, TextProps, ViewProps, Pressable } from "react-native";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useQuery } from "@tanstack/react-query";
-import { IBudget, IExpense } from "../types";
+import { IBudget, IExpense, ICategory } from "../types";
 import { displayCurrency, displayDate } from "../utils";
 import { api } from "../services/api";
 import { useTheme } from "../theme";
@@ -24,11 +24,15 @@ export const ThemedCard: FC<ViewProps> = ({ style, ...props }) => {
 
 
 export default function HomeScreen() {
+    const [selectedCategories, setSelectedCategories] = useState<Set<string>>(new Set());
+
     const expensesQuery = useQuery({
-        queryKey: ['expenses'],
+        queryKey: ['expenses', Array.from(selectedCategories)],
         queryFn: async () => {
-            const response = await api.get<IExpense[]>('/expenses');
-            return response.data
+            const categoryIds = Array.from(selectedCategories);
+
+            const response = await api.get<IExpense[]>("/expenses", { params: { categoryIds: categoryIds.join() } });
+            return response.data;
         },
     });
 
@@ -40,20 +44,28 @@ export default function HomeScreen() {
         },
     });
 
-    if (expensesQuery.isLoading || budgetQuery.isLoading) {
-        return (
-            <ThemedView>
-                <SafeAreaView style={styles.container}>
-                    <ThemedText>Loading...</ThemedText>
-                </SafeAreaView>
-            </ThemedView>
-        );
-    }
+    const categoriesQuery = useQuery({
+        queryKey: ['categories'],
+        queryFn: async () => {
+            const response = await api.get<ICategory[]>('/categories');
+            return response.data
+        },
+    });
 
-    if (expensesQuery.isError || budgetQuery.isError) {
+    // if (expensesQuery.isLoading || budgetQuery.isLoading || categoriesQuery.isLoading) {
+    //     return (
+    //         <ThemedView style={styles.container}>
+    //             <SafeAreaView style={{ flex: 1 }}>
+    //                 <ThemedText>Loading...</ThemedText>
+    //             </SafeAreaView>
+    //         </ThemedView>
+    //     );
+    // }
+
+    if (expensesQuery.isError || budgetQuery.isError || categoriesQuery.isError) {
         return (
-            <ThemedView>
-                <SafeAreaView style={styles.container}>
+            <ThemedView style={styles.container}>
+                <SafeAreaView style={{ flex: 1 }}>
                     <ThemedText>Error loading data.</ThemedText>
                 </SafeAreaView>
             </ThemedView>
@@ -61,6 +73,18 @@ export default function HomeScreen() {
     }
 
     const totalExpenses = (expensesQuery.data ?? []).reduce((acc, expense) => acc + expense.amount, 0);
+
+    const toggleCategory = (categoryId: string) => {
+        setSelectedCategories(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(categoryId)) {
+                newSet.delete(categoryId);
+            } else {
+                newSet.add(categoryId);
+            }
+            return newSet;
+        });
+    };
 
     return (
         <ThemedView style={styles.container}>
@@ -83,6 +107,27 @@ export default function HomeScreen() {
                         <ThemedText style={styles.amount}>{displayCurrency(totalExpenses)}</ThemedText>
                     </View>
                 </ThemedCard>
+
+                <ThemedText style={[styles.sectionTitle, { paddingHorizontal: 15 }]}>Categories</ThemedText>
+                <View style={styles.categoriesContainer}>
+                    <FlatList
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={styles.categoriesListContainer}
+                        data={categoriesQuery.data}
+                        keyExtractor={(item) => item.id}
+                        renderItem={({ item }) => (
+                            <Pressable onPress={() => toggleCategory(item.id)}>
+                                <ThemedCard style={[
+                                    styles.categoryItem,
+                                    selectedCategories.has(item.id) && styles.selectedCategory
+                                ]}>
+                                    <ThemedText>{item.name}</ThemedText>
+                                </ThemedCard>
+                            </Pressable>
+                        )}
+                    />
+                </View>
 
                 <ThemedText style={[styles.sectionTitle, { paddingHorizontal: 15 }]}>Recent Expenses</ThemedText>
                 <FlatList
@@ -199,5 +244,24 @@ const styles = StyleSheet.create({
     },
     totalExpenses: {
         marginTop: 15,
+    },
+    categoriesContainer: {
+        marginBottom: 20,
+    },
+    categoriesListContainer: {
+        paddingHorizontal: 15,
+        gap: 10,
+    },
+    categoryItem: {
+        padding: 10,
+        borderRadius: 8,
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.22,
+        shadowRadius: 2.22,
+        elevation: 3,
+    },
+    selectedCategory: {
+        borderWidth: 2,
+        borderColor: '#007AFF',
     },
 });

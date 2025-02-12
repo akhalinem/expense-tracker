@@ -77,6 +77,73 @@ public class ExpenseRepository : IExpenseRepository
         }
     }
 
+    public async Task<Result<IEnumerable<Expense>>> GetAllAsync()
+    {
+        try
+        {
+            var expenses = _context.Expenses.Include(x => x.Category).AsQueryable();
+
+            return Result<IEnumerable<Expense>>.Success(await expenses.ToListAsync());
+        }
+        catch (Exception ex)
+        {
+            return Result<IEnumerable<Expense>>.Failure(ex.Message);
+        }
+    }
+
+    public async Task<Result<IEnumerable<Expense>>> GetAllAsync(int? month = null, int? year = null)
+    {
+        try
+        {
+            var expenses = _context.Expenses.Include(x => x.Category).AsQueryable();
+
+            if (month.HasValue)
+            {
+                expenses = expenses.Where(e => e.CreatedAt.Month == month);
+            }
+
+            if (year.HasValue)
+            {
+                expenses = expenses.Where(e => e.CreatedAt.Year == year);
+            }
+
+            return Result<IEnumerable<Expense>>.Success(await expenses.ToListAsync());
+        }
+        catch (Exception ex)
+        {
+            return Result<IEnumerable<Expense>>.Failure(ex.Message);
+        }
+    }
+
+    public async Task<Result<IEnumerable<Expense>>> GetAllAsync(int? month = null, int? year = null, IEnumerable<Guid>? categoryIds = null)
+    {
+        try
+        {
+            var expenses = _context.Expenses.Include(x => x.Category).AsEnumerable();
+
+            if (month.HasValue)
+            {
+                expenses = expenses.Where(e => e.CreatedAt.Month == month);
+            }
+
+            if (year.HasValue)
+            {
+                expenses = expenses.Where(e => e.CreatedAt.Year == year);
+            }
+
+            if (categoryIds != null)
+            {
+                expenses = expenses.Where(e => e.CategoryId.HasValue && categoryIds.Contains(e.CategoryId.Value));
+            }
+
+            return Result<IEnumerable<Expense>>.Success(expenses.ToList());
+        }
+        catch (Exception ex)
+        {
+            return Result<IEnumerable<Expense>>.Failure(ex.Message);
+        }
+    }
+
     public async Task<Result<Expense?>> UpdateAsync(Guid id, string? name = null, decimal? amount = null, Guid? categoryId = null)
     {
         try

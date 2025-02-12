@@ -11,6 +11,7 @@ public interface IExpenseService
     Task<Result<IEnumerable<Expense>>> List(int? month = null, int? year = null);
     Task<Result<IEnumerable<Expense>>> List(int? month = null, int? year = null, Guid? categoryId = null);
     Task<Result<IEnumerable<Expense>>> List(int? month = null, int? year = null, string? category = null);
+    Task<Result<IEnumerable<Expense>>> List(int? month = null, int? year = null, IEnumerable<Guid>? categoryIds = null);
     Task<Result<Expense?>> Update(Guid id, string? name = null, decimal? amount = null);
     Task<Result<Expense?>> Update(Guid id, string? name = null, decimal? amount = null, Guid? categoryId = null);
     Task<Result<Expense?>> Update(Guid id, string? name = null, decimal? amount = null, string? category = null);

@@ -17,9 +17,13 @@ public class ExpensesController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetExpenses([FromQuery] int? month, [FromQuery] int? year, [FromQuery] string? category)
+    public async Task<IActionResult> GetExpenses([FromQuery] int? month, [FromQuery] int? year, [FromQuery] string? categoryIds)
     {
-        var result = await _expenseService.List(month, year, category);
+        List<Guid>? parsedCategoryIds = categoryIds?
+            .Split(',', StringSplitOptions.RemoveEmptyEntries)
+            .Select(id => Guid.Parse(id))
+            .ToList();
+        var result = await _expenseService.List(month, year, parsedCategoryIds);
 
         return result.IsSuccess
             ? Ok(

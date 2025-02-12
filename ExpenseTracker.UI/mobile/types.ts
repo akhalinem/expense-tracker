@@ -12,3 +12,8 @@ export interface IBudget {
     month: number;
     year: number;
 }
+
+export interface ICategory {
+    id: string;
+    name: string;
+}
