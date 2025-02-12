@@ -254,14 +254,15 @@ const styles = StyleSheet.create({
     },
     categoryItem: {
         padding: 10,
+        borderWidth: 2,
         borderRadius: 8,
+        borderColor: 'transparent',
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.22,
         shadowRadius: 2.22,
         elevation: 3,
     },
     selectedCategory: {
-        borderWidth: 2,
         borderColor: '#007AFF',
     },
 });
