@@ -39,6 +39,7 @@ class Program
             .AddScoped<IBudgetRepository, BudgetRepository>()
             .AddScoped<IExpenseService, ExpenseService>()
             .AddScoped<IBudgetService, BudgetService>()
+            .AddScoped<ICategoryRepository, CategoryRepository>()
             .AddScoped<CliService>()
             .AddDbContext<ExpenseTrackerDbContext>(options =>
                 options.UseSqlite(configuration.GetConnectionString("DefaultConnection")))

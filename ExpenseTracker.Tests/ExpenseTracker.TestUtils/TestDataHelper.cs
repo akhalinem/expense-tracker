@@ -8,15 +8,20 @@ public static class TestDataHelper
         string name = "Test Expense",
         decimal amount = 100m,
         string? category = null,
-        DateTime? createdAt = null) =>
-        new()
+        DateTime? createdAt = null)
+    {
+        var categoryModel = new Category { Name = category ?? "Test Category" };
+
+        return new()
         {
             Id = Guid.NewGuid(),
             Name = name,
             Amount = amount,
-            Category = category,
+            CategoryId = categoryModel.Id,
+            Category = categoryModel,
             CreatedAt = createdAt ?? DateTime.Now
         };
+    }
 
     public static Budget CreateBudget(
         int month = 1,

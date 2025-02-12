@@ -16,7 +16,7 @@ public class ListExpenseDto
         Id = expense.Id;
         Description = expense.Name;
         Amount = expense.Amount;
-        Category = expense.Category;
+        Category = expense.Category?.Name;
         CreatedAt = expense.CreatedAt;
         UpdatedAt = expense.UpdatedAt;
     }

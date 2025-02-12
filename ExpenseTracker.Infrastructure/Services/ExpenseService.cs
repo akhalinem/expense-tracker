@@ -5,38 +5,94 @@ namespace ExpenseTracker.Infrastructure.Services;
 
 public class ExpenseService : IExpenseService
 {
-    private readonly IExpenseRepository _repository;
+    private readonly IExpenseRepository _expenseRepository;
+    private readonly ICategoryRepository _categoryRepository;
 
-    public ExpenseService(IExpenseRepository repository)
+    public ExpenseService(IExpenseRepository expenseRepository, ICategoryRepository categoryRepository)
     {
-        _repository = repository;
+        _expenseRepository = expenseRepository;
+        _categoryRepository = categoryRepository;
     }
 
-    public async Task<Result<Expense>> Add(string name, decimal amount, string? category = null)
+    public async Task<Result<Expense>> Add(string name, decimal amount)
+    {
+        return await Add(name, amount, (Guid?)null);
+    }
+
+    public async Task<Result<Expense>> Add(string name, decimal amount, Guid? categoryId = null)
     {
         var expense = new Expense
         {
             Name = name,
             Amount = amount,
-            Category = category
+            CategoryId = categoryId
         };
 
-        return await _repository.AddAsync(expense);
+        return await _expenseRepository.AddAsync(expense);
+    }
+
+    public async Task<Result<Expense>> Add(string name, decimal amount, string? category = null)
+    {
+        var categoryResult = category != null
+            ? await _categoryRepository.UpsertAsync(category)
+            : null;
+
+        var expense = new Expense
+        {
+            Name = name,
+            Amount = amount,
+            CategoryId = categoryResult?.Value?.Id
+        };
+
+        return await _expenseRepository.AddAsync(expense);
+    }
+
+    public async Task<Result<IEnumerable<Expense>>> List()
+    {
+        return await _expenseRepository.GetAllAsync();
+    }
+
+    public async Task<Result<IEnumerable<Expense>>> List(int? month = null, int? year = null)
+    {
+        return await _expenseRepository.GetAllAsync(month, year);
+    }
+
+    public async Task<Result<IEnumerable<Expense>>> List(int? month = null, int? year = null, Guid? categoryId = null)
+    {
+        return await _expenseRepository.GetAllAsync(month, year, categoryId);
     }
 
     public async Task<Result<IEnumerable<Expense>>> List(int? month = null, int? year = null, string? category = null)
     {
-        return await _repository.GetAllAsync(month, year, category);
+        var categoryResult = category != null
+            ? await _categoryRepository.GetByNameAsync(category)
+            : null;
+
+        return await _expenseRepository.GetAllAsync(month, year, categoryResult?.Value?.Id);
+    }
+
+    public async Task<Result<Expense?>> Update(Guid id, string? name = null, decimal? amount = null)
+    {
+        return await _expenseRepository.UpdateAsync(id, name, amount);
+    }
+
+    public async Task<Result<Expense?>> Update(Guid id, string? name = null, decimal? amount = null, Guid? categoryId = null)
+    {
+        return await _expenseRepository.UpdateAsync(id, name, amount, categoryId);
     }
 
     public async Task<Result<Expense?>> Update(Guid id, string? name = null, decimal? amount = null, string? category = null)
     {
-        return await _repository.UpdateAsync(id, name, amount, category);
+        var categoryResult = category != null
+            ? await _categoryRepository.UpsertAsync(category)
+            : null;
+
+        return await _expenseRepository.UpdateAsync(id, name, amount, categoryResult?.Value?.Id);
     }
 
     public async Task<Result<bool>> Delete(Guid id)
     {
-        return await _repository.DeleteAsync(id);
+        return await _expenseRepository.DeleteAsync(id);
     }
 
     public async Task<Result<decimal>> GetTotal(int? month = null, int? year = null)

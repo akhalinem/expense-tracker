@@ -29,14 +29,14 @@ public class CliServiceTests
     {
         // Arrange
         var expense = TestDataHelper.CreateExpense("Test", 100m);
-        _expenseService.Setup(x => x.Add("Test", 100m, null))
+        _expenseService.Setup(x => x.Add("Test", 100m, (string?)null))
             .ReturnsAsync(Result<Expense>.Success(expense));
 
         // Act
         await _sut.BuildCommandLine().InvokeAsync("add --name Test --amount 100");
 
         // Assert
-        _expenseService.Verify(x => x.Add("Test", 100m, null), Times.Once);
+        _expenseService.Verify(x => x.Add("Test", 100m, (string?)null), Times.Once);
         Assert.Contains("Added expense", _consoleOutput.ToString());
     }
 
@@ -45,14 +45,14 @@ public class CliServiceTests
     {
         // Arrange
         var expenses = new[] { TestDataHelper.CreateExpense() };
-        _expenseService.Setup(x => x.List(null, null, null))
+        _expenseService.Setup(x => x.List(null, null))
             .ReturnsAsync(Result<IEnumerable<Expense>>.Success(expenses));
 
         // Act
         await _sut.BuildCommandLine().InvokeAsync("list");
 
         // Assert
-        _expenseService.Verify(x => x.List(null, null, null), Times.Once);
+        _expenseService.Verify(x => x.List(null, null), Times.Once);
         Assert.Contains("Test Expense", _consoleOutput.ToString());
     }
 

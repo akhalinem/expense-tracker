@@ -11,6 +11,7 @@ public class ExpenseServiceTests
 {
     private readonly ExpenseTrackerDbContext _dbContext;
     private readonly IExpenseRepository _expenseRepository;
+    private readonly ICategoryRepository _categoryRepository;
     private readonly IExpenseService _expenseService;
 
     public ExpenseServiceTests()
@@ -20,7 +21,8 @@ public class ExpenseServiceTests
             .Options;
         _dbContext = new ExpenseTrackerDbContext(options);
         _expenseRepository = new ExpenseRepository(_dbContext);
-        _expenseService = new ExpenseService(_expenseRepository);
+        _categoryRepository = new CategoryRepository(_dbContext);
+        _expenseService = new ExpenseService(_expenseRepository, _categoryRepository);
     }
 
 

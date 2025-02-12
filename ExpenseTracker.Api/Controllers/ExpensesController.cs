@@ -38,10 +38,10 @@ public class ExpensesController : ControllerBase
         {
             Name = dto.Description,
             Amount = dto.Amount,
-            Category = dto.Category
+            CategoryId = dto.CategoryId
         };
 
-        var result = await _expenseService.Add(expense.Name, expense.Amount, expense.Category);
+        var result = await _expenseService.Add(expense.Name, expense.Amount, expense.CategoryId);
         return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
     }
 
@@ -55,7 +55,7 @@ public class ExpensesController : ControllerBase
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> UpdateExpense(Guid id, UpdateExpenseDto dto)
     {
-        var result = await _expenseService.Update(id, dto.Description, dto.Amount, dto.Category);
+        var result = await _expenseService.Update(id, dto.Description, dto.Amount, dto.CategoryId);
         return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
     }
 }

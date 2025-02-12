@@ -83,7 +83,7 @@ public class CliService
             var expenses = result.Value!;
             if (category != null)
             {
-                expenses = expenses.Where(e => e.Category == category);
+                expenses = expenses.Where(e => e.Category != null && e.Category?.Name == category);
             }
 
             var format = "{0,-40} {1,-20} {2,12} {3, 12} {4,25} {5,25}";
@@ -287,7 +287,7 @@ public class CliService
             expenses.Value!,
             "Id,Name,Amount,Category,CreatedAt,UpdatedAt",
             expense => $"{expense.Id},{CsvExporter.EscapeCsvField(expense.Name)},{expense.Amount}," +
-                      $"{CsvExporter.EscapeCsvField(expense.Category ?? "")},{expense.CreatedAt}," +
+                      $"{CsvExporter.EscapeCsvField(expense.Category?.Name ?? "")},{expense.CreatedAt}," +
                       $"{expense.UpdatedAt?.ToString() ?? ""}"
         );
 

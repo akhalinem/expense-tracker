@@ -48,11 +48,11 @@ public class ExpenseRepository : IExpenseRepository
         }
     }
 
-    public async Task<Result<IEnumerable<Expense>>> GetAllAsync(int? month = null, int? year = null, string? category = null)
+    public async Task<Result<IEnumerable<Expense>>> GetAllAsync(int? month = null, int? year = null, Guid? categoryId = null)
     {
         try
         {
-            var expenses = _context.Expenses.AsQueryable();
+            var expenses = _context.Expenses.Include(x => x.Category).AsQueryable();
 
             if (month.HasValue)
             {
@@ -64,9 +64,9 @@ public class ExpenseRepository : IExpenseRepository
                 expenses = expenses.Where(e => e.CreatedAt.Year == year);
             }
 
-            if (!string.IsNullOrWhiteSpace(category))
+            if (categoryId != null)
             {
-                expenses = expenses.Where(e => e.Category == category);
+                expenses = expenses.Where(e => e.CategoryId == categoryId);
             }
 
             return Result<IEnumerable<Expense>>.Success(await expenses.ToListAsync());
@@ -77,7 +77,7 @@ public class ExpenseRepository : IExpenseRepository
         }
     }
 
-    public async Task<Result<Expense?>> UpdateAsync(Guid id, string? name = null, decimal? amount = null, string? category = null)
+    public async Task<Result<Expense?>> UpdateAsync(Guid id, string? name = null, decimal? amount = null, Guid? categoryId = null)
     {
         try
         {
@@ -89,7 +89,7 @@ public class ExpenseRepository : IExpenseRepository
 
             if (name != null) expense.Name = name;
             if (amount.HasValue) expense.Amount = amount.Value;
-            if (category != null) expense.Category = category;
+            if (categoryId != null) expense.CategoryId = categoryId;
             expense.UpdatedAt = DateTime.Now;
 
             await _context.SaveChangesAsync();
