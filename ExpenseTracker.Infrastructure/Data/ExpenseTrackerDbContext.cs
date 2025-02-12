@@ -9,6 +9,7 @@ public class ExpenseTrackerDbContext : DbContext
 
     public DbSet<Expense> Expenses { get; set; }
     public DbSet<Budget> Budgets { get; set; }
+    public DbSet<Category> Categories { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
