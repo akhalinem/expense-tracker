@@ -1,27 +1,13 @@
-import { FC } from "react";
-import { Text, View, FlatList, StyleSheet, TextProps, ViewProps, Pressable, ActivityIndicator } from "react-native";
+import { View, FlatList, StyleSheet, Pressable, ActivityIndicator } from "react-native";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { IBudget, IExpense } from "../types";
 import { displayCurrency, displayDate } from "../utils";
 import { api } from "../services/api";
-import { useTheme } from "../theme";
 import { useCategories } from "../hooks/useCategories";
-
-export const ThemedText: FC<TextProps & { variant?: 'primary' | 'secondary' }> = ({ variant = 'primary', style, ...props }) => {
-    const { theme, } = useTheme();
-    return <Text style={[{ color: variant === 'primary' ? theme.text : theme.textSecondary }, style]} {...props} />;
-}
-
-export const ThemedView: FC<ViewProps> = ({ style, ...props }) => {
-    const { theme } = useTheme();
-    return <View style={[{ backgroundColor: theme.background }, style]} {...props} />;
-}
-
-export const ThemedCard: FC<ViewProps> = ({ style, ...props }) => {
-    const { theme } = useTheme();
-    return <View style={[{ backgroundColor: theme.card, shadowColor: theme.shadow }, style]} {...props} />;
-}
+import ThemedView from "../components/themed/ThemedView";
+import ThemedText from "../components/themed/ThemedText";
+import ThemedCard from "../components/themed/ThemedCard";
 
 export default function HomeScreen() {
     const { categories, selectedCategories, toggleCategory, isError: categoriesError } = useCategories();
