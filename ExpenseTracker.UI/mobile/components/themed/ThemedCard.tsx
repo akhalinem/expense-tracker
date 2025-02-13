@@ -1,6 +1,6 @@
 import { FC } from "react";
 import { View, ViewProps } from "react-native";
-import { useTheme } from "../../theme";
+import { useTheme } from "~/theme";
 
 const ThemedCard: FC<ViewProps> = ({ style, ...props }) => {
     const { theme } = useTheme();

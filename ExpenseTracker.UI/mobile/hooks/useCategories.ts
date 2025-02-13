@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { ICategory } from '../types';
-import { api } from '../services/api';
+import { ICategory } from '~/types';
+import { api } from '~/services/api';
 
 export const useCategories = () => {
     const [selectedCategories, setSelectedCategories] = useState<Set<string>>(new Set());
