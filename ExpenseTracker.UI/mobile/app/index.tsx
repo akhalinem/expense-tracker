@@ -4,7 +4,7 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { IBudget, IExpense } from "~/types";
 import { displayCurrency, displayDate } from "~/utils";
 import { api } from "~/services/api";
-import { useCategoriesToggle } from "~/hooks/useCategories";
+import { useCategoriesToggle } from "~/hooks/useCategoriesToggle";
 import ThemedView from "~/components/themed/ThemedView";
 import ThemedText from "~/components/themed/ThemedText";
 import ThemedCard from "~/components/themed/ThemedCard";
