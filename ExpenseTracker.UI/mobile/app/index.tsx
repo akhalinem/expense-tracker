@@ -4,18 +4,18 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { IBudget, IExpense } from "~/types";
 import { displayCurrency, displayDate } from "~/utils";
 import { api } from "~/services/api";
-import { useCategories } from "~/hooks/useCategories";
+import { useCategoriesToggle } from "~/hooks/useCategories";
 import ThemedView from "~/components/themed/ThemedView";
 import ThemedText from "~/components/themed/ThemedText";
 import ThemedCard from "~/components/themed/ThemedCard";
 
 export default function HomeScreen() {
-    const { categories, selectedCategories, toggleCategory, isError: categoriesError } = useCategories();
+    const categoriesToggle = useCategoriesToggle();
 
     const expensesQuery = useQuery({
-        queryKey: ['expenses', Array.from(selectedCategories)],
+        queryKey: ['expenses', Array.from(categoriesToggle.selectedCategories)],
         queryFn: async () => {
-            const categoryIds = Array.from(selectedCategories);
+            const categoryIds = Array.from(categoriesToggle.selectedCategories);
             const response = await api.get<IExpense[]>("/expenses", { params: { categoryIds: categoryIds.join() } });
             return response.data;
         },
@@ -32,7 +32,7 @@ export default function HomeScreen() {
     });
 
     const isFetching = [expensesQuery, budgetQuery].some(q => q.isFetching);
-    const isError = [expensesQuery, budgetQuery].some(q => q.isError) || categoriesError;
+    const isError = [expensesQuery, budgetQuery].some(q => q.isError) || categoriesToggle.isError;
 
     if (isError) {
         return (
@@ -76,13 +76,13 @@ export default function HomeScreen() {
                         horizontal
                         showsHorizontalScrollIndicator={false}
                         contentContainerStyle={styles.categoriesListContainer}
-                        data={categories}
+                        data={categoriesToggle.categories}
                         keyExtractor={(item) => item.id}
                         renderItem={({ item }) => (
-                            <Pressable onPress={() => toggleCategory(item.id)}>
+                            <Pressable onPress={() => categoriesToggle.toggle(item.id)}>
                                 <ThemedCard style={[
                                     styles.categoryItem,
-                                    selectedCategories.has(item.id) && styles.selectedCategory
+                                    categoriesToggle.selectedCategories.has(item.id) && styles.selectedCategory
                                 ]}>
                                     <ThemedText>{item.name}</ThemedText>
                                 </ThemedCard>

@@ -3,7 +3,7 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { ICategory } from '~/types';
 import { api } from '~/services/api';
 
-export const useCategories = () => {
+export const useCategoriesToggle = () => {
     const [selectedCategories, setSelectedCategories] = useState<Set<string>>(new Set());
 
     const categoriesQuery = useQuery({
@@ -15,7 +15,7 @@ export const useCategories = () => {
         placeholderData: keepPreviousData
     });
 
-    const toggleCategory = (categoryId: string) => {
+    const toggle = (categoryId: string) => {
         setSelectedCategories(prev => {
             const newSet = new Set(prev);
             if (newSet.has(categoryId)) {
@@ -30,7 +30,7 @@ export const useCategories = () => {
     return {
         categories: categoriesQuery.data,
         selectedCategories,
-        toggleCategory,
+        toggle,
         isLoading: categoriesQuery.isFetching,
         isError: categoriesQuery.isError
     };
