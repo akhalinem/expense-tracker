@@ -1,7 +1,7 @@
 import { FC, useState } from "react";
-import { Text, View, FlatList, StyleSheet, TextProps, ViewProps, Pressable } from "react-native";
+import { Text, View, FlatList, StyleSheet, TextProps, ViewProps, Pressable, ActivityIndicator } from "react-native";
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { IBudget, IExpense, ICategory } from "../types";
 import { displayCurrency, displayDate } from "../utils";
 import { api } from "../services/api";
@@ -34,6 +34,7 @@ export default function HomeScreen() {
             const response = await api.get<IExpense[]>("/expenses", { params: { categoryIds: categoryIds.join() } });
             return response.data;
         },
+        placeholderData: keepPreviousData
     });
 
     const budgetQuery = useQuery({
@@ -42,6 +43,7 @@ export default function HomeScreen() {
             const response = await api.get<IBudget>('/budgets/current');
             return response.data
         },
+        placeholderData: keepPreviousData
     });
 
     const categoriesQuery = useQuery({
@@ -50,19 +52,13 @@ export default function HomeScreen() {
             const response = await api.get<ICategory[]>('/categories');
             return response.data
         },
+        placeholderData: keepPreviousData
     });
 
-    // if (expensesQuery.isLoading || budgetQuery.isLoading || categoriesQuery.isLoading) {
-    //     return (
-    //         <ThemedView style={styles.container}>
-    //             <SafeAreaView style={{ flex: 1 }}>
-    //                 <ThemedText>Loading...</ThemedText>
-    //             </SafeAreaView>
-    //         </ThemedView>
-    //     );
-    // }
+    const isFetching = [expensesQuery, budgetQuery, categoriesQuery].some(q => q.isFetching);
+    const isError = [expensesQuery, budgetQuery, categoriesQuery].some(q => q.isError);
 
-    if (expensesQuery.isError || budgetQuery.isError || categoriesQuery.isError) {
+    if (isError) {
         return (
             <ThemedView style={styles.container}>
                 <SafeAreaView style={{ flex: 1 }}>
@@ -89,6 +85,8 @@ export default function HomeScreen() {
     return (
         <ThemedView style={styles.container}>
             <SafeAreaView style={{ flex: 1 }}>
+                {isFetching && <ActivityIndicator size="large" style={styles.loader} />}
+
                 <ThemedCard style={styles.budgetCard}>
                     <ThemedText style={styles.sectionTitle}>Overview</ThemedText>
                     {budgetQuery.data ? (
@@ -161,6 +159,16 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+    },
+    loader: {
+        position: 'absolute',
+        zIndex: 1,
+        left: 0,
+        right: 0,
+        top: 0,
+        bottom: 0,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     listContentContainer: {
         padding: 20,
