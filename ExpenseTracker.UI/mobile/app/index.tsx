@@ -1,11 +1,12 @@
-import { FC, useState } from "react";
+import { FC } from "react";
 import { Text, View, FlatList, StyleSheet, TextProps, ViewProps, Pressable, ActivityIndicator } from "react-native";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { IBudget, IExpense, ICategory } from "../types";
+import { IBudget, IExpense } from "../types";
 import { displayCurrency, displayDate } from "../utils";
 import { api } from "../services/api";
 import { useTheme } from "../theme";
+import { useCategories } from "../hooks/useCategories";
 
 export const ThemedText: FC<TextProps & { variant?: 'primary' | 'secondary' }> = ({ variant = 'primary', style, ...props }) => {
     const { theme, } = useTheme();
@@ -22,15 +23,13 @@ export const ThemedCard: FC<ViewProps> = ({ style, ...props }) => {
     return <View style={[{ backgroundColor: theme.card, shadowColor: theme.shadow }, style]} {...props} />;
 }
 
-
 export default function HomeScreen() {
-    const [selectedCategories, setSelectedCategories] = useState<Set<string>>(new Set());
+    const { categories, selectedCategories, toggleCategory, isError: categoriesError } = useCategories();
 
     const expensesQuery = useQuery({
         queryKey: ['expenses', Array.from(selectedCategories)],
         queryFn: async () => {
             const categoryIds = Array.from(selectedCategories);
-
             const response = await api.get<IExpense[]>("/expenses", { params: { categoryIds: categoryIds.join() } });
             return response.data;
         },
@@ -46,17 +45,8 @@ export default function HomeScreen() {
         placeholderData: keepPreviousData
     });
 
-    const categoriesQuery = useQuery({
-        queryKey: ['categories'],
-        queryFn: async () => {
-            const response = await api.get<ICategory[]>('/categories');
-            return response.data
-        },
-        placeholderData: keepPreviousData
-    });
-
-    const isFetching = [expensesQuery, budgetQuery, categoriesQuery].some(q => q.isFetching);
-    const isError = [expensesQuery, budgetQuery, categoriesQuery].some(q => q.isError);
+    const isFetching = [expensesQuery, budgetQuery].some(q => q.isFetching);
+    const isError = [expensesQuery, budgetQuery].some(q => q.isError) || categoriesError;
 
     if (isError) {
         return (
@@ -69,18 +59,6 @@ export default function HomeScreen() {
     }
 
     const totalExpenses = (expensesQuery.data ?? []).reduce((acc, expense) => acc + expense.amount, 0);
-
-    const toggleCategory = (categoryId: string) => {
-        setSelectedCategories(prev => {
-            const newSet = new Set(prev);
-            if (newSet.has(categoryId)) {
-                newSet.delete(categoryId);
-            } else {
-                newSet.add(categoryId);
-            }
-            return newSet;
-        });
-    };
 
     return (
         <ThemedView style={styles.container}>
@@ -112,7 +90,7 @@ export default function HomeScreen() {
                         horizontal
                         showsHorizontalScrollIndicator={false}
                         contentContainerStyle={styles.categoriesListContainer}
-                        data={categoriesQuery.data}
+                        data={categories}
                         keyExtractor={(item) => item.id}
                         renderItem={({ item }) => (
                             <Pressable onPress={() => toggleCategory(item.id)}>
