@@ -218,10 +218,11 @@ const styles = StyleSheet.create({
         marginTop: 15,
     },
     categoriesContainer: {
-        marginBottom: 20,
+        marginBottom: 10,
     },
     categoriesListContainer: {
         paddingHorizontal: 15,
+        paddingVertical: 5,
         gap: 10,
     },
     categoryItem: {
