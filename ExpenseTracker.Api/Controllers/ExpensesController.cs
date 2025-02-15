@@ -38,14 +38,7 @@ public class ExpensesController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> AddExpense(CreateExpenseDto dto)
     {
-        Expense expense = new()
-        {
-            Name = dto.Description,
-            Amount = dto.Amount,
-            CategoryId = dto.CategoryId
-        };
-
-        var result = await _expenseService.Add(expense.Name, expense.Amount, expense.CategoryId);
+        var result = await _expenseService.Add(dto.Description, dto.Amount, dto.CategoryId);
         return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
     }
 
