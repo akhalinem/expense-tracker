@@ -5,22 +5,9 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Run Console App",
+            "name": ".NET Core Attach",
             "type": "coreclr",
-            "request": "launch",
-            "preLaunchTask": "build",
-            "program": "${workspaceFolder}/ExpenseTracker.Cli/bin/Debug/net9.0/ExpenseTracker.Cli.dll",
-            "cwd": "${workspaceFolder}/ExpenseTracker.Cli",
-            "console": "integratedTerminal"
-        },
-        {
-            "name": "Run Web API",
-            "type": "coreclr",
-            "request": "launch",
-            "preLaunchTask": "build",
-            "program": "${workspaceFolder}/ExpenseTracker.Api/bin/Debug/net9.0/ExpenseTracker.Api.dll",
-            "cwd": "${workspaceFolder}/ExpenseTracker.Api",
-            "console": "integratedTerminal"
+            "request": "attach"
         }
     ]
 }
