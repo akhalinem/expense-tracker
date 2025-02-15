@@ -28,6 +28,7 @@ export const useCategoriesToggle = () => {
     };
 
     return {
+        categoriesQuery,
         categories: categoriesQuery.data,
         selectedCategories,
         toggle,

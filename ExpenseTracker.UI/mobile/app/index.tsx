@@ -1,4 +1,5 @@
-import { View, FlatList, StyleSheet, Pressable, ActivityIndicator } from "react-native";
+import { useState } from "react";
+import { View, FlatList, StyleSheet, Pressable, ActivityIndicator, RefreshControl } from "react-native";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { IBudget, IExpense } from "~/types";
@@ -10,6 +11,8 @@ import ThemedText from "~/components/themed/ThemedText";
 import ThemedCard from "~/components/themed/ThemedCard";
 
 export default function HomeScreen() {
+    const [isRefreshing, setIsRefreshing] = useState(false);
+
     const categoriesToggle = useCategoriesToggle();
 
     const expensesQuery = useQuery({
@@ -31,6 +34,16 @@ export default function HomeScreen() {
         placeholderData: keepPreviousData
     });
 
+    const handleRefresh = async () => {
+        setIsRefreshing(true);
+        await Promise.all([
+            expensesQuery.refetch(),
+            budgetQuery.refetch(),
+            categoriesToggle.categoriesQuery.refetch()
+        ]);
+        setIsRefreshing(false);
+    };
+
     const isFetching = [expensesQuery, budgetQuery].some(q => q.isFetching);
     const isError = [expensesQuery, budgetQuery].some(q => q.isError) || categoriesToggle.isError;
 
@@ -49,7 +62,7 @@ export default function HomeScreen() {
     return (
         <ThemedView style={styles.container}>
             <SafeAreaView style={{ flex: 1 }}>
-                {isFetching && <ActivityIndicator size="large" style={styles.loader} />}
+                {isFetching && !isRefreshing && <ActivityIndicator size="large" style={styles.loader} />}
 
                 <ThemedCard style={styles.budgetCard}>
                     <ThemedText style={styles.sectionTitle}>Overview</ThemedText>
@@ -96,6 +109,12 @@ export default function HomeScreen() {
                     contentContainerStyle={styles.listContentContainer}
                     data={expensesQuery.data}
                     keyExtractor={(item) => item.id.toString()}
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={isRefreshing}
+                            onRefresh={handleRefresh}
+                        />
+                    }
                     renderItem={({ item }) => (
                         <ThemedCard style={styles.expenseItem}>
                             <View>
