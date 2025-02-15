@@ -16,6 +16,10 @@ public class ExpenseTrackerDbContext : DbContext
         modelBuilder.Entity<Expense>(entity =>
         {
             entity.Property(e => e.Amount).HasColumnType("decimal(18, 2)");
+            entity.HasOne(e => e.Category)
+                  .WithMany(c => c.Expenses)
+                  .HasForeignKey(e => e.CategoryId)
+                  .OnDelete(DeleteBehavior.SetNull);
         });
 
         modelBuilder.Entity<Budget>(entity =>
