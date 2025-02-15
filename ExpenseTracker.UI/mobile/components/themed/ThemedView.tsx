@@ -1,10 +1,19 @@
-import { FC } from "react";
+import { FC, ComponentType } from "react";
 import { View, ViewProps } from "react-native";
 import { useTheme } from "~/theme";
 
-const ThemedView: FC<ViewProps> = ({ style, ...props }) => {
-    const { theme } = useTheme();
-    return <View style={[{ backgroundColor: theme.background }, style]} {...props} />;
-}
+type ThemedViewProps<C extends ComponentType<any>> = {
+    as?: C;
+} & ViewProps & Omit<React.ComponentProps<C>, keyof ViewProps>;
 
-export default ThemedView
+const ThemedView = <C extends ComponentType<any> = typeof View>({
+    as,
+    style,
+    ...props
+}: ThemedViewProps<C>) => {
+    const { theme } = useTheme();
+    const Component = as || View;
+    return <Component style={[{ backgroundColor: theme.background }, style]} {...props} />;
+};
+
+export default ThemedView;
