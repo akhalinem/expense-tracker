@@ -1,9 +1,10 @@
 import { useState, useRef, useCallback } from "react";
-import { View, FlatList, StyleSheet, Pressable, ActivityIndicator, RefreshControl, TouchableOpacity } from "react-native";
+import { View, FlatList, StyleSheet, Pressable, ActivityIndicator, RefreshControl, TouchableOpacity, Alert } from "react-native";
 import { SafeAreaView } from 'react-native-safe-area-context';
+import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeable";
 import { Ionicons } from "@expo/vector-icons";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { IBudget, IExpense } from "~/types";
 import { displayCurrency, displayDate } from "~/utils";
 import { api } from "~/services/api";
@@ -14,10 +15,11 @@ import ThemedCard from "~/components/themed/ThemedCard";
 import AddExpenseSheet from "~/components/AddExpenseSheet";
 
 export default function HomeScreen() {
+    const queryClient = useQueryClient();
+    const categoriesToggle = useCategoriesToggle();
+
     const [isRefreshing, setIsRefreshing] = useState(false);
     const bottomSheetRef = useRef<BottomSheetModal>(null);
-
-    const categoriesToggle = useCategoriesToggle();
 
     const expensesQuery = useQuery({
         queryKey: ['expenses', Array.from(categoriesToggle.selectedCategories)],
@@ -37,6 +39,44 @@ export default function HomeScreen() {
         },
         placeholderData: keepPreviousData
     });
+
+
+    const deleteExpenseMutation = useMutation({
+        mutationFn: async (expenseId: number) => {
+            await api.delete(`/expenses/${expenseId}`);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['expenses'] });
+        }
+    });
+
+    const handleDelete = (expenseId: number) => {
+        Alert.alert(
+            "Delete Expense",
+            "Are you sure you want to delete this expense?",
+            [
+                { text: "Cancel", style: "cancel" },
+                {
+                    text: "Delete",
+                    style: "destructive",
+                    onPress: () => deleteExpenseMutation.mutate(expenseId)
+                }
+            ]
+        );
+    };
+
+    const renderRightActions = (expenseId: number) => {
+        return (
+            <View style={styles.expenseRightActionsContainer}>
+                <TouchableOpacity
+                    style={styles.deleteAction}
+                    onPress={() => handleDelete(expenseId)}
+                >
+                    <Ionicons name="trash-outline" size={24} color="white" />
+                </TouchableOpacity>
+            </View>
+        );
+    };
 
     const handleRefresh = async () => {
         setIsRefreshing(true);
@@ -124,22 +164,27 @@ export default function HomeScreen() {
                         />
                     }
                     renderItem={({ item }) => (
-                        <ThemedCard style={styles.expenseItem}>
-                            <View>
-                                <ThemedText style={styles.expenseAmount}>{displayCurrency(item.amount)}</ThemedText>
-                                <ThemedText variant="secondary" style={styles.expenseDescription}>{item.description}</ThemedText>
-                                <View style={styles.metadataContainer}>
-                                    <View style={styles.categoryContainer}>
-                                        <ThemedText variant="secondary" style={styles.expenseCategory}>
-                                            {item.category}
+                        <ReanimatedSwipeable
+                            renderRightActions={() => renderRightActions(item.id)}
+                            rightThreshold={40}
+                        >
+                            <ThemedCard style={styles.expenseItem}>
+                                <View>
+                                    <ThemedText style={styles.expenseAmount}>{displayCurrency(item.amount)}</ThemedText>
+                                    <ThemedText variant="secondary" style={styles.expenseDescription}>{item.description}</ThemedText>
+                                    <View style={styles.metadataContainer}>
+                                        <View style={styles.categoryContainer}>
+                                            <ThemedText variant="secondary" style={styles.expenseCategory}>
+                                                {item.category}
+                                            </ThemedText>
+                                        </View>
+                                        <ThemedText variant="secondary" style={styles.expenseDate}>
+                                            {displayDate(item.createdAt)}
                                         </ThemedText>
                                     </View>
-                                    <ThemedText variant="secondary" style={styles.expenseDate}>
-                                        {displayDate(item.createdAt)}
-                                    </ThemedText>
                                 </View>
-                            </View>
-                        </ThemedCard>
+                            </ThemedCard>
+                        </ReanimatedSwipeable>
                     )}
                 />
 
@@ -171,8 +216,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     listContentContainer: {
-        padding: 20,
-        gap: 5
+        gap: 10
     },
     header: {
         fontSize: 24,
@@ -183,12 +227,12 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         padding: 12,
-        marginBottom: 5,
         borderRadius: 8,
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.22,
         shadowRadius: 2.22,
         elevation: 3,
+        marginHorizontal: 15,
     },
     metadataContainer: {
         flexDirection: 'row',
@@ -289,5 +333,17 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.25,
         shadowRadius: 3.84,
+    },
+    expenseRightActionsContainer: {
+        marginRight: 15,
+        marginLeft: -30,
+    },
+    deleteAction: {
+        backgroundColor: '#ff4444',
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: 80,
+        height: '100%',
+        borderRadius: 8,
     },
 });
