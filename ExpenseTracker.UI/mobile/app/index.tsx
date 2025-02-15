@@ -65,7 +65,7 @@ export default function HomeScreen() {
                 {isFetching && !isRefreshing && <ActivityIndicator size="large" style={styles.loader} />}
 
                 <ThemedCard style={styles.budgetCard}>
-                    <ThemedText style={styles.sectionTitle}>Overview</ThemedText>
+                    <ThemedText style={styles.sectionTitle}>Monthly Overview</ThemedText>
                     {budgetQuery.data ? (
                         <View>
                             <ThemedText style={styles.label}>Budget</ThemedText>
