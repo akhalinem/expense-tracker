@@ -1,5 +1,4 @@
-import { useCallback, useState } from "react";
-import { View, FlatList, StyleSheet, Pressable, ActivityIndicator, RefreshControl, } from "react-native";
+import { View, FlatList, StyleSheet, Pressable, ActivityIndicator } from "react-native";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { IBudget, IExpense } from "~/types";
@@ -11,7 +10,6 @@ import ThemedText from "~/components/themed/ThemedText";
 import ThemedCard from "~/components/themed/ThemedCard";
 
 export default function HomeScreen() {
-    const [isRefreshing, setIsRefreshing] = useState(false);
     const categoriesToggle = useCategoriesToggle();
 
     const expensesQuery = useQuery({
@@ -33,16 +31,6 @@ export default function HomeScreen() {
         placeholderData: keepPreviousData
     });
 
-    const handleRefresh = useCallback(async () => {
-        setIsRefreshing(true);
-        await Promise.all([
-            expensesQuery.refetch(),
-            budgetQuery.refetch(),
-            categoriesToggle.categoriesQuery.refetch(),
-        ]);
-        setIsRefreshing(false);
-    }, [expensesQuery, budgetQuery, categoriesToggle]);
-
     const isFetching = [expensesQuery, budgetQuery].some(q => q.isFetching);
     const isError = [expensesQuery, budgetQuery].some(q => q.isError) || categoriesToggle.isError;
 
@@ -63,62 +51,51 @@ export default function HomeScreen() {
             <SafeAreaView style={{ flex: 1 }}>
                 {isFetching && <ActivityIndicator size="large" style={styles.loader} />}
 
+                <ThemedCard style={styles.budgetCard}>
+                    <ThemedText style={styles.sectionTitle}>Overview</ThemedText>
+                    {budgetQuery.data ? (
+                        <View>
+                            <ThemedText style={styles.label}>Budget</ThemedText>
+                            <ThemedText style={styles.amount}>{displayCurrency(budgetQuery.data.amount)}</ThemedText>
+                            <ThemedText variant="secondary" style={styles.remaining}>
+                                Remaining: {displayCurrency(budgetQuery.data.amount - totalExpenses)}
+                            </ThemedText>
+                        </View>
+                    ) : (
+                        <ThemedText style={styles.noBudget}>No budget set</ThemedText>
+                    )}
+                    <View style={styles.totalExpenses}>
+                        <ThemedText style={styles.label}>Total Expenses</ThemedText>
+                        <ThemedText style={styles.amount}>{displayCurrency(totalExpenses)}</ThemedText>
+                    </View>
+                </ThemedCard>
+
+                <ThemedText style={[styles.sectionTitle, { paddingHorizontal: 15 }]}>Categories</ThemedText>
+                <View style={styles.categoriesContainer}>
+                    <FlatList
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={styles.categoriesListContainer}
+                        data={categoriesToggle.categories}
+                        keyExtractor={(item) => item.id}
+                        renderItem={({ item }) => (
+                            <Pressable onPress={() => categoriesToggle.toggle(item.id)}>
+                                <ThemedCard style={[
+                                    styles.categoryItem,
+                                    categoriesToggle.selectedCategories.has(item.id) && styles.selectedCategory
+                                ]}>
+                                    <ThemedText>{item.name}</ThemedText>
+                                </ThemedCard>
+                            </Pressable>
+                        )}
+                    />
+                </View>
+
+                <ThemedText style={[styles.sectionTitle, { paddingHorizontal: 15 }]}>Recent Expenses</ThemedText>
                 <FlatList
                     contentContainerStyle={styles.listContentContainer}
                     data={expensesQuery.data}
                     keyExtractor={(item) => item.id.toString()}
-                    refreshControl={
-                        <RefreshControl
-                            refreshing={isRefreshing}
-                            onRefresh={handleRefresh}
-                        />
-                    }
-                    stickyHeaderIndices={[0]}
-                    ListHeaderComponent={() => (
-                        <ThemedView style={styles.listHeaderContainer}>
-                            <ThemedCard style={styles.budgetCard}>
-                                <ThemedText style={styles.sectionTitle}>Overview</ThemedText>
-                                {budgetQuery.data ? (
-                                    <View>
-                                        <ThemedText style={styles.label}>Budget</ThemedText>
-                                        <ThemedText style={styles.amount}>{displayCurrency(budgetQuery.data.amount)}</ThemedText>
-                                        <ThemedText variant="secondary" style={styles.remaining}>
-                                            Remaining: {displayCurrency(budgetQuery.data.amount - totalExpenses)}
-                                        </ThemedText>
-                                    </View>
-                                ) : (
-                                    <ThemedText style={styles.noBudget}>No budget set</ThemedText>
-                                )}
-                                <View style={styles.totalExpenses}>
-                                    <ThemedText style={styles.label}>Total Expenses</ThemedText>
-                                    <ThemedText style={styles.amount}>{displayCurrency(totalExpenses)}</ThemedText>
-                                </View>
-                            </ThemedCard>
-
-                            <ThemedText style={styles.sectionTitle}>Categories</ThemedText>
-                            <View style={styles.categoriesContainer}>
-                                <FlatList
-                                    horizontal
-                                    showsHorizontalScrollIndicator={false}
-                                    contentContainerStyle={styles.categoriesListContainer}
-                                    data={categoriesToggle.categories}
-                                    keyExtractor={(item) => item.id}
-                                    renderItem={({ item }) => (
-                                        <Pressable onPress={() => categoriesToggle.toggle(item.id)}>
-                                            <ThemedCard style={[
-                                                styles.categoryItem,
-                                                categoriesToggle.selectedCategories.has(item.id) && styles.selectedCategory
-                                            ]}>
-                                                <ThemedText>{item.name}</ThemedText>
-                                            </ThemedCard>
-                                        </Pressable>
-                                    )}
-                                />
-                            </View>
-
-                            <ThemedText style={styles.sectionTitle}>Recent Expenses</ThemedText>
-                        </ThemedView>
-                    )}
                     renderItem={({ item }) => (
                         <ThemedCard style={styles.expenseItem}>
                             <View>
@@ -139,7 +116,7 @@ export default function HomeScreen() {
                     )}
                 />
             </SafeAreaView>
-        </ThemedView >
+        </ThemedView>
     );
 }
 
@@ -157,11 +134,9 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
-    listHeaderContainer: {
-        paddingHorizontal: 15,
-    },
     listContentContainer: {
-        gap: 5,
+        padding: 20,
+        gap: 5
     },
     header: {
         fontSize: 24,
@@ -178,7 +153,6 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.22,
         shadowRadius: 2.22,
         elevation: 3,
-        marginHorizontal: 15,
     },
     metadataContainer: {
         flexDirection: 'row',
@@ -209,6 +183,8 @@ const styles = StyleSheet.create({
     },
     budgetCard: {
         padding: 15,
+        marginHorizontal: 20,
+        marginTop: 20,
         marginBottom: 20,
         borderRadius: 10,
         shadowOffset: { width: 0, height: 2 },
@@ -243,7 +219,6 @@ const styles = StyleSheet.create({
     },
     categoriesContainer: {
         marginBottom: 10,
-        marginHorizontal: -15
     },
     categoriesListContainer: {
         paddingHorizontal: 15,
