@@ -1,9 +1,11 @@
-import { Stack } from "expo-router";
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useColorScheme } from 'react-native';
 import { useState, useEffect } from 'react';
-import { theme, ThemeContext } from '../theme';
+import { useColorScheme } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { Stack } from "expo-router";
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { theme, ThemeContext } from '~/theme';
 
 const queryClient = new QueryClient();
 
@@ -27,14 +29,18 @@ export default function RootLayout() {
         <QueryClientProvider client={queryClient}>
             <ThemeContext.Provider value={themeValue}>
                 <SafeAreaProvider>
-                    <Stack>
-                        <Stack.Screen
-                            name="index"
-                            options={{
-                                headerShown: false,
-                            }}
-                        />
-                    </Stack>
+                    <GestureHandlerRootView style={{ flex: 1 }}>
+                        <BottomSheetModalProvider>
+                            <Stack>
+                                <Stack.Screen
+                                    name="index"
+                                    options={{
+                                        headerShown: false,
+                                    }}
+                                />
+                            </Stack>
+                        </BottomSheetModalProvider>
+                    </GestureHandlerRootView>
                 </SafeAreaProvider>
             </ThemeContext.Provider>
         </QueryClientProvider>

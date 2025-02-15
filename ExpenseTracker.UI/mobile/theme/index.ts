@@ -7,6 +7,7 @@ export const theme = {
         text: '#000000',
         textSecondary: '#666666',
         shadow: '#000000',
+        border: '#E5E5EA',
     },
     dark: {
         background: '#1e1e1e',
@@ -14,6 +15,7 @@ export const theme = {
         text: '#ffffff',
         textSecondary: '#a0a0a0',
         shadow: '#000000',
+        border: '#38383A',
     },
 };
 

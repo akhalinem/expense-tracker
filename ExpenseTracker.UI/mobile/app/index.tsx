@@ -1,6 +1,8 @@
-import { useState } from "react";
-import { View, FlatList, StyleSheet, Pressable, ActivityIndicator, RefreshControl } from "react-native";
+import { useState, useRef, useCallback } from "react";
+import { View, FlatList, StyleSheet, Pressable, ActivityIndicator, RefreshControl, TouchableOpacity } from "react-native";
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from "@expo/vector-icons";
+import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { IBudget, IExpense } from "~/types";
 import { displayCurrency, displayDate } from "~/utils";
@@ -9,9 +11,11 @@ import { useCategoriesToggle } from "~/hooks/useCategoriesToggle";
 import ThemedView from "~/components/themed/ThemedView";
 import ThemedText from "~/components/themed/ThemedText";
 import ThemedCard from "~/components/themed/ThemedCard";
+import AddExpenseSheet from "~/components/AddExpenseSheet";
 
 export default function HomeScreen() {
     const [isRefreshing, setIsRefreshing] = useState(false);
+    const bottomSheetRef = useRef<BottomSheetModal>(null);
 
     const categoriesToggle = useCategoriesToggle();
 
@@ -43,6 +47,10 @@ export default function HomeScreen() {
         ]);
         setIsRefreshing(false);
     };
+
+    const handlePresentModal = useCallback(() => {
+        bottomSheetRef.current?.present();
+    }, []);
 
     const isFetching = [expensesQuery, budgetQuery].some(q => q.isFetching);
     const isError = [expensesQuery, budgetQuery].some(q => q.isError) || categoriesToggle.isError;
@@ -134,6 +142,15 @@ export default function HomeScreen() {
                         </ThemedCard>
                     )}
                 />
+
+                <TouchableOpacity
+                    style={styles.fab}
+                    onPress={handlePresentModal}
+                >
+                    <Ionicons name="add" size={24} color="white" />
+                </TouchableOpacity>
+
+                <AddExpenseSheet bottomSheetRef={bottomSheetRef} />
             </SafeAreaView>
         </ThemedView>
     );
@@ -256,5 +273,21 @@ const styles = StyleSheet.create({
     },
     selectedCategory: {
         borderColor: '#007AFF',
+    },
+    fab: {
+        position: 'absolute',
+        right: 16,
+        bottom: 16,
+        width: 56,
+        height: 56,
+        borderRadius: 28,
+        backgroundColor: '#007AFF',
+        alignItems: 'center',
+        justifyContent: 'center',
+        elevation: 4,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
     },
 });
