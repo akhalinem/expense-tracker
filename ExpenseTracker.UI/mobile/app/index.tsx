@@ -119,7 +119,7 @@ export default function HomeScreen() {
 
     return (
         <ThemedView style={styles.container}>
-            <SafeAreaView style={{ flex: 1 }}>
+            <SafeAreaView style={{ flex: 1 }} edges={['top']}>
                 {(isFetching || deleteExpenseMutation.isPending) && !isRefreshing && <ActivityIndicator size="large" style={styles.loader} />}
 
                 <ThemedCard style={styles.budgetCard}>
@@ -226,7 +226,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     listContentContainer: {
-        gap: 0
+        paddingBottom: 25
     },
     header: {
         fontSize: 24,
