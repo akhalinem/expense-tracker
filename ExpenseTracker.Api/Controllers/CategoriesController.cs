@@ -22,7 +22,7 @@ public class CategoriesController : ControllerBase
 
         return result.IsSuccess
             ? Ok(result.Value
-                ?.Select(x => new ListCategoryDto(x))
+                ?.Select(x => new CategoryDto(x))
                 .ToList()
             )
             : BadRequest(result.Error);

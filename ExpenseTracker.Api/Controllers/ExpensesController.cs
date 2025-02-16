@@ -28,7 +28,7 @@ public class ExpensesController : ControllerBase
         return result.IsSuccess
             ? Ok(
                 result.Value
-                    ?.Select(x => new ListExpenseDto(x))
+                    ?.Select(x => new ExpenseDto(x))
                     .OrderByDescending(x => x.CreatedAt)
                     .ToList()
             )
