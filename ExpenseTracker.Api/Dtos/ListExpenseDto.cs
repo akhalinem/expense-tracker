@@ -7,7 +7,7 @@ public class ListExpenseDto
     public Guid Id { get; set; }
     public string Description { get; set; }
     public decimal Amount { get; set; }
-    public string? Category { get; set; }
+    public Category? Category { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
 
@@ -16,7 +16,13 @@ public class ListExpenseDto
         Id = expense.Id;
         Description = expense.Name;
         Amount = expense.Amount;
-        Category = expense.Category?.Name;
+        Category = expense.Category != null
+            ? new Category
+            {
+                Id = expense.Category.Id,
+                Name = expense.Category.Name
+            }
+            : null;
         CreatedAt = expense.CreatedAt;
         UpdatedAt = expense.UpdatedAt;
     }
