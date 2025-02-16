@@ -7,22 +7,15 @@ import { ICategory } from '~/types';
 
 interface CategoryPickerProps {
     selectedCategory: string;
+    categories: ICategory[];
     onSelectCategory: (categoryId: string) => void;
 }
 
-export default function CategoryPicker({ selectedCategory, onSelectCategory }: CategoryPickerProps) {
-    const { data: categories } = useQuery<ICategory[]>({
-        queryKey: ['categories'],
-        queryFn: async () => {
-            const response = await api.get('/categories');
-            return response.data;
-        },
-    });
-
+export default function CategoryPicker({ categories, selectedCategory, onSelectCategory }: CategoryPickerProps) {
     return (
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <View style={styles.container}>
-                {categories?.map((category) => (
+                {categories.map((category) => (
                     <Pressable
                         key={category.id}
                         onPress={() => onSelectCategory(category.id)}

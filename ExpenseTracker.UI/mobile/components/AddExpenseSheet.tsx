@@ -1,8 +1,9 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, } from 'react';
 import { View, StyleSheet, Keyboard } from 'react-native';
 import { BottomSheetBackdrop, BottomSheetModal, BottomSheetTextInput, BottomSheetView } from '@gorhom/bottom-sheet';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { BottomSheetDefaultBackdropProps } from '@gorhom/bottom-sheet/lib/typescript/components/bottomSheetBackdrop/types';
+import { ICategory } from '~/types';
 import { api } from '~/services/api';
 import { useTheme } from '~/theme';
 import ThemedText from '~/components/themed/ThemedText';
@@ -21,6 +22,14 @@ export default function AddExpenseSheet({ bottomSheetRef }: AddExpenseSheetProps
     const [description, setDescription] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('');
     const queryClient = useQueryClient();
+
+    const categoriesQuery = useQuery<ICategory[]>({
+        queryKey: ['categories'],
+        queryFn: async () => {
+            const response = await api.get('/categories');
+            return response.data;
+        },
+    });
 
     const addExpenseMutation = useMutation({
         mutationFn: async (data: { amount: number; description: string; categoryId: string }) => {
@@ -103,6 +112,7 @@ export default function AddExpenseSheet({ bottomSheetRef }: AddExpenseSheetProps
                     <View style={styles.field}>
                         <ThemedText style={styles.label}>Category</ThemedText>
                         <CategoryPicker
+                            categories={categoriesQuery.data ?? []}
                             selectedCategory={selectedCategory}
                             onSelectCategory={setSelectedCategory}
                         />
