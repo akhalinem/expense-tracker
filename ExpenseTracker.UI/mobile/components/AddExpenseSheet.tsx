@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { View, StyleSheet, Keyboard } from 'react-native';
-import { BottomSheetBackdrop, BottomSheetModal, BottomSheetTextInput, BottomSheetView } from '@gorhom/bottom-sheet';
+import { BottomSheetBackdrop, BottomSheetModal, BottomSheetView, BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { BottomSheetDefaultBackdropProps } from '@gorhom/bottom-sheet/lib/typescript/components/bottomSheetBackdrop/types';
 import { ICategory } from '~/types';
@@ -14,6 +14,7 @@ import ThemedButton from '~/components/themed/ThemedButton';
 import CategoryPicker from '~/components/CategoryPicker';
 import ThemedView from '~/components/themed/ThemedView';
 import ThemedBottomSheetHandle from '~/components/themed/ThemedBottomSheetHandle';
+import ThemedTextInput from '~/components/themed/ThemedTextInput';
 
 interface AddExpenseSheetProps {
     bottomSheetRef: React.RefObject<BottomSheetModal>;
@@ -93,12 +94,13 @@ export default function AddExpenseSheet({ bottomSheetRef }: AddExpenseSheetProps
                             control={control}
                             name="amount"
                             render={({ field: { onChange, value } }) => (
-                                <BottomSheetTextInput
-                                    style={[styles.input, errors.amount && styles.inputError]}
+                                <ThemedTextInput
+                                    as={BottomSheetTextInput}
                                     keyboardType="decimal-pad"
                                     placeholder="0.00"
                                     value={value?.toString()}
                                     onChangeText={onChange}
+                                    error={!!errors.amount}
                                 />
                             )}
                         />
@@ -113,8 +115,8 @@ export default function AddExpenseSheet({ bottomSheetRef }: AddExpenseSheetProps
                             control={control}
                             name="description"
                             render={({ field: { onChange, value } }) => (
-                                <BottomSheetTextInput
-                                    style={styles.input}
+                                <ThemedTextInput
+                                    as={BottomSheetTextInput}
                                     placeholder="Enter description"
                                     value={value}
                                     onChangeText={onChange}
@@ -179,19 +181,10 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '600',
     },
-    input: {
-        padding: 12,
-        borderRadius: 8,
-        borderWidth: 1,
-        borderColor: '#ccc',
-    },
     buttons: {
         flexDirection: 'row',
         gap: 12,
         marginTop: 24,
-    },
-    inputError: {
-        borderColor: 'red',
     },
     errorText: {
         color: 'red',
