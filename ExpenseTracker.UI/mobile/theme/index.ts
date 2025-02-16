@@ -2,24 +2,55 @@ import { createContext, useContext } from 'react';
 
 export const theme = {
     light: {
-        background: '#f0f0f0',
-        card: '#ffffff',
-        text: '#000000',
-        textSecondary: '#666666',
+        // Base colors
+        background: '#f8fafc',
+        surface: '#ffffff',
+
+        // Text colors
+        text: '#0f172a',
+        textSecondary: '#64748b',
+
+        // Interactive colors
+        primary: '#0284c7',
+        secondary: '#6b7280',
+
+        // Status colors
+        error: '#ef4444',
+
+        // Border colors
+        border: '#e2e8f0',
+        borderFocused: '#0284c7',
+
+        // Shadow colors
         shadow: '#000000',
-        border: '#E5E5EA',
     },
     dark: {
-        background: '#1e1e1e',
-        card: '#2d2d2d',
-        text: '#ffffff',
-        textSecondary: '#a0a0a0',
+        // Base colors
+        background: '#0f172a',
+        surface: '#1e293b',
+
+        // Text colors
+        text: '#f8fafc',
+        textSecondary: '#94a3b8',
+
+        // Interactive colors
+        primary: '#38bdf8',
+        secondary: '#9ca3af',
+
+        // Status colors
+        error: '#f87171',
+
+        // Border colors
+        border: '#334155',
+        borderFocused: '#38bdf8',
+
+        // Shadow colors
         shadow: '#000000',
-        border: '#38383A',
     },
 };
 
 export type Theme = typeof theme.light;
+
 export const ThemeContext = createContext<{
     theme: Theme;
     isDark: boolean;

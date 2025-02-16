@@ -16,7 +16,7 @@ const ThemedCard = <T extends ElementType = typeof View>({
 
     return (
         <Component
-            style={[{ backgroundColor: theme.card, shadowColor: theme.shadow }, style]}
+            style={[{ backgroundColor: theme.surface, shadowColor: theme.shadow }, style]}
             {...props}
         />
     );
