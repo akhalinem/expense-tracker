@@ -110,7 +110,7 @@ export default function HomeScreen() {
     return (
         <ThemedView style={styles.container}>
             <SafeAreaView style={{ flex: 1 }}>
-                {isFetching && !isRefreshing && <ActivityIndicator size="large" style={styles.loader} />}
+                {(isFetching || deleteExpenseMutation.isPending) && !isRefreshing && <ActivityIndicator size="large" style={styles.loader} />}
 
                 <ThemedCard style={styles.budgetCard}>
                     <ThemedText style={styles.sectionTitle}>Monthly Overview</ThemedText>
