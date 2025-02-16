@@ -197,7 +197,7 @@ export default function HomeScreen() {
 
                 <AddExpenseSheet bottomSheetRef={bottomSheetRef} />
             </SafeAreaView>
-        </ThemedView>
+        </ThemedView >
     );
 }
 
@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     listContentContainer: {
-        gap: 10
+        gap: 0
     },
     header: {
         fontSize: 24,
@@ -233,6 +233,7 @@ const styles = StyleSheet.create({
         shadowRadius: 2.22,
         elevation: 3,
         marginHorizontal: 15,
+        marginVertical: 5,
     },
     metadataContainer: {
         flexDirection: 'row',
@@ -337,6 +338,7 @@ const styles = StyleSheet.create({
     expenseRightActionsContainer: {
         marginRight: 15,
         marginLeft: -30,
+        marginVertical: 5,
     },
     deleteAction: {
         backgroundColor: '#ff4444',
