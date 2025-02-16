@@ -12,14 +12,14 @@ import { useCategoriesToggle } from "~/hooks/useCategoriesToggle";
 import ThemedView from "~/components/themed/ThemedView";
 import ThemedText from "~/components/themed/ThemedText";
 import ThemedCard from "~/components/themed/ThemedCard";
-import AddExpenseSheet from "~/components/AddExpenseSheet";
+import SaveExpenseSheet from "~/components/SaveExpenseSheet";
 
 export default function HomeScreen() {
     const queryClient = useQueryClient();
     const categoriesToggle = useCategoriesToggle();
 
     const [isRefreshing, setIsRefreshing] = useState(false);
-    const bottomSheetRef = useRef<BottomSheetModal>(null);
+    const bottomSheetRef = useRef<BottomSheetModal<IExpense | null>>(null);
 
     const expensesQuery = useQuery({
         queryKey: ['expenses', Array.from(categoriesToggle.selectedCategories)],
@@ -65,12 +65,22 @@ export default function HomeScreen() {
         );
     };
 
-    const renderRightActions = (expenseId: number) => {
+    const handleEdit = (expense: IExpense) => {
+        bottomSheetRef.current?.present(expense);
+    };
+
+    const renderRightActions = (expense: IExpense) => {
         return (
             <View style={styles.expenseRightActionsContainer}>
                 <TouchableOpacity
+                    style={styles.editAction}
+                    onPress={() => handleEdit(expense)}
+                >
+                    <Ionicons name="create-outline" size={24} color="white" />
+                </TouchableOpacity>
+                <TouchableOpacity
                     style={styles.deleteAction}
-                    onPress={() => handleDelete(expenseId)}
+                    onPress={() => handleDelete(expense.id)}
                 >
                     <Ionicons name="trash-outline" size={24} color="white" />
                 </TouchableOpacity>
@@ -165,8 +175,8 @@ export default function HomeScreen() {
                     }
                     renderItem={({ item }) => (
                         <ReanimatedSwipeable
-                            renderRightActions={() => renderRightActions(item.id)}
-                            rightThreshold={40}
+                            renderRightActions={() => renderRightActions(item)}
+                            rightThreshold={80}
                         >
                             <ThemedCard style={styles.expenseItem}>
                                 <View>
@@ -175,7 +185,7 @@ export default function HomeScreen() {
                                     <View style={styles.metadataContainer}>
                                         <View style={styles.categoryContainer}>
                                             <ThemedText variant="secondary" style={styles.expenseCategory}>
-                                                {item.category}
+                                                {item.category?.name}
                                             </ThemedText>
                                         </View>
                                         <ThemedText variant="secondary" style={styles.expenseDate}>
@@ -195,7 +205,7 @@ export default function HomeScreen() {
                     <Ionicons name="add" size={24} color="white" />
                 </TouchableOpacity>
 
-                <AddExpenseSheet bottomSheetRef={bottomSheetRef} />
+                <SaveExpenseSheet bottomSheetRef={bottomSheetRef} />
             </SafeAreaView>
         </ThemedView >
     );
@@ -336,15 +346,25 @@ const styles = StyleSheet.create({
         shadowRadius: 3.84,
     },
     expenseRightActionsContainer: {
+        flexDirection: 'row',
         marginRight: 15,
         marginLeft: -30,
         marginVertical: 5,
+        gap: 8,
     },
     deleteAction: {
-        backgroundColor: '#ff4444',
+        backgroundColor: '#ef4444',
         justifyContent: 'center',
         alignItems: 'center',
-        width: 80,
+        width: 70,
+        height: '100%',
+        borderRadius: 8,
+    },
+    editAction: {
+        backgroundColor: '#3b82f6',
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: 70,
         height: '100%',
         borderRadius: 8,
     },

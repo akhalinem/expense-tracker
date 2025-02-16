@@ -4,7 +4,7 @@ export interface IExpense {
     updatedAt: string | null;
     amount: number;
     description: string;
-    category: string;
+    category: ICategory | null;
 }
 
 export interface IBudget {
