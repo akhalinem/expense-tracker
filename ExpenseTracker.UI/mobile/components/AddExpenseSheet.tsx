@@ -1,9 +1,12 @@
-import { useState, useCallback, } from 'react';
+import { useCallback } from 'react';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { View, StyleSheet, Keyboard } from 'react-native';
 import { BottomSheetBackdrop, BottomSheetModal, BottomSheetTextInput, BottomSheetView } from '@gorhom/bottom-sheet';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { BottomSheetDefaultBackdropProps } from '@gorhom/bottom-sheet/lib/typescript/components/bottomSheetBackdrop/types';
 import { ICategory } from '~/types';
+import { ExpenseFormData, ExpenseFormSchema } from '~/types/expense';
 import { api } from '~/services/api';
 import { useTheme } from '~/theme';
 import ThemedText from '~/components/themed/ThemedText';
@@ -18,10 +21,15 @@ interface AddExpenseSheetProps {
 
 export default function AddExpenseSheet({ bottomSheetRef }: AddExpenseSheetProps) {
     const { theme } = useTheme();
-    const [amount, setAmount] = useState('');
-    const [description, setDescription] = useState('');
-    const [selectedCategory, setSelectedCategory] = useState('');
     const queryClient = useQueryClient();
+    const { control, handleSubmit, reset, formState: { errors } } = useForm<ExpenseFormData>({
+        resolver: zodResolver(ExpenseFormSchema),
+        defaultValues: {
+            amount: null,
+            description: '',
+            categoryId: null,
+        },
+    });
 
     const categoriesQuery = useQuery<ICategory[]>({
         queryKey: ['categories'],
@@ -32,7 +40,7 @@ export default function AddExpenseSheet({ bottomSheetRef }: AddExpenseSheetProps
     });
 
     const addExpenseMutation = useMutation({
-        mutationFn: async (data: { amount: number; description: string; categoryId: string }) => {
+        mutationFn: async (data: ExpenseFormData) => {
             const response = await api.post('/expenses', data);
             return response.data;
         },
@@ -42,25 +50,16 @@ export default function AddExpenseSheet({ bottomSheetRef }: AddExpenseSheetProps
         },
     });
 
-    const handleSubmit = () => {
-        if (!amount || !selectedCategory) return;
-
-        addExpenseMutation.mutate({
-            amount: parseFloat(amount),
-            description,
-            categoryId: selectedCategory,
-        });
-    };
+    const onSubmit = handleSubmit((data) => {
+        addExpenseMutation.mutate(data);
+    });
 
     const handleClose = useCallback(() => {
-        setAmount('');
-        setDescription('');
-        setSelectedCategory('');
+        reset();
         Keyboard.dismiss();
         bottomSheetRef.current?.dismiss();
-    }, []);
+    }, [reset]);
 
-    // renders
     const renderBackdrop = useCallback(
         (props: BottomSheetDefaultBackdropProps) => (
             <BottomSheetBackdrop
@@ -90,32 +89,56 @@ export default function AddExpenseSheet({ bottomSheetRef }: AddExpenseSheetProps
                 <View style={styles.form}>
                     <View style={styles.field}>
                         <ThemedText style={styles.label}>Amount</ThemedText>
-                        <BottomSheetTextInput
-                            style={styles.input}
-                            keyboardType="decimal-pad"
-                            value={amount}
-                            onChangeText={setAmount}
-                            placeholder="0.00"
+                        <Controller
+                            control={control}
+                            name="amount"
+                            render={({ field: { onChange, value } }) => (
+                                <BottomSheetTextInput
+                                    style={[styles.input, errors.amount && styles.inputError]}
+                                    keyboardType="decimal-pad"
+                                    placeholder="0.00"
+                                    value={value?.toString()}
+                                    onChangeText={onChange}
+                                />
+                            )}
                         />
+                        {errors.amount && (
+                            <ThemedText style={styles.errorText}>{errors.amount.message}</ThemedText>
+                        )}
                     </View>
 
                     <View style={styles.field}>
                         <ThemedText style={styles.label}>Description</ThemedText>
-                        <BottomSheetTextInput
-                            style={styles.input}
-                            value={description}
-                            onChangeText={setDescription}
-                            placeholder="Enter description"
+                        <Controller
+                            control={control}
+                            name="description"
+                            render={({ field: { onChange, value } }) => (
+                                <BottomSheetTextInput
+                                    style={styles.input}
+                                    placeholder="Enter description"
+                                    value={value}
+                                    onChangeText={onChange}
+                                />
+                            )}
                         />
                     </View>
 
                     <View style={styles.field}>
                         <ThemedText style={styles.label}>Category</ThemedText>
-                        <CategoryPicker
-                            categories={categoriesQuery.data ?? []}
-                            selectedCategory={selectedCategory}
-                            onSelectCategory={setSelectedCategory}
+                        <Controller
+                            control={control}
+                            name="categoryId"
+                            render={({ field: { onChange, value } }) => (
+                                <CategoryPicker
+                                    categories={categoriesQuery.data ?? []}
+                                    selectedCategory={value?.toString() ?? null}
+                                    onSelectCategory={onChange}
+                                />
+                            )}
                         />
+                        {errors.categoryId && (
+                            <ThemedText style={styles.errorText}>{errors.categoryId.message}</ThemedText>
+                        )}
                     </View>
 
                     <View style={styles.buttons}>
@@ -126,8 +149,7 @@ export default function AddExpenseSheet({ bottomSheetRef }: AddExpenseSheetProps
                         />
                         <ThemedButton
                             title="Add Expense"
-                            onPress={handleSubmit}
-                            disabled={!amount || !selectedCategory}
+                            onPress={onSubmit}
                             loading={addExpenseMutation.isPending}
                         />
                     </View>
@@ -167,5 +189,13 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         gap: 12,
         marginTop: 24,
+    },
+    inputError: {
+        borderColor: 'red',
+    },
+    errorText: {
+        color: 'red',
+        fontSize: 12,
+        marginTop: 4,
     },
 });

@@ -6,7 +6,7 @@ import ThemedCard from '~/components/themed/ThemedCard';
 import { ICategory } from '~/types';
 
 interface CategoryPickerProps {
-    selectedCategory: string;
+    selectedCategory: string | null;
     categories: ICategory[];
     onSelectCategory: (categoryId: string) => void;
 }
@@ -22,7 +22,7 @@ export default function CategoryPicker({ categories, selectedCategory, onSelectC
                     >
                         <ThemedCard style={[
                             styles.category,
-                            selectedCategory === category.id && styles.selectedCategory
+                            selectedCategory && selectedCategory === category.id ? styles.selectedCategory : undefined,
                         ]}>
                             <ThemedText>{category.name}</ThemedText>
                         </ThemedCard>
