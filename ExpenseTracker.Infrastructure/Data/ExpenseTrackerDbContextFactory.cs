@@ -7,11 +7,11 @@ public class ExpenseTrackerDbContextFactory : IDesignTimeDbContextFactory<Expens
 {
     public ExpenseTrackerDbContext CreateDbContext(string[] args)
     {
-        var configPath = Path.Combine(Directory.GetCurrentDirectory(), "..", "config", "settings.json");
+        var configPath = Path.Combine(Directory.GetCurrentDirectory(), "..", "config");
 
         var configuration = new ConfigurationBuilder()
-            .SetBasePath(Directory.GetCurrentDirectory())
-            .AddJsonFile(configPath, optional: false)
+            .SetBasePath(configPath)
+            .AddJsonFile("settings.json", optional: false)
             .Build();
 
         var optionsBuilder = new DbContextOptionsBuilder<ExpenseTrackerDbContext>();

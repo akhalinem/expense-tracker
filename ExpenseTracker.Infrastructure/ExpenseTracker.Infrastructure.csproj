@@ -6,12 +6,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="../config/settings.json" Link="settings.json">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\ExpenseTracker.Core\ExpenseTracker.Core.csproj" />
   </ItemGroup>
 
