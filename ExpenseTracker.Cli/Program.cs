@@ -1,12 +1,7 @@
-﻿using System.CommandLine;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
-using ExpenseTracker.Core.Interfaces;
-using ExpenseTracker.Infrastructure.Services;
-using ExpenseTracker.Infrastructure.Repositories;
 using ExpenseTracker.Infrastructure.Data;
-using ExpenseTracker.Cli.Services;
+using ExpenseTracker.Infrastructure.Utils;
 
 namespace ExpenseTracker.Cli;
 
@@ -14,54 +9,69 @@ class Program
 {
     static async Task Main(string[] args)
     {
-        var services = ConfigureServices();
-        var cliService = services.GetRequiredService<CliService>();
-        var rootCommand = cliService.BuildCommandLine();
-
-        if (args.Length == 0)
+        try
         {
-            await RunInteractiveMode(rootCommand);
-            return;
+            var configuration = new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json", optional: false)
+                .Build();
+
+            var optionsBuilder = new DbContextOptionsBuilder<ExpenseTrackerDbContext>();
+            optionsBuilder.UseSqlite(configuration.GetConnectionString("DefaultConnection"));
+
+            using var context = new ExpenseTrackerDbContext(optionsBuilder.Options);
+            var solutionDir = Directory.GetParent(Directory.GetCurrentDirectory())?.FullName;
+            var dataDir = Path.Combine(solutionDir, "data");
+            var backupDir = Path.Combine(dataDir, "backup");
+            var seedDir = Path.Combine(dataDir, "seed");
+
+            if (args.Length == 0)
+            {
+                Console.WriteLine("Please provide a command: seed, backup, or reset");
+                Console.WriteLine($"Backup directory: {backupDir}");
+                Console.WriteLine($"Seed directory: {seedDir}");
+                return;
+            }
+
+            switch (args[0].ToLower())
+            {
+                case "seed":
+                    if (!Directory.Exists(seedDir))
+                    {
+                        Console.WriteLine($"Error: Seed directory not found at {seedDir}");
+                        return;
+                    }
+                    await DatabaseSeeder.SeedDatabase(context, seedDir);
+                    Console.WriteLine("Database seeded successfully");
+                    break;
+
+                case "backup":
+                    await DatabaseBackup.CreateBackup(context, backupDir);
+                    Console.WriteLine($"Database backed up successfully to {backupDir}");
+                    break;
+
+                case "reset":
+                    Console.Write("Are you sure you want to reset the database? This will delete all data. [y/N]: ");
+                    var response = Console.ReadLine()?.ToLower();
+                    if (response == "y" || response == "yes")
+                    {
+                        await DatabaseBackup.ResetDatabase(context);
+                        Console.WriteLine("Database reset successfully");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Operation cancelled");
+                    }
+                    break;
+
+                default:
+                    Console.WriteLine("Unknown command. Use: seed, backup, or reset");
+                    break;
+            }
         }
-
-        await rootCommand.InvokeAsync(args);
-    }
-
-    private static ServiceProvider ConfigureServices()
-    {
-
-        IConfiguration configuration = new ConfigurationBuilder()
-            .AddJsonFile("appsettings.json")
-            .Build();
-
-        return new ServiceCollection()
-            .AddScoped<IExpenseRepository, ExpenseRepository>()
-            .AddScoped<IBudgetRepository, BudgetRepository>()
-            .AddScoped<IExpenseService, ExpenseService>()
-            .AddScoped<IBudgetService, BudgetService>()
-            .AddScoped<ICategoryRepository, CategoryRepository>()
-            .AddScoped<CliService>()
-            .AddDbContext<ExpenseTrackerDbContext>(options =>
-                options.UseSqlite(configuration.GetConnectionString("DefaultConnection")))
-            .BuildServiceProvider();
-    }
-
-    private static async Task RunInteractiveMode(RootCommand rootCommand)
-    {
-        while (true)
+        catch (Exception ex)
         {
-            Console.Write("> ");
-            var input = Console.ReadLine();
-
-            if (string.IsNullOrWhiteSpace(input))
-                continue;
-
-            if (input.ToLower() == "exit")
-                break;
-
-            var commandArgs = input.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-
-            await rootCommand.InvokeAsync(commandArgs);
+            Console.WriteLine($"Error: {ex.Message}");
+            Environment.Exit(1);
         }
     }
 }

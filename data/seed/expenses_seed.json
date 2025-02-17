@@ -1,0 +1,386 @@
+[
+    {
+        "id": "e0000000-0000-0000-0000-000000000001",
+        "name": "Monthly Rent",
+        "amount": 12000,
+        "categoryId": "c2000000-0000-0000-0000-000000000002",
+        "createdAt": "2024-12-01T10:00:00Z",
+        "updatedAt": null
+    },
+    {
+        "id": "e0000000-0000-0000-0000-000000000002",
+        "name": "Monthly Bus Pass",
+        "amount": 600,
+        "categoryId": "c3000000-0000-0000-0000-000000000003",
+        "createdAt": "2024-12-01T09:00:00Z",
+        "updatedAt": null
+    },
+    {
+        "id": "e0000000-0000-0000-0000-000000000003",
+        "name": "Morning Coffee - Aroma Kava",
+        "amount": 75,
+        "categoryId": "c4000000-0000-0000-0000-000000000004",
+        "createdAt": "2024-12-02T08:30:00Z",
+        "updatedAt": null
+    },
+    {
+        "id": "e0000000-0000-0000-0000-000000000004",
+        "name": "Lunch - Work Cafeteria",
+        "amount": 180,
+        "categoryId": "c1000000-0000-0000-0000-000000000001",
+        "createdAt": "2024-12-02T13:15:00Z",
+        "updatedAt": null
+    },
+    {
+        "id": "e0000000-0000-0000-0000-000000000005",
+        "name": "Metro - From Work",
+        "amount": 8,
+        "categoryId": "c3000000-0000-0000-0000-000000000003",
+        "createdAt": "2024-12-02T17:30:00Z",
+        "updatedAt": null
+    },
+    {
+        "id": "e0000000-0000-0000-0000-000000000006",
+        "name": "Morning Coffee - Coffee House",
+        "amount": 82,
+        "categoryId": "c4000000-0000-0000-0000-000000000004",
+        "createdAt": "2024-12-03T08:35:00Z",
+        "updatedAt": null
+    },
+    {
+        "id": "e0000000-0000-0000-0000-000000000007",
+        "name": "Morning Coffee - Aroma Kava",
+        "amount": 75,
+        "categoryId": "c4000000-0000-0000-0000-000000000004",
+        "createdAt": "2024-12-02T08:30:00Z",
+        "updatedAt": null
+    },
+    {
+        "id": "e0000000-0000-0000-0000-000000000008",
+        "name": "Lunch - Work Cafeteria",
+        "amount": 180,
+        "categoryId": "c1000000-0000-0000-0000-000000000001",
+        "createdAt": "2024-12-02T13:15:00Z",
+        "updatedAt": null
+    },
+    {
+        "id": "e0000000-0000-0000-0000-000000000009",
+        "name": "Metro Fare",
+        "amount": 8,
+        "categoryId": "c3000000-0000-0000-0000-000000000003",
+        "createdAt": "2024-12-02T17:30:00Z",
+        "updatedAt": null
+    },
+    {
+        "id": "e0000000-0000-0000-0000-000000000010",
+        "name": "Brunch - Urban Space",
+        "amount": 420,
+        "categoryId": "c4000000-0000-0000-0000-000000000004",
+        "createdAt": "2024-12-07T11:30:00Z",
+        "updatedAt": null
+    },
+    {
+        "id": "e0000000-0000-0000-0000-000000000011",
+        "name": "Cinema Ticket",
+        "amount": 150,
+        "categoryId": "c4000000-0000-0000-0000-000000000004",
+        "createdAt": "2024-12-07T15:00:00Z",
+        "updatedAt": null
+    },
+    {
+        "id": "e0000000-0000-0000-0000-000000000012",
+        "name": "Winter Boots - Intertop",
+        "amount": 2800,
+        "categoryId": "c8000000-0000-0000-0000-000000000008",
+        "createdAt": "2024-12-10T14:20:00Z",
+        "updatedAt": null
+    },
+    {
+        "id": "e0000000-0000-0000-0000-000000000013",
+        "name": "Phone Screen Repair",
+        "amount": 1500,
+        "categoryId": "c9000000-0000-0000-0000-000000000009",
+        "createdAt": "2024-12-12T16:30:00Z",
+        "updatedAt": null
+    },
+    {
+        "id": "e0000000-0000-0000-0000-000000000014",
+        "name": "Monthly Rent",
+        "amount": 12000,
+        "categoryId": "c2000000-0000-0000-0000-000000000002",
+        "createdAt": "2025-01-01T10:00:00Z",
+        "updatedAt": null
+    },
+    {
+        "id": "e0000000-0000-0000-0000-000000000015",
+        "name": "Internet Bill",
+        "amount": 550,
+        "categoryId": "c6000000-0000-0000-0000-000000000006",
+        "createdAt": "2025-01-05T09:15:00Z",
+        "updatedAt": null
+    },
+    {
+        "id": "e0000000-0000-0000-0000-000000000016",
+        "name": "Monthly Bus Pass",
+        "amount": 600,
+        "categoryId": "c3000000-0000-0000-0000-000000000003",
+        "createdAt": "2025-01-02T08:30:00Z",
+        "updatedAt": null
+    },
+    {
+        "id": "e0000000-0000-0000-0000-000000000017",
+        "name": "Monthly Rent",
+        "amount": 12000,
+        "categoryId": "c2000000-0000-0000-0000-000000000002",
+        "createdAt": "2025-02-01T10:00:00Z",
+        "updatedAt": null
+    },
+    {
+        "id": "e0000000-0000-0000-0000-000000000018",
+        "name": "Electricity Bill",
+        "amount": 950,
+        "categoryId": "c6000000-0000-0000-0000-000000000006",
+        "createdAt": "2025-02-05T14:20:00Z",
+        "updatedAt": null
+    },
+    {
+        "id": "e0000000-0000-0000-0000-000000000019",
+        "name": "English Language Course",
+        "amount": 3500,
+        "categoryId": "c7000000-0000-0000-0000-000000000007",
+        "createdAt": "2025-01-15T18:30:00Z",
+        "updatedAt": null
+    },
+    {
+        "id": "e0000000-0000-0000-0000-000000000020",
+        "name": "Dentist Appointment",
+        "amount": 2500,
+        "categoryId": "c5000000-0000-0000-0000-000000000005",
+        "createdAt": "2025-02-10T14:00:00Z",
+        "updatedAt": null
+    },
+    {
+        "id": "e0000000-0000-0000-0000-000000000021",
+        "name": "Morning Coffee - Aroma Kava",
+        "amount": 75,
+        "categoryId": "c4000000-0000-0000-0000-000000000004",
+        "createdAt": "2024-12-02T08:30:00Z",
+        "updatedAt": null
+    },
+    {
+        "id": "e0000000-0000-0000-0000-000000000022",
+        "name": "Metro - To Work",
+        "amount": 8,
+        "categoryId": "c3000000-0000-0000-0000-000000000003",
+        "createdAt": "2024-12-02T08:45:00Z",
+        "updatedAt": null
+    },
+    {
+        "id": "e0000000-0000-0000-0000-000000000023",
+        "name": "Lunch - McDonalds",
+        "amount": 250,
+        "categoryId": "c1000000-0000-0000-0000-000000000001",
+        "createdAt": "2024-12-02T13:15:00Z",
+        "updatedAt": null
+    },
+    {
+        "id": "e0000000-0000-0000-0000-000000000024",
+        "name": "Saturday Brunch - Urban Space",
+        "amount": 420,
+        "categoryId": "c4000000-0000-0000-0000-000000000004",
+        "createdAt": "2024-12-07T11:30:00Z",
+        "updatedAt": null
+    },
+    {
+        "id": "e0000000-0000-0000-0000-000000000025",
+        "name": "Shopping - Zara Winter Sale",
+        "amount": 1800,
+        "categoryId": "c8000000-0000-0000-0000-000000000008",
+        "createdAt": "2024-12-07T14:20:00Z",
+        "updatedAt": null
+    },
+    {
+        "id": "e0000000-0000-0000-0000-000000000026",
+        "name": "Uber to Friend's Party",
+        "amount": 150,
+        "categoryId": "c3000000-0000-0000-0000-000000000003",
+        "createdAt": "2024-12-13T19:30:00Z",
+        "updatedAt": null
+    },
+    {
+        "id": "e0000000-0000-0000-0000-000000000027",
+        "name": "Late Night Pizza",
+        "amount": 300,
+        "categoryId": "c1000000-0000-0000-0000-000000000001",
+        "createdAt": "2024-12-13T23:15:00Z",
+        "updatedAt": null
+    },
+    {
+        "id": "e0000000-0000-0000-0000-000000000028",
+        "name": "Christmas Gifts - Silpo",
+        "amount": 2500,
+        "categoryId": "c8000000-0000-0000-0000-000000000008",
+        "createdAt": "2024-12-20T15:30:00Z",
+        "updatedAt": null
+    },
+    {
+        "id": "e0000000-0000-0000-0000-000000000029",
+        "name": "New Year Party Supplies",
+        "amount": 1800,
+        "categoryId": "c4000000-0000-0000-0000-000000000004",
+        "createdAt": "2024-12-29T12:45:00Z",
+        "updatedAt": null
+    },
+    {
+        "id": "e0000000-0000-0000-0000-000000000030",
+        "name": "Morning Coffee - Milk Bar",
+        "amount": 65,
+        "categoryId": "c4000000-0000-0000-0000-000000000004",
+        "createdAt": "2024-12-04T08:45:00Z",
+        "updatedAt": null
+    },
+    {
+        "id": "e0000000-0000-0000-0000-000000000031",
+        "name": "Lunch - Puzata Hata",
+        "amount": 220,
+        "categoryId": "c1000000-0000-0000-0000-000000000001",
+        "createdAt": "2024-12-04T13:00:00Z",
+        "updatedAt": null
+    },
+    {
+        "id": "e0000000-0000-0000-0000-000000000032",
+        "name": "ATB - Snacks",
+        "amount": 156,
+        "categoryId": "c1000000-0000-0000-0000-000000000001",
+        "createdAt": "2024-12-04T18:20:00Z",
+        "updatedAt": null
+    },
+    {
+        "id": "e0000000-0000-0000-0000-000000000033",
+        "name": "Phone Case - Citrus",
+        "amount": 450,
+        "categoryId": "c9000000-0000-0000-0000-000000000009",
+        "createdAt": "2024-12-05T16:15:00Z",
+        "updatedAt": null
+    },
+    {
+        "id": "e0000000-0000-0000-0000-000000000034",
+        "name": "Books - Yakaboo",
+        "amount": 820,
+        "categoryId": "c7000000-0000-0000-0000-000000000007",
+        "createdAt": "2024-12-06T12:30:00Z",
+        "updatedAt": null
+    },
+    {
+        "id": "e0000000-0000-0000-0000-000000000035",
+        "name": "Swimming Pool",
+        "amount": 250,
+        "categoryId": "c4000000-0000-0000-0000-000000000004",
+        "createdAt": "2024-12-14T10:00:00Z",
+        "updatedAt": null
+    },
+    {
+        "id": "e0000000-0000-0000-0000-000000000036",
+        "name": "Lunch - Veterano Pizza",
+        "amount": 480,
+        "categoryId": "c1000000-0000-0000-0000-000000000001",
+        "createdAt": "2024-12-14T14:30:00Z",
+        "updatedAt": null
+    },
+    {
+        "id": "e0000000-0000-0000-0000-000000000037",
+        "name": "Board Game Cafe",
+        "amount": 350,
+        "categoryId": "c4000000-0000-0000-0000-000000000004",
+        "createdAt": "2024-12-14T19:00:00Z",
+        "updatedAt": null
+    },
+    {
+        "id": "e0000000-0000-0000-0000-000000000038",
+        "name": "Morning Coffee - Cup & Cake",
+        "amount": 85,
+        "categoryId": "c4000000-0000-0000-0000-000000000004",
+        "createdAt": "2025-01-02T08:30:00Z",
+        "updatedAt": null
+    },
+    {
+        "id": "e0000000-0000-0000-0000-000000000039",
+        "name": "Winter Sales - Shopping Mall",
+        "amount": 2500,
+        "categoryId": "c8000000-0000-0000-0000-000000000008",
+        "createdAt": "2025-01-15T14:20:00Z",
+        "updatedAt": null
+    },
+    {
+        "id": "e0000000-0000-0000-0000-000000000040",
+        "name": "Coffee - Cup & Cake",
+        "amount": 85,
+        "categoryId": "c4000000-0000-0000-0000-000000000004",
+        "createdAt": "2025-01-03T09:15:00Z",
+        "updatedAt": null
+    },
+    {
+        "id": "e0000000-0000-0000-0000-000000000041",
+        "name": "Lunch - Sushi Rolls",
+        "amount": 550,
+        "categoryId": "c1000000-0000-0000-0000-000000000001",
+        "createdAt": "2025-01-03T13:30:00Z",
+        "updatedAt": null
+    },
+    {
+        "id": "e0000000-0000-0000-0000-000000000042",
+        "name": "Groceries - Novus",
+        "amount": 1450,
+        "categoryId": "c1000000-0000-0000-0000-000000000001",
+        "createdAt": "2025-01-03T19:00:00Z",
+        "updatedAt": null
+    },
+    {
+        "id": "e0000000-0000-0000-0000-000000000043",
+        "name": "Gym Membership",
+        "amount": 1200,
+        "categoryId": "c4000000-0000-0000-0000-000000000004",
+        "createdAt": "2025-01-05T11:00:00Z",
+        "updatedAt": null
+    },
+    {
+        "id": "e0000000-0000-0000-0000-000000000044",
+        "name": "Pharmacy - Vitamins",
+        "amount": 820,
+        "categoryId": "c5000000-0000-0000-0000-000000000005",
+        "createdAt": "2025-01-05T12:30:00Z",
+        "updatedAt": null
+    },
+    {
+        "id": "e0000000-0000-0000-0000-000000000045",
+        "name": "Valentine's Day Gift",
+        "amount": 1500,
+        "categoryId": "c8000000-0000-0000-0000-000000000008",
+        "createdAt": "2025-02-13T16:20:00Z",
+        "updatedAt": null
+    },
+    {
+        "id": "e0000000-0000-0000-0000-000000000046",
+        "name": "Restaurant - Valentine's Day",
+        "amount": 2200,
+        "categoryId": "c4000000-0000-0000-0000-000000000004",
+        "createdAt": "2025-02-14T19:00:00Z",
+        "updatedAt": null
+    },
+    {
+        "id": "e0000000-0000-0000-0000-000000000047",
+        "name": "Mobile Phone Bill",
+        "amount": 250,
+        "categoryId": "c6000000-0000-0000-0000-000000000006",
+        "createdAt": "2025-01-10T10:00:00Z",
+        "updatedAt": null
+    },
+    {
+        "id": "e0000000-0000-0000-0000-000000000048",
+        "name": "Spotify Premium",
+        "amount": 189,
+        "categoryId": "c4000000-0000-0000-0000-000000000004",
+        "createdAt": "2025-01-15T08:00:00Z",
+        "updatedAt": null
+    }
+]
