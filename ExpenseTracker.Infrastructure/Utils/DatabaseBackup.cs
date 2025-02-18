@@ -97,4 +97,54 @@ public static class DatabaseBackup
         await context.Database.EnsureDeletedAsync();
         await context.Database.MigrateAsync();
     }
+
+    public static async Task RestoreFromBackup(ExpenseTrackerDbContext context, string backupPath)
+    {
+        // First ensure database is completely cleaned and recreated with proper schema
+        await context.Database.EnsureDeletedAsync();
+        await context.Database.MigrateAsync();
+
+        await using var transaction = await context.Database.BeginTransactionAsync();
+        try
+        {
+            // Restore categories first due to foreign key constraints
+            var categoriesJson = await File.ReadAllTextAsync(Path.Combine(backupPath, "categories_backup.json"));
+            var categories = JsonSerializer.Deserialize<List<CategoryBackupDto>>(categoriesJson, _jsonOptions)!
+                .Select(dto => new Category
+                {
+                    Id = dto.Id,
+                    Name = dto.Name
+                });
+            await context.Categories.AddRangeAsync(categories);
+            await context.SaveChangesAsync();
+
+            // Restore expenses
+            var expensesJson = await File.ReadAllTextAsync(Path.Combine(backupPath, "expenses_backup.json"));
+            var expenses = JsonSerializer.Deserialize<List<ExpenseBackupDto>>(expensesJson, _jsonOptions)!
+                .Select(dto => new Expense
+                {
+                    Id = dto.Id,
+                    Name = dto.Name,
+                    Amount = dto.Amount,
+                    CategoryId = dto.CategoryId,
+                    CreatedAt = dto.CreatedAt,
+                    UpdatedAt = dto.UpdatedAt
+                });
+            await context.Expenses.AddRangeAsync(expenses);
+            await context.SaveChangesAsync();
+
+            // Restore budgets
+            var budgetsJson = await File.ReadAllTextAsync(Path.Combine(backupPath, "budgets_backup.json"));
+            var budgets = JsonSerializer.Deserialize<List<Budget>>(budgetsJson, _jsonOptions)!;
+            await context.Budgets.AddRangeAsync(budgets);
+            await context.SaveChangesAsync();
+
+            await transaction.CommitAsync();
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
+    }
 }

@@ -26,7 +26,7 @@ class Program
 
             if (args.Length == 0)
             {
-                Console.WriteLine("Please provide a command: seed, backup, or reset");
+                Console.WriteLine("Please provide a command: seed, backup, restore, or reset");
                 Console.WriteLine($"Backup directory: {backupDir}");
                 Console.WriteLine($"Seed directory: {seedDir}");
                 return;
@@ -49,6 +49,32 @@ class Program
                     Console.WriteLine($"Database backed up successfully to {backupDir}");
                     break;
 
+                case "restore":
+                    if (args.Length < 2)
+                    {
+                        Console.WriteLine("Please provide backup directory name (YYYYMMDD_HHMMSS)");
+                        return;
+                    }
+                    var backupName = args[1];
+                    var backupPath = Path.Combine(backupDir, backupName);
+                    if (!Directory.Exists(backupPath))
+                    {
+                        Console.WriteLine($"Error: Backup directory not found at {backupPath}");
+                        return;
+                    }
+                    Console.Write("This will overwrite current database. Continue? [y/N]: ");
+                    var restoreResponse = Console.ReadLine()?.ToLower();
+                    if (restoreResponse == "y" || restoreResponse == "yes")
+                    {
+                        await DatabaseBackup.RestoreFromBackup(context, backupPath);
+                        Console.WriteLine("Database restored successfully");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Operation cancelled");
+                    }
+                    break;
+
                 case "reset":
                     Console.Write("Are you sure you want to reset the database? This will delete all data. [y/N]: ");
                     var response = Console.ReadLine()?.ToLower();
@@ -64,7 +90,7 @@ class Program
                     break;
 
                 default:
-                    Console.WriteLine("Unknown command. Use: seed, backup, or reset");
+                    Console.WriteLine("Unknown command. Use: seed, backup, restore, or reset");
                     break;
             }
         }
