@@ -109,15 +109,33 @@ The solution follows a clean architecture approach with the following projects:
 - Tailwind CSS
 - Axios for API communication
 
-## CLI Commands
+## Database Management
 
-- `add`: Add a new expense
-- `list`: List expenses with optional filters
-- `update`: Modify existing expense
-- `delete`: Remove an expense
-- `summary`: View expense summaries
-- `budget`: Set or view monthly budgets
-- `export`: Export expenses to CSV
+The application includes database backup and restore functionality:
+
+### Backup
+```bash
+./scripts/db-backup.sh
+```
+Creates a timestamped backup in the `data/backup` directory.
+
+### Restore
+```bash
+./scripts/db-restore.sh YYYYMMDD_HHMMSS
+```
+Restores database from a specific backup.
+
+### Reset
+```bash
+./scripts/db-reset.sh
+```
+Resets the database to an empty state.
+
+### Seed
+```bash
+./scripts/db-seed.sh
+```
+Seeds the database with initial data.
 
 ## API Endpoints
 
