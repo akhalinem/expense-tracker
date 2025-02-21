@@ -99,7 +99,7 @@ public class CategoryRepository : ICategoryRepository
     public async Task<Result<Category>> UpsertAsync(string name)
     {
         var category = await GetByNameAsync(name);
-        if (category.IsSuccess)
+        if (category.Value != null)
         {
             return Result<Category>.Success(category.Value!);
         }
