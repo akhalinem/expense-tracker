@@ -2,10 +2,10 @@ import { View, StyleSheet } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ICategory, IExpense } from '~/types';
 import { ExpenseFormData, ExpenseFormSchema } from '~/types/expense';
-import { api } from '~/services/api';
+import { expensesService, } from '~/services/expenses';
 import ThemedText from '~/components/themed/ThemedText';
 import ThemedButton from '~/components/themed/ThemedButton';
 import CategoryPicker from '~/components/CategoryPicker';
@@ -30,10 +30,7 @@ export default function ExpenseForm({ expenseToEdit, categories, onClose }: Expe
     });
 
     const addExpenseMutation = useMutation({
-        mutationFn: async (data: ExpenseFormData) => {
-            const response = await api.post('/expenses', data);
-            return response.data;
-        },
+        mutationFn: expensesService.createExpense,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['expenses'] });
             onClose();
@@ -41,10 +38,7 @@ export default function ExpenseForm({ expenseToEdit, categories, onClose }: Expe
     });
 
     const updateExpenseMutation = useMutation({
-        mutationFn: async (data: ExpenseFormData & { id: number }) => {
-            const response = await api.put(`/expenses/${data.id}`, data);
-            return response.data;
-        },
+        mutationFn: expensesService.updateExpense,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['expenses'] });
             onClose();
@@ -53,9 +47,18 @@ export default function ExpenseForm({ expenseToEdit, categories, onClose }: Expe
 
     const onSubmit = handleSubmit((data) => {
         if (expenseToEdit) {
-            updateExpenseMutation.mutate({ ...data, id: expenseToEdit.id });
+            updateExpenseMutation.mutate({
+                id: expenseToEdit.id,
+                amount: data.amount ?? 0,
+                description: data.description,
+                categoryId: data.categoryId ?? '',
+            });
         } else {
-            addExpenseMutation.mutate(data);
+            addExpenseMutation.mutate({
+                amount: data.amount ?? 0,
+                description: data.description,
+                categoryId: data.categoryId ?? '',
+            });
         }
     });
 

@@ -1,17 +1,13 @@
 import { useState } from 'react';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { ICategory } from '~/types';
-import { api } from '~/services/api';
+import { categoriesService } from '~/services/categories';
 
 export const useCategoriesToggle = () => {
     const [selectedCategories, setSelectedCategories] = useState<Set<string>>(new Set());
 
     const categoriesQuery = useQuery({
         queryKey: ['categories'],
-        queryFn: async () => {
-            const response = await api.get<ICategory[]>('/categories');
-            return response.data;
-        },
+        queryFn: categoriesService.getCategories,
         placeholderData: keepPreviousData
     });
 

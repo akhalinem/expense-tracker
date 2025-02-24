@@ -5,9 +5,10 @@ import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeabl
 import { Ionicons } from "@expo/vector-icons";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { keepPreviousData, useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { IBudget, IExpense } from "~/types";
+import { IExpense } from "~/types";
 import { displayCurrency, displayDate } from "~/utils";
-import { api } from "~/services/api";
+import { expensesService } from "~/services/expenses";
+import { budgetsService } from "~/services/budgets";
 import { useCategoriesToggle } from "~/hooks/useCategoriesToggle";
 import ThemedView from "~/components/themed/ThemedView";
 import ThemedText from "~/components/themed/ThemedText";
@@ -18,35 +19,28 @@ export default function HomeScreen() {
     const queryClient = useQueryClient();
     const categoriesToggle = useCategoriesToggle();
 
-    const [isRefreshing, setIsRefreshing] = useState(false);
     const bottomSheetRef = useRef<BottomSheetModal<IExpense | null>>(null);
+    const [isRefreshing, setIsRefreshing] = useState(false);
 
     const expensesQuery = useQuery({
         queryKey: ['expenses', Array.from(categoriesToggle.selectedCategories)],
-        queryFn: async () => {
-            const categoryIds = Array.from(categoriesToggle.selectedCategories);
-            const response = await api.get<IExpense[]>("/expenses", { params: { categoryIds: categoryIds.join() } });
-            return response.data;
-        },
+        queryFn: () => expensesService.getExpenses(Array.from(categoriesToggle.selectedCategories)),
         placeholderData: keepPreviousData
     });
 
     const budgetQuery = useQuery({
         queryKey: ['budgets', 'current'],
-        queryFn: async () => {
-            const response = await api.get<IBudget>('/budgets/current');
-            return response.data
-        },
+        queryFn: budgetsService.getCurrentBudget,
         placeholderData: keepPreviousData
     });
 
-
     const deleteExpenseMutation = useMutation({
-        mutationFn: async (expenseId: number) => {
-            await api.delete(`/expenses/${expenseId}`);
-        },
+        mutationFn: expensesService.deleteExpense,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['expenses'] });
+        },
+        onError: (error) => {
+            Alert.alert("Error", "Failed to delete the expense: " + error.message);
         }
     });
 

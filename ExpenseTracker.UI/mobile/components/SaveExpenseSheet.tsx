@@ -4,7 +4,7 @@ import { BottomSheetBackdrop, BottomSheetModal, BottomSheetView } from '@gorhom/
 import { BottomSheetDefaultBackdropProps } from '@gorhom/bottom-sheet/lib/typescript/components/bottomSheetBackdrop/types';
 import { useQuery } from '@tanstack/react-query';
 import { ICategory, IExpense } from '~/types';
-import { api } from '~/services/api';
+import { categoriesService, } from '~/services/categories';
 import { useTheme } from '~/theme';
 import ThemedText from '~/components/themed/ThemedText';
 import ThemedView from '~/components/themed/ThemedView';
@@ -20,10 +20,7 @@ export default function SaveExpenseSheet({ bottomSheetRef }: ISaveExpenseSheetPr
 
     const categoriesQuery = useQuery<ICategory[]>({
         queryKey: ['categories'],
-        queryFn: async () => {
-            const response = await api.get('/categories');
-            return response.data;
-        },
+        queryFn: categoriesService.getCategories
     });
 
     const handleClose = useCallback(() => {

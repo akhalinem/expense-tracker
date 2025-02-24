@@ -1,6 +1,4 @@
 import { View, StyleSheet, Pressable, ScrollView } from 'react-native';
-import { useQuery } from '@tanstack/react-query';
-import { api } from '~/services/api';
 import ThemedText from '~/components/themed/ThemedText';
 import ThemedCard from '~/components/themed/ThemedCard';
 import { ICategory } from '~/types';
