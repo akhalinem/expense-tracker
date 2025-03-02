@@ -2,14 +2,12 @@ import { useCallback } from 'react';
 import { StyleSheet, Keyboard } from 'react-native';
 import { BottomSheetBackdrop, BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet';
 import { BottomSheetDefaultBackdropProps } from '@gorhom/bottom-sheet/lib/typescript/components/bottomSheetBackdrop/types';
-import { useQuery } from '@tanstack/react-query';
-import { ICategory, IExpense } from '~/types';
-import { categoriesService, } from '~/services/categories';
+import { IExpense } from '~/types';
 import { useTheme } from '~/theme';
 import ThemedText from '~/components/themed/ThemedText';
 import ThemedView from '~/components/themed/ThemedView';
 import ThemedBottomSheetHandle from '~/components/themed/ThemedBottomSheetHandle';
-import ExpenseForm from './ExpenseForm';
+import ExpenseForm from '~/components/ExpenseForm';
 
 interface ISaveExpenseSheetProps {
     bottomSheetRef: React.RefObject<BottomSheetModal<IExpense | null>>;
@@ -17,11 +15,6 @@ interface ISaveExpenseSheetProps {
 
 export default function SaveExpenseSheet({ bottomSheetRef }: ISaveExpenseSheetProps) {
     const { theme } = useTheme();
-
-    const categoriesQuery = useQuery<ICategory[]>({
-        queryKey: ['categories'],
-        queryFn: categoriesService.getCategories
-    });
 
     const handleClose = useCallback(() => {
         Keyboard.dismiss();
@@ -58,7 +51,6 @@ export default function SaveExpenseSheet({ bottomSheetRef }: ISaveExpenseSheetPr
                     </ThemedText>
                     <ExpenseForm
                         expenseToEdit={data}
-                        categories={categoriesQuery.data ?? []}
                         onClose={handleClose}
                     />
                 </ThemedView>

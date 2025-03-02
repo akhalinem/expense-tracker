@@ -1,26 +1,26 @@
 import { View, StyleSheet, Pressable, ScrollView } from 'react-native';
+import { IUserCategoriesToggleReturn } from '~/hooks/useCategoriesToggle';
 import ThemedText from '~/components/themed/ThemedText';
 import ThemedCard from '~/components/themed/ThemedCard';
-import { ICategory } from '~/types';
 
-interface CategoryPickerProps {
-    selectedCategory: string | null;
-    categories: ICategory[];
-    onSelectCategory: (categoryId: string) => void;
+interface ICategoryPickerProps {
+    categoriesToggle: IUserCategoriesToggleReturn;
 }
 
-export default function CategoryPicker({ categories, selectedCategory, onSelectCategory }: CategoryPickerProps) {
+export default function CategoryPicker({ categoriesToggle }: ICategoryPickerProps) {
+    const { categories, toggle, selected } = categoriesToggle
+
     return (
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <View style={styles.container}>
                 {categories.map((category) => (
                     <Pressable
                         key={category.id}
-                        onPress={() => onSelectCategory(category.id)}
+                        onPress={() => toggle(category.id)}
                     >
                         <ThemedCard style={[
                             styles.category,
-                            selectedCategory && selectedCategory === category.id ? styles.selectedCategory : undefined,
+                            selected.has(category.id) && styles.selectedCategory,
                         ]}>
                             <ThemedText>{category.name}</ThemedText>
                         </ThemedCard>

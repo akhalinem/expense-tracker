@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from "react";
-import { View, FlatList, StyleSheet, Pressable, ActivityIndicator, RefreshControl, TouchableOpacity, Alert } from "react-native";
+import { View, FlatList, StyleSheet, ActivityIndicator, RefreshControl, TouchableOpacity, Alert } from "react-native";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeable";
 import { Ionicons } from "@expo/vector-icons";
@@ -11,21 +11,21 @@ import { budgetsService } from "~/services/budgets";
 import { useCategoriesToggle } from "~/hooks/useCategoriesToggle";
 import ThemedView from "~/components/themed/ThemedView";
 import ThemedText from "~/components/themed/ThemedText";
-import ThemedCard from "~/components/themed/ThemedCard";
 import SaveExpenseSheet from "~/components/SaveExpenseSheet";
 import ExpenseCard from "~/components/ExpenseCard";
 import BudgetCard from "~/components/BudgetOverviewCard";
+import CategoryPicker from '~/components/CategoryPicker';
 
 export default function HomeScreen() {
     const queryClient = useQueryClient();
-    const categoriesToggle = useCategoriesToggle();
+    const categoriesToggle = useCategoriesToggle({ multiple: true });
 
     const bottomSheetRef = useRef<BottomSheetModal<IExpense | null>>(null);
     const [isRefreshing, setIsRefreshing] = useState(false);
 
     const expensesQuery = useQuery({
-        queryKey: ['expenses', Array.from(categoriesToggle.selectedCategories)],
-        queryFn: () => expensesService.getExpenses(Array.from(categoriesToggle.selectedCategories)),
+        queryKey: ['expenses', Array.from(categoriesToggle.selected)],
+        queryFn: () => expensesService.getExpenses(Array.from(categoriesToggle.selected)),
         placeholderData: keepPreviousData
     });
 
@@ -88,7 +88,7 @@ export default function HomeScreen() {
         await Promise.all([
             expensesQuery.refetch(),
             budgetQuery.refetch(),
-            categoriesToggle.categoriesQuery.refetch()
+            categoriesToggle.refetch()
         ]);
         setIsRefreshing(false);
     };
@@ -127,22 +127,8 @@ export default function HomeScreen() {
 
                 <View style={styles.section}>
                     <ThemedText style={[styles.sectionTitle, { paddingHorizontal: 15 }]}>Categories</ThemedText>
-                    <FlatList
-                        horizontal
-                        showsHorizontalScrollIndicator={false}
-                        contentContainerStyle={styles.categoriesListContainer}
-                        data={categoriesToggle.categories}
-                        keyExtractor={(item) => item.id}
-                        renderItem={({ item }) => (
-                            <Pressable onPress={() => categoriesToggle.toggle(item.id)}>
-                                <ThemedCard style={[
-                                    styles.categoryItem,
-                                    categoriesToggle.selectedCategories.has(item.id) && styles.selectedCategory
-                                ]}>
-                                    <ThemedText>{item.name}</ThemedText>
-                                </ThemedCard>
-                            </Pressable>
-                        )}
+                    <CategoryPicker
+                        categoriesToggle={categoriesToggle}
                     />
                 </View>
 
@@ -207,24 +193,6 @@ const styles = StyleSheet.create({
     section: {
         marginTop: 10,
         marginBottom: 10,
-    },
-    categoriesListContainer: {
-        paddingHorizontal: 15,
-        paddingVertical: 5,
-        gap: 10,
-    },
-    categoryItem: {
-        padding: 10,
-        borderWidth: 2,
-        borderRadius: 8,
-        borderColor: 'transparent',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.22,
-        shadowRadius: 2.22,
-        elevation: 3,
-    },
-    selectedCategory: {
-        borderColor: '#007AFF',
     },
     fab: {
         position: 'absolute',

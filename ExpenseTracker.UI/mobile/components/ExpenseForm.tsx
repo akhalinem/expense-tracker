@@ -3,29 +3,35 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { ICategory, IExpense, ExpenseFormData, ExpenseFormSchema } from '~/types';
+import { ExpenseFormData, ExpenseFormSchema, IExpense } from '~/types';
 import { expensesService, } from '~/services/expenses';
+import { useCategoriesToggle } from '~/hooks/useCategoriesToggle';
 import ThemedText from '~/components/themed/ThemedText';
 import ThemedButton from '~/components/themed/ThemedButton';
 import CategoryPicker from '~/components/CategoryPicker';
 import ThemedTextInput from '~/components/themed/ThemedTextInput';
 
-interface ExpenseFormProps {
+interface IExpenseFormProps {
     expenseToEdit?: IExpense | null;
-    categories: ICategory[];
     onClose: () => void;
-
 }
 
-export default function ExpenseForm({ expenseToEdit, categories, onClose }: ExpenseFormProps) {
+export default function ExpenseForm({ expenseToEdit, onClose }: IExpenseFormProps) {
     const queryClient = useQueryClient();
-    const { control, handleSubmit, formState: { errors } } = useForm<ExpenseFormData>({
+    const { control, setValue, handleSubmit, formState: { errors } } = useForm<ExpenseFormData>({
         resolver: zodResolver(ExpenseFormSchema),
         defaultValues: {
             amount: expenseToEdit?.amount ?? null,
             description: expenseToEdit?.description ?? '',
             categoryId: expenseToEdit?.category?.id ?? null,
         },
+    });
+
+    const categoriesToggle = useCategoriesToggle({
+        defaultSelected: expenseToEdit?.category?.id ? [expenseToEdit.category.id] : [],
+        onChanged: ([selectedCategoryId]) => {
+            setValue('categoryId', selectedCategoryId);
+        }
     });
 
     const addExpenseMutation = useMutation({
@@ -102,17 +108,7 @@ export default function ExpenseForm({ expenseToEdit, categories, onClose }: Expe
 
             <View style={styles.field}>
                 <ThemedText style={styles.label}>Category</ThemedText>
-                <Controller
-                    control={control}
-                    name="categoryId"
-                    render={({ field: { onChange, value } }) => (
-                        <CategoryPicker
-                            categories={categories}
-                            selectedCategory={value ?? null}
-                            onSelectCategory={onChange}
-                        />
-                    )}
-                />
+                <CategoryPicker categoriesToggle={categoriesToggle} />
                 {errors.categoryId && (
                     <ThemedText style={styles.errorText}>{errors.categoryId.message}</ThemedText>
                 )}
