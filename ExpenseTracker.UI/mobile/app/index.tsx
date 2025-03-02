@@ -118,7 +118,7 @@ export default function HomeScreen() {
                 {(isFetching || deleteExpenseMutation.isPending) && !isRefreshing && <ActivityIndicator size="large" style={styles.loader} />}
 
                 <View style={styles.section}>
-                    <ThemedText style={[styles.sectionTitle, { paddingHorizontal: 15 }]}>Monthly Overview</ThemedText>
+                    <ThemedText style={styles.sectionTitle}>Monthly Overview</ThemedText>
                     <BudgetCard
                         budget={budgetQuery.data?.amount}
                         expenses={totalExpenses}
@@ -126,14 +126,14 @@ export default function HomeScreen() {
                 </View>
 
                 <View style={styles.section}>
-                    <ThemedText style={[styles.sectionTitle, { paddingHorizontal: 15 }]}>Categories</ThemedText>
+                    <ThemedText style={styles.sectionTitle}>Categories</ThemedText>
                     <CategoryPicker
                         categoriesToggle={categoriesToggle}
                     />
                 </View>
 
                 <View style={styles.section}>
-                    <ThemedText style={[styles.sectionTitle, { paddingHorizontal: 15 }]}>Recent Expenses</ThemedText>
+                    <ThemedText style={styles.sectionTitle}>Recent Expenses</ThemedText>
                     <FlatList
                         contentContainerStyle={styles.listContentContainer}
                         data={expensesQuery.data}
@@ -193,6 +193,7 @@ const styles = StyleSheet.create({
     section: {
         marginTop: 10,
         marginBottom: 10,
+        paddingHorizontal: 15
     },
     fab: {
         position: 'absolute',

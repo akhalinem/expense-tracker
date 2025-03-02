@@ -33,7 +33,6 @@ export default function BudgetCard({ budget, expenses }: IBudgetCardProps) {
 const styles = StyleSheet.create({
     container: {
         padding: 15,
-        marginHorizontal: 20,
         borderRadius: 10,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.25,
