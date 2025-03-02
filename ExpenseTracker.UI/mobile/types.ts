@@ -33,6 +33,8 @@ export interface ICreateExpenseDto {
     amount: number;
     description: string;
     categoryId: string;
+    month: number;
+    year: number;
 }
 
 export interface IUpdateExpenseDto {
@@ -40,4 +42,6 @@ export interface IUpdateExpenseDto {
     amount: number;
     description: string;
     categoryId: string;
+    month: number;
+    year: number;
 }

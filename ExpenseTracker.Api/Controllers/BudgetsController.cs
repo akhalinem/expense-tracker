@@ -22,4 +22,13 @@ public class BudgetsController : ControllerBase
 
         return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
     }
+
+    [HttpGet]
+    [Route("monthly")]
+    public async Task<IActionResult> GetCurrentBudget([FromQuery] int month, [FromQuery] int year)
+    {
+        var result = await _budgetRepository.GetAsync(month, year);
+
+        return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
+    }
 }

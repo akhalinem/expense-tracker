@@ -1,18 +1,20 @@
 import { ICreateExpenseDto, IExpense, IUpdateExpenseDto } from "~/types";
 import { api } from "./api";
 
-const getExpenses = async (categoryIds: string[]): Promise<IExpense[]> => {
-    const response = await api.get<IExpense[]>('/expenses', {
+const getExpenses = async (categoryIds: string[], month?: number, year?: number): Promise<IExpense[]> => {
+    const response = await api.get<IExpense[] | null>('/expenses', {
         params: {
-            categoryIds: categoryIds.join()
+            categoryIds: categoryIds.join(),
+            month,
+            year
         }
     });
 
-    if (!response || !response.data) {
+    if (!response) {
         throw new Error("Failed to fetch expenses");
     }
 
-    return response.data;
+    return response.data ?? [];
 }
 
 const deleteExpense = async (id: number): Promise<void> => {

@@ -36,10 +36,11 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         gap: 8,
         paddingVertical: 8,
-        paddingHorizontal: 16,
     },
     category: {
+        padding: 12,
         borderWidth: 2,
+        borderRadius: 8,
         borderColor: 'transparent',
     },
     selectedCategory: {

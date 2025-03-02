@@ -38,6 +38,7 @@ public class ExpensesController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> AddExpense(CreateExpenseDto dto)
     {
+        // TODO: use dto.month and dto.year to set the expense date
         var result = await _expenseService.Add(dto.Description, dto.Amount, dto.CategoryId);
         return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
     }
@@ -52,6 +53,7 @@ public class ExpensesController : ControllerBase
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> UpdateExpense(Guid id, UpdateExpenseDto dto)
     {
+        // TODO: use dto.month and dto.year to set the expense date
         var result = await _expenseService.Update(id, dto.Description, dto.Amount, dto.CategoryId);
         return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
     }

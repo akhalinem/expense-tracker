@@ -13,10 +13,12 @@ import ThemedTextInput from '~/components/themed/ThemedTextInput';
 
 interface IExpenseFormProps {
     expenseToEdit?: IExpense | null;
+    month: number;
+    year: number;
     onClose: () => void;
 }
 
-export default function ExpenseForm({ expenseToEdit, onClose }: IExpenseFormProps) {
+export default function ExpenseForm({ expenseToEdit, month, year, onClose }: IExpenseFormProps) {
     const queryClient = useQueryClient();
     const { control, setValue, handleSubmit, formState: { errors } } = useForm<ExpenseFormData>({
         resolver: zodResolver(ExpenseFormSchema),
@@ -37,7 +39,7 @@ export default function ExpenseForm({ expenseToEdit, onClose }: IExpenseFormProp
     const addExpenseMutation = useMutation({
         mutationFn: expensesService.createExpense,
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['expenses'] });
+            queryClient.invalidateQueries({ queryKey: ['expenses', { month, year }] });
             onClose();
         },
     });
@@ -45,7 +47,7 @@ export default function ExpenseForm({ expenseToEdit, onClose }: IExpenseFormProp
     const updateExpenseMutation = useMutation({
         mutationFn: expensesService.updateExpense,
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['expenses'] });
+            queryClient.invalidateQueries({ queryKey: ['expenses', { month, year }] });
             onClose();
         },
     });
@@ -57,19 +59,23 @@ export default function ExpenseForm({ expenseToEdit, onClose }: IExpenseFormProp
                 amount: data.amount ?? 0,
                 description: data.description,
                 categoryId: data.categoryId ?? '',
+                month,
+                year
             });
         } else {
             addExpenseMutation.mutate({
                 amount: data.amount ?? 0,
                 description: data.description,
                 categoryId: data.categoryId ?? '',
+                month,
+                year
             });
         }
     });
 
     return (
         <View style={styles.form}>
-            <View style={[styles.section, styles.field]}>
+            <View style={styles.field}>
                 <ThemedText style={styles.label}>Amount</ThemedText>
                 <Controller
                     control={control}
@@ -90,7 +96,7 @@ export default function ExpenseForm({ expenseToEdit, onClose }: IExpenseFormProp
                 )}
             </View>
 
-            <View style={[styles.section, styles.field]}>
+            <View style={styles.field}>
                 <ThemedText style={styles.label}>Description</ThemedText>
                 <Controller
                     control={control}
@@ -107,14 +113,14 @@ export default function ExpenseForm({ expenseToEdit, onClose }: IExpenseFormProp
             </View>
 
             <View style={styles.field}>
-                <ThemedText style={[styles.section, styles.label]}>Category</ThemedText>
+                <ThemedText style={styles.label}>Category</ThemedText>
                 <CategoryPicker categoriesToggle={categoriesToggle} />
                 {errors.categoryId && (
                     <ThemedText style={styles.errorText}>{errors.categoryId.message}</ThemedText>
                 )}
             </View>
 
-            <View style={[styles.section, styles.buttons]}>
+            <View style={styles.buttons}>
                 <ThemedButton
                     title="Cancel"
                     onPress={onClose}
@@ -133,9 +139,6 @@ export default function ExpenseForm({ expenseToEdit, onClose }: IExpenseFormProp
 const styles = StyleSheet.create({
     form: {
         gap: 16,
-    },
-    section: {
-        paddingHorizontal: 16,
     },
     field: {
         gap: 8,
