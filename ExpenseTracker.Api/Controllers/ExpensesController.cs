@@ -21,7 +21,7 @@ public class ExpensesController : ControllerBase
     {
         List<Guid>? parsedCategoryIds = categoryIds?
             .Split(',', StringSplitOptions.RemoveEmptyEntries)
-            .Select(id => Guid.Parse(id))
+            .Select(Guid.Parse)
             .ToList();
         var result = await _expenseService.List(month ?? DateTime.Now.Month, year ?? DateTime.Now.Year, parsedCategoryIds);
 
