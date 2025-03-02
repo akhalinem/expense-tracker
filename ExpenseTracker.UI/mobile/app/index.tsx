@@ -103,10 +103,10 @@ export default function HomeScreen() {
     if (isError) {
         return (
             <ThemedView style={styles.container}>
-                <SafeAreaView style={{ flex: 1 }}>
+                <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }} >
                     <ThemedText>Error loading data.</ThemedText>
                 </SafeAreaView>
-            </ThemedView>
+            </ThemedView >
         );
     }
 
