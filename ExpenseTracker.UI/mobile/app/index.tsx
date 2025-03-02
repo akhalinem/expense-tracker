@@ -194,35 +194,10 @@ const styles = StyleSheet.create({
     listContentContainer: {
         paddingBottom: 25
     },
-    header: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        marginBottom: 20,
-    },
     sectionTitle: {
         fontSize: 20,
         fontWeight: 'bold',
         marginBottom: 10,
-    },
-    label: {
-        fontSize: 16,
-        fontWeight: '600',
-        marginBottom: 5,
-    },
-    amount: {
-        fontSize: 18,
-        fontWeight: 'bold',
-    },
-    remaining: {
-        fontSize: 14,
-        marginTop: 5,
-    },
-    noBudget: {
-        fontSize: 14,
-        fontStyle: 'italic',
-    },
-    totalExpenses: {
-        marginTop: 15,
     },
     categoriesContainer: {
         marginBottom: 10,

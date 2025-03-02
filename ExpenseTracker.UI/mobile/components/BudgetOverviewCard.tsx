@@ -43,11 +43,6 @@ const styles = StyleSheet.create({
         shadowRadius: 3.84,
         elevation: 5,
     },
-    title: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        marginBottom: 10,
-    },
     label: {
         fontSize: 16,
         fontWeight: '600',
