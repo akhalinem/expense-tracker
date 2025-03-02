@@ -6,7 +6,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { keepPreviousData, useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { IExpense } from "~/types";
-import { displayCurrency, displayDate } from "~/utils";
 import { expensesService } from "~/services/expenses";
 import { budgetsService } from "~/services/budgets";
 import { useCategoriesToggle } from "~/hooks/useCategoriesToggle";
@@ -15,6 +14,7 @@ import ThemedText from "~/components/themed/ThemedText";
 import ThemedCard from "~/components/themed/ThemedCard";
 import SaveExpenseSheet from "~/components/SaveExpenseSheet";
 import ExpenseCard from "~/components/ExpenseCard";
+import BudgetCard from "~/components/BudgetOverviewCard";
 
 export default function HomeScreen() {
     const queryClient = useQueryClient();
@@ -117,24 +117,10 @@ export default function HomeScreen() {
             <SafeAreaView style={{ flex: 1 }} edges={['top']}>
                 {(isFetching || deleteExpenseMutation.isPending) && !isRefreshing && <ActivityIndicator size="large" style={styles.loader} />}
 
-                <ThemedCard style={styles.budgetCard}>
-                    <ThemedText style={styles.sectionTitle}>Monthly Overview</ThemedText>
-                    {budgetQuery.data ? (
-                        <View>
-                            <ThemedText style={styles.label}>Budget</ThemedText>
-                            <ThemedText style={styles.amount}>{displayCurrency(budgetQuery.data.amount)}</ThemedText>
-                            <ThemedText variant="secondary" style={styles.remaining}>
-                                Remaining: {displayCurrency(budgetQuery.data.amount - totalExpenses)}
-                            </ThemedText>
-                        </View>
-                    ) : (
-                        <ThemedText style={styles.noBudget}>No budget set</ThemedText>
-                    )}
-                    <View style={styles.totalExpenses}>
-                        <ThemedText style={styles.label}>Total Expenses</ThemedText>
-                        <ThemedText style={styles.amount}>{displayCurrency(totalExpenses)}</ThemedText>
-                    </View>
-                </ThemedCard>
+                <BudgetCard
+                    budget={budgetQuery.data?.amount ?? 0}
+                    expenses={totalExpenses}
+                />
 
                 <ThemedText style={[styles.sectionTitle, { paddingHorizontal: 15 }]}>Categories</ThemedText>
                 <View style={styles.categoriesContainer}>
@@ -212,17 +198,6 @@ const styles = StyleSheet.create({
         fontSize: 24,
         fontWeight: 'bold',
         marginBottom: 20,
-    },
-    budgetCard: {
-        padding: 15,
-        marginHorizontal: 20,
-        marginTop: 20,
-        marginBottom: 20,
-        borderRadius: 10,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
-        elevation: 5,
     },
     sectionTitle: {
         fontSize: 20,
