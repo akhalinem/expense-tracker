@@ -14,6 +14,7 @@ import ThemedView from "~/components/themed/ThemedView";
 import ThemedText from "~/components/themed/ThemedText";
 import ThemedCard from "~/components/themed/ThemedCard";
 import SaveExpenseSheet from "~/components/SaveExpenseSheet";
+import ExpenseCard from "~/components/ExpenseCard";
 
 export default function HomeScreen() {
     const queryClient = useQueryClient();
@@ -172,22 +173,7 @@ export default function HomeScreen() {
                             renderRightActions={() => renderRightActions(item)}
                             rightThreshold={80}
                         >
-                            <ThemedCard style={styles.expenseItem}>
-                                <View>
-                                    <ThemedText style={styles.expenseAmount}>{displayCurrency(item.amount)}</ThemedText>
-                                    <ThemedText variant="secondary" style={styles.expenseDescription}>{item.description}</ThemedText>
-                                    <View style={styles.metadataContainer}>
-                                        <View style={styles.categoryContainer}>
-                                            <ThemedText variant="secondary" style={styles.expenseCategory}>
-                                                {item.category?.name}
-                                            </ThemedText>
-                                        </View>
-                                        <ThemedText variant="secondary" style={styles.expenseDate}>
-                                            {displayDate(item.createdAt)}
-                                        </ThemedText>
-                                    </View>
-                                </View>
-                            </ThemedCard>
+                            <ExpenseCard expense={item} />
                         </ReanimatedSwipeable>
                     )}
                 />
@@ -226,45 +212,6 @@ const styles = StyleSheet.create({
         fontSize: 24,
         fontWeight: 'bold',
         marginBottom: 20,
-    },
-    expenseItem: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        padding: 12,
-        borderRadius: 8,
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.22,
-        shadowRadius: 2.22,
-        elevation: 3,
-        marginHorizontal: 15,
-        marginVertical: 5,
-    },
-    metadataContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginTop: 8,
-        gap: 8,
-    },
-    categoryContainer: {
-        backgroundColor: 'rgba(0,0,0,0.05)',
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 4,
-    },
-    expenseDescription: {
-        fontSize: 14,
-    },
-    expenseAmount: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        marginBottom: 4,
-    },
-    expenseDate: {
-        fontSize: 12,
-    },
-    expenseCategory: {
-        fontSize: 12,
-        textTransform: 'uppercase',
     },
     budgetCard: {
         padding: 15,
