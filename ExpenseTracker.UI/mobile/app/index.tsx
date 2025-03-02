@@ -118,7 +118,7 @@ export default function HomeScreen() {
                 {(isFetching || deleteExpenseMutation.isPending) && !isRefreshing && <ActivityIndicator size="large" style={styles.loader} />}
 
                 <BudgetCard
-                    budget={budgetQuery.data?.amount ?? 0}
+                    budget={budgetQuery.data?.amount}
                     expenses={totalExpenses}
                 />
 

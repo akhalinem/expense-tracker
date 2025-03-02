@@ -4,7 +4,7 @@ import ThemedCard from "~/components/themed/ThemedCard";
 import ThemedText from "~/components/themed/ThemedText";
 
 interface IBudgetCardProps {
-    budget: number;
+    budget?: number;
     expenses: number;
 }
 

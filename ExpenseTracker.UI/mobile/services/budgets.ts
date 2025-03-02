@@ -1,10 +1,10 @@
 import { IBudget } from "~/types";
 import { api } from "./api";
 
-const getCurrentBudget = async (): Promise<IBudget> => {
-    const response = await api.get<IBudget>('/budgets/current');
+const getCurrentBudget = async (): Promise<IBudget | null> => {
+    const response = await api.get<IBudget | null>('/budgets/current');
 
-    if (!response || !response.data) {
+    if (!response) {
         throw new Error("Failed to fetch current budget");
     }
 
