@@ -46,7 +46,7 @@ export default function SaveExpenseSheet({ bottomSheetRef }: ISaveExpenseSheetPr
         >
             {({ data }) => (
                 <ThemedView as={BottomSheetView} style={styles.container}>
-                    <ThemedText style={styles.title}>
+                    <ThemedText style={[styles.section, styles.title]}>
                         {data ? 'Edit Expense' : 'Add Expense'}
                     </ThemedText>
                     <ExpenseForm
@@ -62,7 +62,10 @@ export default function SaveExpenseSheet({ bottomSheetRef }: ISaveExpenseSheetPr
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        padding: 16,
+        paddingVertical: 16,
+    },
+    section: {
+        paddingHorizontal: 16,
     },
     title: {
         fontSize: 24,
