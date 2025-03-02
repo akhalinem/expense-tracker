@@ -119,10 +119,12 @@ export default function HomeScreen() {
 
                 <View style={styles.section}>
                     <ThemedText style={styles.sectionTitle}>Monthly Overview</ThemedText>
-                    <BudgetCard
-                        budget={budgetQuery.data?.amount}
-                        expenses={totalExpenses}
-                    />
+                    <View style={{ marginHorizontal: 16 }}>
+                        <BudgetCard
+                            budget={budgetQuery.data?.amount}
+                            expenses={totalExpenses}
+                        />
+                    </View>
                 </View>
 
                 <View style={styles.section}>
@@ -189,11 +191,11 @@ const styles = StyleSheet.create({
         fontSize: 20,
         fontWeight: 'bold',
         marginBottom: 10,
+        marginHorizontal: 16
     },
     section: {
         marginTop: 10,
         marginBottom: 10,
-        paddingHorizontal: 15
     },
     fab: {
         position: 'absolute',
@@ -213,7 +215,7 @@ const styles = StyleSheet.create({
     },
     expenseRightActionsContainer: {
         flexDirection: 'row',
-        marginRight: 15,
+        marginRight: 16,
         marginLeft: -30,
         marginVertical: 5,
         gap: 8,

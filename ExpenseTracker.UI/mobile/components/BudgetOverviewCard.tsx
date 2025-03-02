@@ -32,12 +32,6 @@ export default function BudgetCard({ budget, expenses }: IBudgetCardProps) {
 
 const styles = StyleSheet.create({
     container: {
-        padding: 15,
-        borderRadius: 10,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
-        elevation: 5,
     },
     label: {
         fontSize: 16,
@@ -57,6 +51,6 @@ const styles = StyleSheet.create({
         fontStyle: 'italic',
     },
     expenses: {
-        marginTop: 15,
+        marginTop: 12,
     },
 });
