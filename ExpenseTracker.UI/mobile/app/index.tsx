@@ -117,13 +117,16 @@ export default function HomeScreen() {
             <SafeAreaView style={{ flex: 1 }} edges={['top']}>
                 {(isFetching || deleteExpenseMutation.isPending) && !isRefreshing && <ActivityIndicator size="large" style={styles.loader} />}
 
-                <BudgetCard
-                    budget={budgetQuery.data?.amount}
-                    expenses={totalExpenses}
-                />
+                <View style={styles.section}>
+                    <ThemedText style={[styles.sectionTitle, { paddingHorizontal: 15 }]}>Monthly Overview</ThemedText>
+                    <BudgetCard
+                        budget={budgetQuery.data?.amount}
+                        expenses={totalExpenses}
+                    />
+                </View>
 
-                <ThemedText style={[styles.sectionTitle, { paddingHorizontal: 15 }]}>Categories</ThemedText>
-                <View style={styles.categoriesContainer}>
+                <View style={styles.section}>
+                    <ThemedText style={[styles.sectionTitle, { paddingHorizontal: 15 }]}>Categories</ThemedText>
                     <FlatList
                         horizontal
                         showsHorizontalScrollIndicator={false}
@@ -143,26 +146,28 @@ export default function HomeScreen() {
                     />
                 </View>
 
-                <ThemedText style={[styles.sectionTitle, { paddingHorizontal: 15 }]}>Recent Expenses</ThemedText>
-                <FlatList
-                    contentContainerStyle={styles.listContentContainer}
-                    data={expensesQuery.data}
-                    keyExtractor={(item) => item.id.toString()}
-                    refreshControl={
-                        <RefreshControl
-                            refreshing={isRefreshing}
-                            onRefresh={handleRefresh}
-                        />
-                    }
-                    renderItem={({ item }) => (
-                        <ReanimatedSwipeable
-                            renderRightActions={() => renderRightActions(item)}
-                            rightThreshold={80}
-                        >
-                            <ExpenseCard expense={item} />
-                        </ReanimatedSwipeable>
-                    )}
-                />
+                <View style={styles.section}>
+                    <ThemedText style={[styles.sectionTitle, { paddingHorizontal: 15 }]}>Recent Expenses</ThemedText>
+                    <FlatList
+                        contentContainerStyle={styles.listContentContainer}
+                        data={expensesQuery.data}
+                        keyExtractor={(item) => item.id.toString()}
+                        refreshControl={
+                            <RefreshControl
+                                refreshing={isRefreshing}
+                                onRefresh={handleRefresh}
+                            />
+                        }
+                        renderItem={({ item }) => (
+                            <ReanimatedSwipeable
+                                renderRightActions={() => renderRightActions(item)}
+                                rightThreshold={80}
+                            >
+                                <ExpenseCard expense={item} />
+                            </ReanimatedSwipeable>
+                        )}
+                    />
+                </View>
 
                 <TouchableOpacity
                     style={styles.fab}
@@ -199,7 +204,8 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         marginBottom: 10,
     },
-    categoriesContainer: {
+    section: {
+        marginTop: 10,
         marginBottom: 10,
     },
     categoriesListContainer: {

@@ -11,7 +11,6 @@ interface IBudgetCardProps {
 export default function BudgetCard({ budget, expenses }: IBudgetCardProps) {
     return (
         <ThemedCard style={styles.container}>
-            <ThemedText style={styles.title}>Monthly Overview</ThemedText>
             {budget ? (
                 <View>
                     <ThemedText style={styles.label}>Budget</ThemedText>
@@ -35,8 +34,6 @@ const styles = StyleSheet.create({
     container: {
         padding: 15,
         marginHorizontal: 20,
-        marginTop: 20,
-        marginBottom: 20,
         borderRadius: 10,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.25,
