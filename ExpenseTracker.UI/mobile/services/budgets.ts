@@ -13,6 +13,17 @@ const getMonthlyBudget = async (month: number, year: number): Promise<IBudget | 
     return response.data;
 }
 
+const getHistory = async (): Promise<IBudget[]> => {
+    const response = await api.get<IBudget[]>('/budgets/history');
+
+    if (!response) {
+        throw new Error('Failed to fetch budget history');
+    }
+
+    return response.data;
+}
+
 export const budgetsService = {
-    getMonthlyBudget
+    getMonthlyBudget,
+    getHistory
 };

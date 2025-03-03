@@ -2,10 +2,13 @@ import { useState, useEffect } from 'react';
 import { useColorScheme } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { Stack } from "expo-router";
+import { Drawer } from 'expo-router/drawer';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { displayMonth } from '~/utils';
 import { theme, ThemeContext } from '~/theme';
+import { PeriodContext, PeriodProvider } from '~/contexts/PeriodContext';
+import CustomDrawerContent from '~/components/DrawerContent';
 
 const queryClient = new QueryClient({
     defaultOptions: {
@@ -37,14 +40,34 @@ export default function RootLayout() {
                 <SafeAreaProvider>
                     <GestureHandlerRootView style={{ flex: 1 }}>
                         <BottomSheetModalProvider>
-                            <Stack>
-                                <Stack.Screen
-                                    name="index"
-                                    options={{
-                                        headerShown: false,
-                                    }}
-                                />
-                            </Stack>
+                            <PeriodProvider>
+                                <PeriodContext.Consumer>
+                                    {({ selectedPeriod: { month, year } }) => <Drawer
+                                        drawerContent={(props) => <CustomDrawerContent {...props} />}
+                                        screenOptions={{
+                                            drawerStyle: {
+                                                maxWidth: 300,
+                                                width: '45%'
+                                            }
+                                        }}
+                                    >
+                                        <Drawer.Screen
+                                            name="index"
+                                            options={{
+                                                title: `Expenses for ${displayMonth(month, year)}`,
+                                                lazy: false,
+                                                headerStyle: {
+                                                    backgroundColor: themeValue.theme.background,
+                                                },
+                                                headerTitleStyle: {
+                                                    color: themeValue.theme.text
+                                                },
+                                                headerTintColor: themeValue.theme.primary
+                                            }}
+                                        />
+                                    </Drawer>}
+                                </PeriodContext.Consumer>
+                            </PeriodProvider>
                         </BottomSheetModalProvider>
                     </GestureHandlerRootView>
                 </SafeAreaProvider>

@@ -1,14 +1,15 @@
 import { Fragment } from "react";
 import MonthlyExpenses from '~/components/MonthlyExpenses';
+import { usePeriod } from '~/contexts/PeriodContext';
 
 export default function HomeScreen() {
-    const currentDate = new Date();
+    const { selectedPeriod } = usePeriod();
 
     return (
         <Fragment>
             <MonthlyExpenses
-                month={currentDate.getMonth() + 1}
-                year={currentDate.getFullYear()}
+                month={selectedPeriod.month}
+                year={selectedPeriod.year}
             />
         </Fragment>
     );
