@@ -36,6 +36,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         gap: 8,
         paddingVertical: 8,
+        paddingHorizontal: 16
     },
     category: {
         padding: 12,
