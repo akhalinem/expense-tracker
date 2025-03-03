@@ -42,30 +42,33 @@ export default function RootLayout() {
                         <BottomSheetModalProvider>
                             <PeriodProvider>
                                 <PeriodContext.Consumer>
-                                    {({ selectedPeriod: { month, year } }) => <Drawer
-                                        drawerContent={(props) => <CustomDrawerContent {...props} />}
-                                        screenOptions={{
-                                            drawerStyle: {
-                                                maxWidth: 300,
-                                                width: '45%'
-                                            }
-                                        }}
-                                    >
-                                        <Drawer.Screen
-                                            name="index"
-                                            options={{
-                                                title: `Expenses for ${displayMonth(month, year)}`,
-                                                lazy: false,
-                                                headerStyle: {
-                                                    backgroundColor: themeValue.theme.background,
-                                                },
-                                                headerTitleStyle: {
-                                                    color: themeValue.theme.text
-                                                },
-                                                headerTintColor: themeValue.theme.primary
+                                    {({ selectedPeriod: { month, year } }) =>
+                                        <Drawer
+                                            drawerContent={(props) => <CustomDrawerContent {...props} />}
+                                            screenOptions={{
+                                                swipeEdgeWidth: 100,
+                                                drawerStyle: {
+                                                    maxWidth: 300,
+                                                    width: '45%'
+                                                }
                                             }}
-                                        />
-                                    </Drawer>}
+                                        >
+                                            <Drawer.Screen
+                                                name="index"
+                                                options={{
+                                                    title: `Expenses for ${displayMonth(month, year)}`,
+                                                    lazy: false,
+                                                    headerStyle: {
+                                                        backgroundColor: themeValue.theme.background,
+                                                    },
+                                                    headerTitleStyle: {
+                                                        color: themeValue.theme.text
+                                                    },
+                                                    headerTintColor: themeValue.theme.primary
+                                                }}
+                                            />
+                                        </Drawer>
+                                    }
                                 </PeriodContext.Consumer>
                             </PeriodProvider>
                         </BottomSheetModalProvider>
