@@ -3,13 +3,13 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { ICategory } from '~/types';
 import { categoriesService } from '~/services/categories';
 
-export interface IUseCategoriesToggleProps {
+export type UseCategoriesToggleProps = {
     multiple?: boolean;
     defaultSelected?: string[];
     onChanged?: (selectedCategories: string[]) => void;
 };
 
-export interface IUserCategoriesToggleReturn {
+export type UserCategoriesToggleReturn = {
     multiple: boolean;
     categories: ICategory[];
     selected: Set<string>;
@@ -19,7 +19,7 @@ export interface IUserCategoriesToggleReturn {
     isError: boolean;
 }
 
-export const useCategoriesToggle = ({ multiple = false, defaultSelected, onChanged }: IUseCategoriesToggleProps = {}): IUserCategoriesToggleReturn => {
+export const useCategoriesToggle = ({ multiple = false, defaultSelected, onChanged }: UseCategoriesToggleProps = {}): UserCategoriesToggleReturn => {
     const [selectedCategories, setSelectedCategories] = useState<Set<string>>(
         () => new Set(defaultSelected ?? [])
     );

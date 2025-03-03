@@ -9,13 +9,13 @@ import ThemedView from '~/components/themed/ThemedView';
 import ThemedBottomSheetHandle from '~/components/themed/ThemedBottomSheetHandle';
 import ExpenseForm from '~/components/ExpenseForm';
 
-interface ISaveExpenseSheetProps {
+type SaveExpenseSheetProps = {
     bottomSheetRef: React.RefObject<BottomSheetModal<IExpense | null>>;
     month: number;
     year: number;
 }
 
-export default function SaveExpenseSheet({ bottomSheetRef, month, year }: ISaveExpenseSheetProps) {
+export default function SaveExpenseSheet({ bottomSheetRef, month, year }: SaveExpenseSheetProps) {
     const { theme } = useTheme();
 
     const handleClose = useCallback(() => {

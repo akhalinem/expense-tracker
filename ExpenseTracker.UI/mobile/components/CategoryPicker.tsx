@@ -1,13 +1,13 @@
 import { View, StyleSheet, Pressable, ScrollView } from 'react-native';
-import { IUserCategoriesToggleReturn } from '~/hooks/useCategoriesToggle';
+import { UserCategoriesToggleReturn } from '~/hooks/useCategoriesToggle';
 import ThemedText from '~/components/themed/ThemedText';
 import ThemedCard from '~/components/themed/ThemedCard';
 
-interface ICategoryPickerProps {
-    categoriesToggle: IUserCategoriesToggleReturn;
+type CategoryPickerProps = {
+    categoriesToggle: UserCategoriesToggleReturn;
 }
 
-export default function CategoryPicker({ categoriesToggle }: ICategoryPickerProps) {
+export default function CategoryPicker({ categoriesToggle }: CategoryPickerProps) {
     const { categories, toggle, selected } = categoriesToggle
 
     return (

@@ -11,14 +11,14 @@ import ThemedButton from '~/components/themed/ThemedButton';
 import CategoryPicker from '~/components/CategoryPicker';
 import ThemedTextInput from '~/components/themed/ThemedTextInput';
 
-interface IExpenseFormProps {
+type ExpenseFormProps = {
     expenseToEdit?: IExpense | null;
     month: number;
     year: number;
     onClose: () => void;
 }
 
-export default function ExpenseForm({ expenseToEdit, month, year, onClose }: IExpenseFormProps) {
+export default function ExpenseForm({ expenseToEdit, month, year, onClose }: ExpenseFormProps) {
     const queryClient = useQueryClient();
     const { control, setValue, handleSubmit, formState: { errors } } = useForm<ExpenseFormData>({
         resolver: zodResolver(ExpenseFormSchema),
