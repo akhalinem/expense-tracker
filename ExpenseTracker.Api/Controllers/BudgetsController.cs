@@ -31,4 +31,13 @@ public class BudgetsController : ControllerBase
 
         return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
     }
+
+    [HttpGet]
+    [Route("history")]
+    public async Task<IActionResult> GetBudgetHistory()
+    {
+        var result = await _budgetRepository.GetHistoryAsync();
+
+        return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
+    }
 }

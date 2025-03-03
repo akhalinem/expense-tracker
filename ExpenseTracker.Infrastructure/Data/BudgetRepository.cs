@@ -51,6 +51,24 @@ public class BudgetRepository : IBudgetRepository
         }
     }
 
+    public async Task<Result<IEnumerable<Budget>>> GetHistoryAsync()
+    {
+        try
+        {
+            var budgets = await _context.Budgets
+                .Where(x => x.Year < DateTime.Now.Year || (x.Year == DateTime.Now.Year && x.Month < DateTime.Now.Month))
+                .OrderBy(x => x.Year)
+                .ThenBy(x => x.Month)
+                .ToListAsync();
+
+            return Result<IEnumerable<Budget>>.Success(budgets);
+        }
+        catch (Exception ex)
+        {
+            return Result<IEnumerable<Budget>>.Failure(ex.Message);
+        }
+    }
+
     public async Task<Result<bool>> DeleteAsync(int month, int year)
     {
         try
