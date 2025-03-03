@@ -27,8 +27,7 @@ export const useCategoriesToggle = ({ multiple = false, defaultSelected, onChang
     const categoriesQuery = useQuery({
         queryKey: ['categories'],
         queryFn: categoriesService.getCategories,
-        placeholderData: keepPreviousData,
-        refetchOnMount: false
+        placeholderData: keepPreviousData
     });
 
     const toggle = (categoryId: string) => {

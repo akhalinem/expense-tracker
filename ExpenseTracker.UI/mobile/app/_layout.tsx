@@ -7,7 +7,13 @@ import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { theme, ThemeContext } from '~/theme';
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+    defaultOptions: {
+        queries: {
+            refetchOnMount: false
+        }
+    }
+});
 
 export default function RootLayout() {
     const systemColorScheme = useColorScheme();
