@@ -124,7 +124,7 @@ export default function MonthlyExpenses({ month, year }: MonthlyExpensesProps) {
                 {(isFetching || deleteExpenseMutation.isPending) && !isRefreshing && <ActivityIndicator size="large" style={styles.loader} />}
 
                 <View style={styles.section}>
-                    <ThemedText style={styles.sectionTitle}>Monthly Overview</ThemedText>
+                    <ThemedText style={styles.sectionTitle}>Overview</ThemedText>
                     <View style={{ marginHorizontal: 16 }}>
                         <BudgetCard
                             budget={budgetQuery.data?.amount}
