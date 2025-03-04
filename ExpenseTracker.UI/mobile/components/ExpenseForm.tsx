@@ -1,5 +1,6 @@
 import { View, StyleSheet } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
+import { NumericFormat, useNumericFormat } from 'react-number-format';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -73,6 +74,8 @@ export default function ExpenseForm({ expenseToEdit, month, year, onClose }: Exp
         }
     });
 
+    const numericFormat = useNumericFormat({})
+
     return (
         <View style={styles.form}>
             <View style={[styles.section, styles.field]}>
@@ -80,15 +83,25 @@ export default function ExpenseForm({ expenseToEdit, month, year, onClose }: Exp
                 <Controller
                     control={control}
                     name="amount"
-                    render={({ field: { onChange, value } }) => (
-                        <ThemedTextInput
-                            as={BottomSheetTextInput}
-                            keyboardType="decimal-pad"
-                            placeholder="0.00"
-                            value={value?.toString()}
-                            onChangeText={onChange}
-                            error={!!errors.amount}
-                        />
+                    render={({ field }) => (
+                        <NumericFormat
+                            value={field.value}
+                            displayType='text'
+                            thousandSeparator=' '
+                            renderText={(formattedValue) => (
+                                <ThemedTextInput
+                                    as={BottomSheetTextInput}
+                                    keyboardType="decimal-pad"
+                                    placeholder="0.00"
+                                    value={formattedValue}
+                                    onChangeText={(value) => {
+                                        const extractedValue = numericFormat.removeFormatting?.(value);
+                                        const parsedValue = extractedValue ? Number(extractedValue) : null;
+
+                                        field.onChange(parsedValue);
+                                    }}
+                                    error={!!errors.amount} />
+                            )} />
                     )}
                 />
                 {errors.amount && (
