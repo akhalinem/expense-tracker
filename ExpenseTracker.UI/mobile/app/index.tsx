@@ -1,17 +1,14 @@
-import { Fragment } from "react";
-import MonthlyExpenses from '~/components/MonthlyExpenses';
 import { usePeriod } from '~/contexts/PeriodContext';
+import MonthlyExpenses from '~/components/MonthlyExpenses';
 
 export default function HomeScreen() {
     const { selectedPeriod } = usePeriod();
 
     return (
-        <Fragment>
-            <MonthlyExpenses
-                month={selectedPeriod.month}
-                year={selectedPeriod.year}
-            />
-        </Fragment>
+        <MonthlyExpenses
+            month={selectedPeriod.month}
+            year={selectedPeriod.year}
+        />
     );
 }
 

@@ -119,59 +119,57 @@ export default function MonthlyExpenses({ month, year }: MonthlyExpensesProps) {
 
     return (
         <ThemedView style={styles.container}>
-            <SafeAreaView style={{ flex: 1 }} edges={['top']}>
 
-                {(isFetching || deleteExpenseMutation.isPending) && !isRefreshing && <ActivityIndicator size="large" style={styles.loader} />}
+            {(isFetching || deleteExpenseMutation.isPending) && !isRefreshing && <ActivityIndicator size="large" style={styles.loader} />}
 
-                <View style={styles.section}>
-                    <ThemedText style={styles.sectionTitle}>Overview</ThemedText>
-                    <View style={{ marginHorizontal: 16 }}>
-                        <BudgetCard
-                            budget={budgetQuery.data?.amount}
-                            expenses={totalExpenses}
+            <View style={styles.section}>
+                <ThemedText style={styles.sectionTitle}>Overview</ThemedText>
+                <View style={{ marginHorizontal: 16 }}>
+                    <BudgetCard
+                        budget={budgetQuery.data?.amount}
+                        expenses={totalExpenses}
+                    />
+                </View>
+            </View>
+
+            <View style={styles.section}>
+                <ThemedText style={styles.sectionTitle}>Categories</ThemedText>
+                <CategoryPicker
+                    categoriesToggle={categoriesToggle}
+                />
+            </View>
+
+            <View style={[styles.section, { flex: 1, marginBottom: 0 }]}>
+                <ThemedText style={styles.sectionTitle}>Recent Expenses</ThemedText>
+                <FlatList
+                    contentContainerStyle={styles.listContentContainer}
+                    data={expensesQuery.data}
+                    keyExtractor={(item) => item.id.toString()}
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={isRefreshing}
+                            onRefresh={handleRefresh}
                         />
-                    </View>
-                </View>
+                    }
+                    renderItem={({ item }) => (
+                        <ReanimatedSwipeable
+                            renderRightActions={() => renderRightActions(item)}
+                            rightThreshold={80}
+                        >
+                            <ExpenseCard expense={item} />
+                        </ReanimatedSwipeable>
+                    )}
+                />
+            </View>
 
-                <View style={styles.section}>
-                    <ThemedText style={styles.sectionTitle}>Categories</ThemedText>
-                    <CategoryPicker
-                        categoriesToggle={categoriesToggle}
-                    />
-                </View>
+            <TouchableOpacity
+                style={styles.fab}
+                onPress={handlePresentModal}
+            >
+                <Ionicons name="add" size={24} color="white" />
+            </TouchableOpacity>
 
-                <View style={styles.section}>
-                    <ThemedText style={styles.sectionTitle}>Recent Expenses</ThemedText>
-                    <FlatList
-                        contentContainerStyle={styles.listContentContainer}
-                        data={expensesQuery.data}
-                        keyExtractor={(item) => item.id.toString()}
-                        refreshControl={
-                            <RefreshControl
-                                refreshing={isRefreshing}
-                                onRefresh={handleRefresh}
-                            />
-                        }
-                        renderItem={({ item }) => (
-                            <ReanimatedSwipeable
-                                renderRightActions={() => renderRightActions(item)}
-                                rightThreshold={80}
-                            >
-                                <ExpenseCard expense={item} />
-                            </ReanimatedSwipeable>
-                        )}
-                    />
-                </View>
-
-                <TouchableOpacity
-                    style={styles.fab}
-                    onPress={handlePresentModal}
-                >
-                    <Ionicons name="add" size={24} color="white" />
-                </TouchableOpacity>
-
-                <SaveExpenseSheet bottomSheetRef={bottomSheetRef} month={month} year={year} />
-            </SafeAreaView>
+            <SaveExpenseSheet bottomSheetRef={bottomSheetRef} month={month} year={year} />
         </ThemedView >
     );
 }
@@ -191,17 +189,16 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     listContentContainer: {
-        paddingBottom: 25
+        paddingBottom: 100
     },
     sectionTitle: {
         fontSize: 20,
         fontWeight: 'bold',
-        marginBottom: 10,
+        marginBottom: 5,
         marginHorizontal: 16
     },
     section: {
-        marginTop: 10,
-        marginBottom: 10,
+        marginVertical: 10,
     },
     fab: {
         position: 'absolute',
