@@ -57,8 +57,8 @@ public class BudgetRepository : IBudgetRepository
         {
             var budgets = await _context.Budgets
                 .Where(x => x.Year < DateTime.Now.Year || (x.Year == DateTime.Now.Year && x.Month < DateTime.Now.Month))
-                .OrderBy(x => x.Year)
-                .ThenBy(x => x.Month)
+                .OrderByDescending(x => x.Year)
+                .ThenByDescending(x => x.Month)
                 .ToListAsync();
 
             return Result<IEnumerable<Budget>>.Success(budgets);
