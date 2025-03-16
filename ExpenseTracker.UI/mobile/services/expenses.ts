@@ -1,10 +1,10 @@
 import { ICreateExpenseDto, IExpense, IUpdateExpenseDto } from "~/types";
 import { api } from "./api";
 
-const getExpenses = async (categoryIds: string[], month?: number, year?: number): Promise<IExpense[]> => {
+const getExpenses = async (categoryIds?: string[], month?: number, year?: number): Promise<IExpense[]> => {
     const response = await api.get<IExpense[] | null>('/expenses', {
         params: {
-            categoryIds: categoryIds.join(),
+            categoryIds: categoryIds?.join(),
             month,
             year
         }

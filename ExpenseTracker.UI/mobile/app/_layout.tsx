@@ -43,16 +43,7 @@ export default function RootLayout() {
                             <PeriodProvider>
                                 <PeriodContext.Consumer>
                                     {({ selectedPeriod: { month, year } }) =>
-                                        <Drawer
-                                            drawerContent={(props) => <CustomDrawerContent {...props} />}
-                                            screenOptions={{
-                                                swipeEdgeWidth: 100,
-                                                drawerStyle: {
-                                                    maxWidth: 300,
-                                                    width: '45%'
-                                                }
-                                            }}
-                                        >
+                                        <Drawer drawerContent={(props) => <CustomDrawerContent {...props} />}>
                                             <Drawer.Screen
                                                 name="index"
                                                 options={{

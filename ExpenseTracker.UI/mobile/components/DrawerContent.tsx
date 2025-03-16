@@ -1,14 +1,16 @@
-import { ScrollView, Pressable, StyleSheet } from 'react-native';
+import { ScrollView, Pressable, StyleSheet, View } from 'react-native';
 import { DrawerContentComponentProps, DrawerContentScrollView } from '@react-navigation/drawer';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { IBudget } from '~/types';
+import { displayMonth } from '~/utils';
+import { budgetsService } from '~/services/budgets';
+import { exportData } from '~/services/export';
 import { useTheme } from '~/theme';
 import { usePeriod } from '~/contexts/PeriodContext';
 import ThemedView from '~/components/themed/ThemedView';
-import { budgetsService } from '~/services/budgets';
-import { displayMonth } from '~/utils';
-import ThemedText from './themed/ThemedText';
+import ThemedText from '~/components/themed/ThemedText';
+import ThemedButton from '~/components/themed/ThemedButton';
 
 export default function CustomDrawerContent(props: DrawerContentComponentProps) {
     const router = useRouter();
@@ -31,8 +33,16 @@ export default function CustomDrawerContent(props: DrawerContentComponentProps) 
     ];
 
     return (
-        <ThemedView as={DrawerContentScrollView} {...props}>
-            <ScrollView style={[styles.container, { backgroundColor: theme.background }]}>
+        <ThemedView as={DrawerContentScrollView} {...props} style={styles.container}>
+            <View style={styles.section}>
+                <ThemedButton
+                    title="Export Data"
+                    onPress={exportData}
+                    style={styles.export}
+                />
+            </View>
+            <View style={{ borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#ccc' }} />
+            <ScrollView style={styles.section}>
                 {history.map(({ month, year }) => (
                     <Pressable
                         key={`${year}-${month}`}
@@ -59,5 +69,11 @@ const styles = StyleSheet.create({
     periodText: {
         fontSize: 16,
         fontWeight: 'bold',
+    },
+    section: {
+        marginBottom: 24,
+    },
+    export: {
+        marginBottom: 8,
     },
 });

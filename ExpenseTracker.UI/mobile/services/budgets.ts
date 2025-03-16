@@ -23,7 +23,18 @@ const getHistory = async (): Promise<IBudget[]> => {
     return response.data;
 }
 
+const getBudgets = async (): Promise<IBudget[]> => {
+    const response = await api.get<IBudget[]>('/budgets');
+
+    if (!response || !response.data) {
+        throw new Error("Failed to fetch budgets");
+    }
+
+    return response.data;
+};
+
 export const budgetsService = {
     getMonthlyBudget,
-    getHistory
+    getHistory,
+    getBudgets,
 };
