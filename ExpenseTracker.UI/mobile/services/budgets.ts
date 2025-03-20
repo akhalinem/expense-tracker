@@ -1,36 +1,43 @@
 import { IBudget } from "~/types";
-import { api } from "./api";
+import { db } from "./db";
 
 const getMonthlyBudget = async (month: number, year: number): Promise<IBudget | null> => {
-    const response = await api.get<IBudget | null>('/budgets/monthly', {
-        params: { month, year }
-    });
-
-    if (!response) {
-        throw new Error('Failed to fetch monthly budget');
+    if (!db) {
+        throw new Error('Database not initialized');
     }
 
-    return response.data;
+    const result = await db.getFirstAsync<IBudget>('SELECT * FROM budgets WHERE month = ? AND year = ?', [month, year]);
+
+    return result;
 }
 
 const getHistory = async (): Promise<IBudget[]> => {
-    const response = await api.get<IBudget[]>('/budgets/history');
-
-    if (!response) {
-        throw new Error('Failed to fetch budget history');
+    if (!db) {
+        throw new Error('Database not initialized');
     }
 
-    return response.data;
+    const now = new Date();
+    const currentMonth = now.getMonth() + 1; // JavaScript months are 0-indexed
+    const currentYear = now.getFullYear();
+
+    const result = await db.getAllAsync<IBudget>(
+        `SELECT * FROM budgets 
+         WHERE year < ? OR (year = ? AND month < ?) 
+         ORDER BY year DESC, month DESC`,
+        [currentYear, currentYear, currentMonth]
+    );
+
+    return result;
 }
 
 const getBudgets = async (): Promise<IBudget[]> => {
-    const response = await api.get<IBudget[]>('/budgets');
-
-    if (!response || !response.data) {
-        throw new Error("Failed to fetch budgets");
+    if (!db) {
+        throw new Error('Database not initialized');
     }
 
-    return response.data;
+    const result = await db.getAllAsync<IBudget>('SELECT * FROM budgets');
+
+    return result;
 };
 
 export const budgetsService = {

@@ -21,17 +21,17 @@ type ExpenseFormProps = {
 
 export default function ExpenseForm({ expenseToEdit, month, year, onClose }: ExpenseFormProps) {
     const queryClient = useQueryClient();
-    const { control, setValue, handleSubmit, formState: { errors } } = useForm<ExpenseFormData>({
+    const { control, setValue, handleSubmit, formState: { errors, isSubmitting } } = useForm<ExpenseFormData>({
         resolver: zodResolver(ExpenseFormSchema),
         defaultValues: {
             amount: expenseToEdit?.amount ?? null,
             description: expenseToEdit?.description ?? '',
-            categoryId: expenseToEdit?.category?.id ?? null,
+            categoryId: expenseToEdit?.category?.id.toString() ?? null,
         },
     });
 
     const categoriesToggle = useCategoriesToggle({
-        defaultSelected: expenseToEdit?.category?.id ? [expenseToEdit.category.id] : [],
+        defaultSelected: expenseToEdit?.category?.id ? [expenseToEdit.category.id.toString()] : [],
         onChanged: ([selectedCategoryId]) => {
             setValue('categoryId', selectedCategoryId);
         }
@@ -53,24 +53,28 @@ export default function ExpenseForm({ expenseToEdit, month, year, onClose }: Exp
         },
     });
 
-    const onSubmit = handleSubmit((data) => {
-        if (expenseToEdit) {
-            updateExpenseMutation.mutate({
-                id: expenseToEdit.id,
-                amount: data.amount ?? 0,
-                description: data.description,
-                categoryId: data.categoryId ?? '',
-                month,
-                year
-            });
-        } else {
-            addExpenseMutation.mutate({
-                amount: data.amount ?? 0,
-                description: data.description,
-                categoryId: data.categoryId ?? '',
-                month,
-                year
-            });
+    const onSubmit = handleSubmit(async (data) => {
+        try {
+            if (expenseToEdit) {
+                await updateExpenseMutation.mutateAsync({
+                    id: expenseToEdit.id,
+                    amount: data.amount ?? 0,
+                    description: data.description,
+                    categoryId: +data.categoryId!,
+                    month,
+                    year
+                });
+            } else {
+                await addExpenseMutation.mutateAsync({
+                    amount: data.amount ?? 0,
+                    description: data.description,
+                    categoryId: +data.categoryId!,
+                    month,
+                    year
+                });
+            }
+        } catch (e) {
+            console.error(e);
         }
     });
 
@@ -142,7 +146,7 @@ export default function ExpenseForm({ expenseToEdit, month, year, onClose }: Exp
                 <ThemedButton
                     title={expenseToEdit ? 'Edit Expense' : 'Add Expense'}
                     onPress={onSubmit}
-                    loading={addExpenseMutation.isPending || updateExpenseMutation.isPending}
+                    loading={isSubmitting}
                 />
             </View>
         </View>

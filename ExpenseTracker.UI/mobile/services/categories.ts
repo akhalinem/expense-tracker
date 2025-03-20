@@ -1,14 +1,14 @@
 import { ICategory } from "~/types";
-import { api } from "./api";
+import { db } from "./db";
 
 const getCategories = async (): Promise<ICategory[]> => {
-    const response = await api.get<ICategory[]>('/categories');
-
-    if (!response || !response.data) {
-        throw new Error("Failed to fetch categories");
+    if (!db) {
+        throw new Error("Database not initialized");
     }
 
-    return response.data;
+    const result = await db.getAllAsync<ICategory>('SELECT * FROM categories');
+
+    return result;
 }
 
 export const categoriesService = {

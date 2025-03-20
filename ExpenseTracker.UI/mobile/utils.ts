@@ -1,3 +1,5 @@
+import { IExpense, IExpenseEntity } from "./types";
+
 export function displayCurrency(amount: number) {
     return amount.toLocaleString(
         process.env.EXPO_PUBLIC_LOCALE,
@@ -36,3 +38,17 @@ export function displayDate(date: string) {
         }
     )
 }
+
+export const mapExpenseEntityToExpense = (entity: IExpenseEntity): IExpense => ({
+    id: entity.id,
+    amount: entity.amount,
+    description: entity.description,
+    category: entity.categoryId
+        ? {
+            id: Number(entity.categoryId),
+            name: entity.categoryName
+        }
+        : null,
+    createdAt: entity.date,
+    updatedAt: null
+})

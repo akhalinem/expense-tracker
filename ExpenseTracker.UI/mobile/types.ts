@@ -8,6 +8,14 @@ export const ExpenseFormSchema = z.object({
 
 export type ExpenseFormData = z.infer<typeof ExpenseFormSchema>;
 
+export interface IExpenseEntity {
+    id: number;
+    amount: number;
+    description: string;
+    categoryId: string;
+    categoryName: string;
+    date: string;
+}
 
 export interface IExpense {
     id: number;
@@ -25,14 +33,14 @@ export interface IBudget {
 }
 
 export interface ICategory {
-    id: string;
+    id: number;
     name: string;
 }
 
 export interface ICreateExpenseDto {
     amount: number;
     description: string;
-    categoryId: string;
+    categoryId: number;
     month: number;
     year: number;
 }
@@ -41,7 +49,7 @@ export interface IUpdateExpenseDto {
     id: number;
     amount: number;
     description: string;
-    categoryId: string;
+    categoryId: number;
     month: number;
     year: number;
 }

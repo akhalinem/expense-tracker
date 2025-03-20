@@ -3,9 +3,11 @@ import { useColorScheme } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Drawer } from 'expo-router/drawer';
+import { useDrizzleStudio } from 'expo-drizzle-studio-plugin';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { displayMonth } from '~/utils';
+import { db, initDbAsync } from '~/services/db';
 import { theme, ThemeContext } from '~/theme';
 import { PeriodContext, PeriodProvider } from '~/contexts/PeriodContext';
 import CustomDrawerContent from '~/components/DrawerContent';
@@ -33,6 +35,12 @@ export default function RootLayout() {
         isDark,
         toggleTheme,
     };
+
+    useDrizzleStudio(db);
+
+    useEffect(() => {
+        initDbAsync()
+    }, []);
 
     return (
         <QueryClientProvider client={queryClient}>

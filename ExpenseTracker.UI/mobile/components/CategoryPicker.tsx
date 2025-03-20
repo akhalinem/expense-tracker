@@ -16,11 +16,11 @@ export default function CategoryPicker({ categoriesToggle }: CategoryPickerProps
                 {categories.map((category) => (
                     <Pressable
                         key={category.id}
-                        onPress={() => toggle(category.id)}
+                        onPress={() => toggle(category.id.toString())}
                     >
                         <ThemedCard style={[
                             styles.category,
-                            selected.has(category.id) && styles.selectedCategory,
+                            selected.has(category.id.toString()) && styles.selectedCategory,
                         ]}>
                             <ThemedText>{category.name}</ThemedText>
                         </ThemedCard>
