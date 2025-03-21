@@ -1,14 +1,16 @@
-import { TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
+import { TouchableOpacity, ActivityIndicator, StyleSheet, ViewStyle, StyleProp } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '~/theme';
 import ThemedText from '~/components/themed/ThemedText';
 
 interface ThemedButtonProps {
     title: string;
-    onPress: () => void;
     variant?: 'primary' | 'secondary';
     disabled?: boolean;
     loading?: boolean;
-    style?: any;
+    icon?: string;
+    style?: StyleProp<ViewStyle>;
+    onPress: () => void;
 }
 
 export default function ThemedButton({
@@ -17,7 +19,8 @@ export default function ThemedButton({
     variant = 'primary',
     disabled = false,
     loading = false,
-    style,
+    icon,
+    style
 }: ThemedButtonProps) {
     const { isDark } = useTheme()
 
@@ -40,6 +43,15 @@ export default function ThemedButton({
         disabled && styles.disabledText,
     ];
 
+    const iconStyles = [
+        styles.icon,
+        variant === 'primary' && styles.primaryText,
+        variant === 'secondary' && styles.secondaryText,
+        isDark && variant === 'primary' && styles.primaryTextDark,
+        isDark && variant === 'secondary' && styles.secondaryTextDark,
+        disabled && styles.disabledText,
+    ]
+
     return (
         <TouchableOpacity
             style={buttonStyles}
@@ -53,7 +65,16 @@ export default function ThemedButton({
                     size="small"
                 />
             ) : (
-                <ThemedText style={textStyles}>{title}</ThemedText>
+                <>
+                    {icon && (
+                        <Ionicons
+                            name={icon as any}
+                            size={20}
+                            style={iconStyles}
+                        />
+                    )}
+                    <ThemedText style={textStyles}>{title}</ThemedText>
+                </>
             )}
         </TouchableOpacity>
     );
@@ -61,7 +82,7 @@ export default function ThemedButton({
 
 const styles = StyleSheet.create({
     button: {
-        paddingVertical: 12,
+        padding: 12,
         paddingHorizontal: 24,
         borderRadius: 8,
         alignItems: 'center',
@@ -104,4 +125,7 @@ const styles = StyleSheet.create({
     disabledText: {
         opacity: 0.5,
     },
+    icon: {
+        marginRight: 8,
+    }
 });

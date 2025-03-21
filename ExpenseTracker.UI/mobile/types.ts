@@ -40,6 +40,16 @@ export interface IUpdateExpenseDto {
     categoryId: number;
 }
 
+export interface ICreateCategoryDto {
+    name: string;
+}
+
+export interface ICreateBudgetDto {
+    amount: number;
+    month: number;
+    year: number;
+}
+
 export interface ICategoryExcelDto {
     name: string;
 }
@@ -55,4 +65,19 @@ export interface IBudgetExcelDto {
     amount: number;
     month: number;
     year: number;
+}
+
+export interface IImportResult {
+    categories: {
+        added: number;
+        errors: string[];
+    };
+    expenses: {
+        added: number;
+        errors: string[];
+    };
+    budgets: {
+        added: number;
+        errors: string[];
+    };
 }

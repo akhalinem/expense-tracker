@@ -1,4 +1,4 @@
-import { IBudget } from "~/types";
+import { IBudget, ICreateBudgetDto } from "~/types";
 import { db } from "./db";
 
 const getMonthlyBudget = async (month: number, year: number): Promise<IBudget | null> => {
@@ -40,8 +40,31 @@ const getBudgets = async (): Promise<IBudget[]> => {
     return result;
 };
 
+const createBudget = async (budget: ICreateBudgetDto): Promise<IBudget> => {
+    if (!db) {
+        throw new Error('Database not initialized');
+    }
+
+    const result = await db.runAsync(
+        'INSERT INTO budgets (amount, month, year) VALUES (?, ?, ?)',
+        [budget.amount, budget.month, budget.year]
+    );
+
+    if (result.changes !== 1) {
+        throw new Error('Failed to create budget');
+    }
+
+    const insertedBudget = await db.getFirstAsync<IBudget>('SELECT * FROM budgets WHERE id = ?', [result.lastInsertRowId]);
+    if (!insertedBudget) {
+        throw new Error('Failed to retrieve created budget');
+    }
+
+    return insertedBudget;
+};
+
 export const budgetsService = {
     getMonthlyBudget,
     getHistory,
     getBudgets,
+    createBudget,
 };
