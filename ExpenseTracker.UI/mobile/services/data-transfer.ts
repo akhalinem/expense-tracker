@@ -157,7 +157,8 @@ export const importData = async (): Promise<IImportResult | null> => {
                     const createExpense: ICreateExpenseDto = {
                         amount: Number(expense.amount),
                         description: expense.description,
-                        categoryId: category.id
+                        categoryId: category.id,
+                        date: expense.date
                     };
 
                     await expensesService.createExpense(createExpense);

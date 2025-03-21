@@ -66,10 +66,11 @@ const createExpense = async (dto: ICreateExpenseDto): Promise<IExpense> => {
 
     const result = await db.runAsync(`
         INSERT INTO expenses (categoryId, amount, date, description)
-        VALUES ($categoryId, $amount, DATETIME('now'), $description)
+        VALUES ($categoryId, $amount, $date, $description)
     `, {
         $categoryId: dto.categoryId,
         $amount: dto.amount,
+        $date: dto.date,
         $description: dto.description
     });
 

@@ -4,7 +4,9 @@ import { NumericFormat, useNumericFormat } from 'react-number-format';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import dayjs from 'dayjs';
 import { ExpenseFormData, ExpenseFormSchema, IExpense } from '~/types';
+import { DATE_FORMAT_TO_SAVE_IN_DB } from '~/constants';
 import { expensesService, } from '~/services/expenses';
 import { useCategoriesToggle } from '~/hooks/useCategoriesToggle';
 import ThemedText from '~/components/themed/ThemedText';
@@ -69,6 +71,7 @@ export default function ExpenseForm({ expenseToEdit, month, year, onClose }: Exp
                     amount: data.amount ?? 0,
                     description: data.description,
                     categoryId: +data.categoryId!,
+                    date: dayjs().format(DATE_FORMAT_TO_SAVE_IN_DB),
                 });
             }
         } catch (e) {

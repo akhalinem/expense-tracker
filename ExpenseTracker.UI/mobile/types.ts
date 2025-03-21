@@ -31,6 +31,7 @@ export interface ICreateExpenseDto {
     amount: number;
     description: string;
     categoryId: number;
+    date: string;
 }
 
 export interface IUpdateExpenseDto {

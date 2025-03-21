@@ -1,0 +1,1 @@
+export const DATE_FORMAT_TO_SAVE_IN_DB = 'YYYY-MM-DD HH:mm:ss';
