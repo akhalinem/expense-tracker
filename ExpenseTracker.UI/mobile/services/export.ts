@@ -5,6 +5,7 @@ import * as XLSX from 'xlsx';
 import { expensesService } from './expenses';
 import { budgetsService } from './budgets';
 import { categoriesService } from './categories';
+import { mapBudgetToBudgetExcelDto, mapCategoryToCategoryExcelDto, mapExpenseToExpenseExcelDto } from '~/utils';
 
 export const exportData = async (): Promise<void> => {
     try {
@@ -15,19 +16,23 @@ export const exportData = async (): Promise<void> => {
             budgetsService.getBudgets()
         ]);
 
+        const categoriesToExport = categories.map(mapCategoryToCategoryExcelDto);
+        const expensesToExport = expenses.map(mapExpenseToExpenseExcelDto);
+        const budgetsToExport = budgets.map(mapBudgetToBudgetExcelDto);
+
         // Create workbook with multiple sheets
         const wb = XLSX.utils.book_new();
 
         // Add categories sheet
-        const categoriesSheet = XLSX.utils.json_to_sheet(categories);
+        const categoriesSheet = XLSX.utils.json_to_sheet(categoriesToExport);
         XLSX.utils.book_append_sheet(wb, categoriesSheet, "Categories");
 
         // Add expenses sheet
-        const expensesSheet = XLSX.utils.json_to_sheet(expenses);
+        const expensesSheet = XLSX.utils.json_to_sheet(expensesToExport);
         XLSX.utils.book_append_sheet(wb, expensesSheet, "Expenses");
 
         // Add budgets sheet
-        const budgetsSheet = XLSX.utils.json_to_sheet(budgets);
+        const budgetsSheet = XLSX.utils.json_to_sheet(budgetsToExport);
         XLSX.utils.book_append_sheet(wb, budgetsSheet, "Budgets");
 
         // Write to buffer

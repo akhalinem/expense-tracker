@@ -1,3 +1,5 @@
+import { IBudget, IBudgetExcelDto, ICategory, ICategoryExcelDto, IExpense, IExpenseExcelDto } from "./types";
+
 export function displayCurrency(amount: number) {
     return amount.toLocaleString(
         process.env.EXPO_PUBLIC_LOCALE,
@@ -36,3 +38,20 @@ export function displayDate(date: string) {
         }
     )
 }
+
+export const mapCategoryToCategoryExcelDto = (category: ICategory): ICategoryExcelDto => ({
+    name: category.name
+})
+
+export const mapExpenseToExpenseExcelDto = (expense: IExpense): IExpenseExcelDto => ({
+    amount: expense.amount,
+    description: expense.description,
+    category: expense.categoryName,
+    date: expense.date
+});
+
+export const mapBudgetToBudgetExcelDto = (budget: IBudget): IBudgetExcelDto => ({
+    amount: budget.amount,
+    month: budget.month,
+    year: budget.year
+});

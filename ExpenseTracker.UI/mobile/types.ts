@@ -39,3 +39,20 @@ export interface IUpdateExpenseDto {
     description: string;
     categoryId: number;
 }
+
+export interface ICategoryExcelDto {
+    name: string;
+}
+
+export interface IExpenseExcelDto {
+    amount: number;
+    description: string;
+    category: string;
+    date: string;
+}
+
+export interface IBudgetExcelDto {
+    amount: number;
+    month: number;
+    year: number;
+}
