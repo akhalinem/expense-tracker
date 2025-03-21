@@ -26,12 +26,12 @@ export default function ExpenseForm({ expenseToEdit, month, year, onClose }: Exp
         defaultValues: {
             amount: expenseToEdit?.amount ?? null,
             description: expenseToEdit?.description ?? '',
-            categoryId: expenseToEdit?.category?.id.toString() ?? null,
+            categoryId: expenseToEdit?.categoryId ?? null,
         },
     });
 
     const categoriesToggle = useCategoriesToggle({
-        defaultSelected: expenseToEdit?.category?.id ? [expenseToEdit.category.id.toString()] : [],
+        defaultSelected: expenseToEdit?.categoryId ? [expenseToEdit.categoryId] : [],
         onChanged: ([selectedCategoryId]) => {
             setValue('categoryId', selectedCategoryId);
         }
@@ -54,6 +54,8 @@ export default function ExpenseForm({ expenseToEdit, month, year, onClose }: Exp
     });
 
     const onSubmit = handleSubmit(async (data) => {
+        // TODO: use data.month and data.year
+
         try {
             if (expenseToEdit) {
                 await updateExpenseMutation.mutateAsync({
@@ -61,16 +63,12 @@ export default function ExpenseForm({ expenseToEdit, month, year, onClose }: Exp
                     amount: data.amount ?? 0,
                     description: data.description,
                     categoryId: +data.categoryId!,
-                    month,
-                    year
                 });
             } else {
                 await addExpenseMutation.mutateAsync({
                     amount: data.amount ?? 0,
                     description: data.description,
                     categoryId: +data.categoryId!,
-                    month,
-                    year
                 });
             }
         } catch (e) {

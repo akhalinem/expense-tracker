@@ -21,11 +21,11 @@ export default function ExpenseCard({ expense }: IExpenseCardProps) {
                 <View style={styles.metadata}>
                     <View style={styles.categoryContainer}>
                         <ThemedText variant="secondary" style={styles.category}>
-                            {expense.category?.name}
+                            {expense.categoryName}
                         </ThemedText>
                     </View>
                     <ThemedText variant="secondary" style={styles.date}>
-                        {displayDate(expense.createdAt)}
+                        {displayDate(expense.date)}
                     </ThemedText>
                 </View>
             </View>

@@ -1,8 +1,7 @@
-import { ICreateExpenseDto, IExpense, IExpenseEntity, IUpdateExpenseDto } from "~/types";
-import { mapExpenseEntityToExpense } from "~/utils";
+import { ICreateExpenseDto, IExpense, IUpdateExpenseDto } from "~/types";
 import { db } from "./db";
 
-const getExpenses = async (categoryIds?: string[], month?: number, year?: number): Promise<IExpense[]> => {
+const getExpenses = async (categoryIds?: number[], month?: number, year?: number): Promise<IExpense[]> => {
     if (!db) {
         throw new Error("Database not initialized");
     }
@@ -43,9 +42,9 @@ const getExpenses = async (categoryIds?: string[], month?: number, year?: number
 
     query += " ORDER BY e.date DESC";
 
-    const expenses = await db.getAllAsync<IExpenseEntity>(query, params);
+    const expenses = await db.getAllAsync<IExpense>(query, params);
 
-    return expenses.map(mapExpenseEntityToExpense);
+    return expenses;
 }
 
 const deleteExpense = async (id: number): Promise<void> => {
@@ -78,7 +77,7 @@ const createExpense = async (dto: ICreateExpenseDto): Promise<IExpense> => {
         throw new Error("Failed to create expense");
     }
 
-    const insertedRecord = await db.getFirstAsync<IExpenseEntity>(`
+    const newExpense = await db.getFirstAsync<IExpense>(`
         SELECT 
             e.id,
             e.amount, 
@@ -91,11 +90,11 @@ const createExpense = async (dto: ICreateExpenseDto): Promise<IExpense> => {
         WHERE e.id = ?
         `, [result.lastInsertRowId]);
 
-    if (!insertedRecord) {
+    if (!newExpense) {
         throw new Error("Failed to fetch created expense");
     }
 
-    return mapExpenseEntityToExpense(insertedRecord);
+    return newExpense;
 };
 
 const updateExpense = async (dto: IUpdateExpenseDto): Promise<IExpense> => {
@@ -118,25 +117,24 @@ const updateExpense = async (dto: IUpdateExpenseDto): Promise<IExpense> => {
         throw new Error("Failed to update expense");
     }
 
-    const updatedRecord = await db.getFirstAsync<IExpenseEntity>(`
+    const updatedExpense = await db.getFirstAsync<IExpense>(`
         SELECT 
             e.id,
             e.amount, 
             e.description, 
-            e.date as createdAt, 
+            e.date, 
             c.id as categoryId, 
-            c.name as categoryName,
-            NULL as updatedAt
+            c.name as categoryName
         FROM expenses e
         LEFT JOIN categories c ON e.categoryId = c.id 
         WHERE e.id = ?
     `, [dto.id]);
 
-    if (!updatedRecord) {
+    if (!updatedExpense) {
         throw new Error("Failed to fetch updated expense");
     }
 
-    return mapExpenseEntityToExpense(updatedRecord);
+    return updatedExpense;
 };
 
 export const expensesService = {

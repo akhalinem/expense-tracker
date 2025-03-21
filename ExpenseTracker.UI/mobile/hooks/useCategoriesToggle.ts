@@ -5,22 +5,22 @@ import { categoriesService } from '~/services/categories';
 
 export type UseCategoriesToggleProps = {
     multiple?: boolean;
-    defaultSelected?: string[];
-    onChanged?: (selectedCategories: string[]) => void;
+    defaultSelected?: number[];
+    onChanged?: (selectedCategories: number[]) => void;
 };
 
 export type UserCategoriesToggleReturn = {
     multiple: boolean;
     categories: ICategory[];
-    selected: Set<string>;
-    toggle: (categoryId: string) => void;
+    selected: Set<number>;
+    toggle: (categoryId: number) => void;
     refetch: () => void;
     isLoading: boolean;
     isError: boolean;
 }
 
 export const useCategoriesToggle = ({ multiple = false, defaultSelected, onChanged }: UseCategoriesToggleProps = {}): UserCategoriesToggleReturn => {
-    const [selectedCategories, setSelectedCategories] = useState<Set<string>>(
+    const [selectedCategories, setSelectedCategories] = useState<Set<number>>(
         () => new Set(defaultSelected ?? [])
     );
 
@@ -30,7 +30,7 @@ export const useCategoriesToggle = ({ multiple = false, defaultSelected, onChang
         placeholderData: keepPreviousData
     });
 
-    const toggle = (categoryId: string) => {
+    const toggle = (categoryId: number) => {
         setSelectedCategories(prev => {
             const newSet = new Set(prev);
 

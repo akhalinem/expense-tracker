@@ -8,7 +8,7 @@ type CategoryPickerProps = {
 }
 
 export default function CategoryPicker({ categoriesToggle }: CategoryPickerProps) {
-    const { categories, toggle, selected } = categoriesToggle
+    const { categories, selected, toggle } = categoriesToggle
 
     return (
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -16,11 +16,11 @@ export default function CategoryPicker({ categoriesToggle }: CategoryPickerProps
                 {categories.map((category) => (
                     <Pressable
                         key={category.id}
-                        onPress={() => toggle(category.id.toString())}
+                        onPress={() => toggle(category.id)}
                     >
                         <ThemedCard style={[
                             styles.category,
-                            selected.has(category.id.toString()) && styles.selectedCategory,
+                            selected.has(category.id) && styles.selectedCategory,
                         ]}>
                             <ThemedText>{category.name}</ThemedText>
                         </ThemedCard>
