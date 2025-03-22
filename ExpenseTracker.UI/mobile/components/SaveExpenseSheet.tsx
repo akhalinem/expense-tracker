@@ -37,14 +37,13 @@ export default function SaveExpenseSheet({ bottomSheetRef, month, year }: SaveEx
     return (
         <BottomSheetModal
             ref={bottomSheetRef}
-            snapPoints={['50%']}
             enablePanDownToClose
+            keyboardBlurBehavior='restore'
             keyboardBehavior="interactive"
             onDismiss={handleClose}
             backgroundStyle={{ backgroundColor: theme.background }}
             handleComponent={ThemedBottomSheetHandle}
             backdropComponent={renderBackdrop}
-            enableDynamicSizing={false}
         >
             {({ data }) => (
                 <ThemedView as={BottomSheetView} style={styles.container}>
