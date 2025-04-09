@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
-import { useColorScheme } from 'react-native';
+import { Text, useColorScheme, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Drawer } from 'expo-router/drawer';
 import { useDrizzleStudio } from 'expo-drizzle-studio-plugin';
+import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator'
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { displayMonth } from '~/utils';
-import { db, initDbAsync } from '~/services/db';
+import { db, expoSqliteDb } from '~/services/db';
+import migrations from '~/drizzle/migrations';
 import { theme, ThemeContext } from '~/theme';
 import { PeriodContext, PeriodProvider } from '~/contexts/PeriodContext';
 import CustomDrawerContent from '~/components/DrawerContent';
@@ -21,6 +23,8 @@ const queryClient = new QueryClient({
 });
 
 export default function RootLayout() {
+    const migration = useMigrations(db, migrations);
+
     const systemColorScheme = useColorScheme();
     const [isDark, setIsDark] = useState(systemColorScheme === 'dark');
 
@@ -36,11 +40,23 @@ export default function RootLayout() {
         toggleTheme,
     };
 
-    useDrizzleStudio(db);
+    useDrizzleStudio(expoSqliteDb);
 
-    useEffect(() => {
-        initDbAsync()
-    }, []);
+    if (migration.error) {
+        return (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <Text>Migration error: {migration.error.message}</Text>
+            </View>
+        );
+    }
+
+    if (!migration.success) {
+        return (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <Text>Migration is in progress...</Text>
+            </View>
+        );
+    }
 
     return (
         <QueryClientProvider client={queryClient}>

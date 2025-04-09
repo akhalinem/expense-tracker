@@ -1,4 +1,5 @@
 import { ICategory, ICreateCategoryDto } from '~/types';
+import { categoriesTable } from '~/db/schema';
 import { db } from './db';
 
 const getCategories = async (): Promise<ICategory[]> => {
@@ -6,32 +7,26 @@ const getCategories = async (): Promise<ICategory[]> => {
         throw new Error("Database not initialized");
     }
 
-    const result = await db.getAllAsync<ICategory>('SELECT * FROM categories');
+    const result = await db.query.categories.findMany();
 
-    return result;
+    return result.map((category => ({
+        id: category.id,
+        name: category.name
+    })));
 }
 
-const createCategory = async (category: ICreateCategoryDto): Promise<ICategory> => {
+const createCategory = async (category: ICreateCategoryDto): Promise<void> => {
     if (!db) {
         throw new Error('Database not initialized');
     }
 
-    const result = await db.runAsync(
-        'INSERT INTO categories (name) VALUES (?)',
-        [category.name]
-    );
+    const result = await db.insert(categoriesTable).values({
+        name: category.name
+    });
 
-    if (result.changes !== 1) {
+    if (result.changes === 0) {
         throw new Error('Failed to create category');
     }
-
-    const insertedCategory = await db.getFirstAsync<ICategory>('SELECT * FROM categories WHERE id = ?', [result.lastInsertRowId]);
-
-    if (!insertedCategory) {
-        throw new Error('Failed to retrieve created category');
-    }
-
-    return insertedCategory;
 }
 
 export const categoriesService = {

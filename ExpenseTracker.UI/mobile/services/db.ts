@@ -1,35 +1,11 @@
-import * as SQLite from 'expo-sqlite';
+import { drizzle, } from 'drizzle-orm/expo-sqlite';
+import { openDatabaseSync } from 'expo-sqlite';
+import { schema } from '~/db/schema';
 
-export let db: SQLite.SQLiteDatabase | null = null;
+const DB_NAME = 'expense-tracker.db';
+const expoSqliteDb = openDatabaseSync(DB_NAME);
+const drizzleDb = drizzle(expoSqliteDb, { schema });
 
-export const initDbAsync = async (): Promise<SQLite.SQLiteDatabase> => {
-    if (db) return db;
-
-    db = await SQLite.openDatabaseAsync('expense-tracker.db');
-
-    await db.execAsync(`
-        CREATE TABLE IF NOT EXISTS budgets (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            month INTEGER NOT NULL,
-            year INTEGER NOT NULL,
-            amount REAL NOT NULL
-        );`);
-
-    await db.execAsync(`
-        CREATE TABLE IF NOT EXISTS categories (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL
-        );`);
-
-    await db.execAsync(`
-        CREATE TABLE IF NOT EXISTS expenses (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            categoryId INTEGER NOT NULL,
-            amount REAL NOT NULL,
-            date TEXT NOT NULL,
-            description TEXT,
-            FOREIGN KEY (categoryId) REFERENCES categories (id)
-        );`);
-
-    return db;
-};
+export {
+    expoSqliteDb, drizzleDb, drizzleDb as db
+}

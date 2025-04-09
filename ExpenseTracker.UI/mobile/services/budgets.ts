@@ -1,4 +1,5 @@
 import { IBudget, ICreateBudgetDto } from "~/types";
+import { budgetsTable } from "~/db/schema";
 import { db } from "./db";
 
 const getMonthlyBudget = async (month: number, year: number): Promise<IBudget | null> => {
@@ -6,9 +7,17 @@ const getMonthlyBudget = async (month: number, year: number): Promise<IBudget | 
         throw new Error('Database not initialized');
     }
 
-    const result = await db.getFirstAsync<IBudget>('SELECT * FROM budgets WHERE month = ? AND year = ?', [month, year]);
+    const result = await db.query.budgets.findFirst({
+        where: (budgets, { eq, and }) => and(eq(budgets.month, month), eq(budgets.year, year)),
+    });
 
-    return result;
+    if (!result) return null
+
+    return {
+        amount: result.amount,
+        month: result.month,
+        year: result.year
+    };
 }
 
 const getHistory = async (): Promise<IBudget[]> => {
@@ -20,14 +29,16 @@ const getHistory = async (): Promise<IBudget[]> => {
     const currentMonth = now.getMonth() + 1; // JavaScript months are 0-indexed
     const currentYear = now.getFullYear();
 
-    const result = await db.getAllAsync<IBudget>(
-        `SELECT * FROM budgets 
-         WHERE year < ? OR (year = ? AND month < ?) 
-         ORDER BY year DESC, month DESC`,
-        [currentYear, currentYear, currentMonth]
-    );
+    const result = await db.query.budgets.findMany({
+        where: (budgets, { eq, and, lt, or }) => or(lt(budgets.year, currentYear), and(eq(budgets.year, currentYear), lt(budgets.month, currentMonth))),
+        orderBy: (budgets, { desc }) => [desc(budgets.year), desc(budgets.month)],
+    });
 
-    return result;
+    return result.map((budget) => ({
+        amount: budget.amount,
+        month: budget.month,
+        year: budget.year
+    }));
 }
 
 const getBudgets = async (): Promise<IBudget[]> => {
@@ -35,31 +46,31 @@ const getBudgets = async (): Promise<IBudget[]> => {
         throw new Error('Database not initialized');
     }
 
-    const result = await db.getAllAsync<IBudget>('SELECT * FROM budgets');
+    const result = await db.query.budgets.findMany({
+        orderBy: (budgets, { desc }) => [desc(budgets.year), desc(budgets.month)],
+    });
 
-    return result;
+    return result.map((budget) => ({
+        amount: budget.amount,
+        month: budget.month,
+        year: budget.year
+    }));
 };
 
-const createBudget = async (budget: ICreateBudgetDto): Promise<IBudget> => {
+const createBudget = async (budget: ICreateBudgetDto): Promise<void> => {
     if (!db) {
         throw new Error('Database not initialized');
     }
 
-    const result = await db.runAsync(
-        'INSERT INTO budgets (amount, month, year) VALUES (?, ?, ?)',
-        [budget.amount, budget.month, budget.year]
-    );
+    const result = await db.insert(budgetsTable).values({
+        amount: budget.amount,
+        month: budget.month,
+        year: budget.year
+    });
 
-    if (result.changes !== 1) {
+    if (result.changes === 0) {
         throw new Error('Failed to create budget');
     }
-
-    const insertedBudget = await db.getFirstAsync<IBudget>('SELECT * FROM budgets WHERE id = ?', [result.lastInsertRowId]);
-    if (!insertedBudget) {
-        throw new Error('Failed to retrieve created budget');
-    }
-
-    return insertedBudget;
 };
 
 export const budgetsService = {
