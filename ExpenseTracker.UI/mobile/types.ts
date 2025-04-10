@@ -4,6 +4,7 @@ export const ExpenseFormSchema = z.object({
     amount: z.coerce.number().nullable(),
     description: z.string(),
     categoryId: z.number().nullable(),
+    date: z.date(),
 });
 
 export type ExpenseFormData = z.infer<typeof ExpenseFormSchema>;
@@ -31,7 +32,7 @@ export interface ICreateExpenseDto {
     amount: number;
     description: string;
     categoryId: number;
-    date: string;
+    date: Date;
 }
 
 export interface IUpdateExpenseDto {
@@ -39,6 +40,7 @@ export interface IUpdateExpenseDto {
     amount: number;
     description: string;
     categoryId: number;
+    date: Date;
 }
 
 export interface ICreateCategoryDto {

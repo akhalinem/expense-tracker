@@ -1,12 +1,11 @@
 import { View, StyleSheet } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import { NumericFormat, useNumericFormat } from 'react-number-format';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import dayjs from 'dayjs';
 import { ExpenseFormData, ExpenseFormSchema, IExpense } from '~/types';
-import { DATE_FORMAT_TO_SAVE_IN_DB } from '~/constants';
 import { expensesService, } from '~/services/expenses';
 import { useCategoriesToggle } from '~/hooks/useCategoriesToggle';
 import ThemedText from '~/components/themed/ThemedText';
@@ -29,6 +28,7 @@ export default function ExpenseForm({ expenseToEdit, month, year, onClose }: Exp
             amount: expenseToEdit?.amount ?? null,
             description: expenseToEdit?.description ?? '',
             categoryId: expenseToEdit?.categoryId ?? null,
+            date: new Date()
         },
     });
 
@@ -56,8 +56,6 @@ export default function ExpenseForm({ expenseToEdit, month, year, onClose }: Exp
     });
 
     const onSubmit = handleSubmit(async (data) => {
-        // TODO: use data.month and data.year
-
         try {
             if (expenseToEdit) {
                 await updateExpenseMutation.mutateAsync({
@@ -65,13 +63,14 @@ export default function ExpenseForm({ expenseToEdit, month, year, onClose }: Exp
                     amount: data.amount ?? 0,
                     description: data.description,
                     categoryId: +data.categoryId!,
+                    date: data.date,
                 });
             } else {
                 await addExpenseMutation.mutateAsync({
                     amount: data.amount ?? 0,
                     description: data.description,
                     categoryId: +data.categoryId!,
-                    date: dayjs().format(DATE_FORMAT_TO_SAVE_IN_DB),
+                    date: data.date,
                 });
             }
         } catch (e) {
@@ -130,6 +129,26 @@ export default function ExpenseForm({ expenseToEdit, month, year, onClose }: Exp
                 />
             </View>
 
+            <View style={[styles.section, styles.field]}>
+                <ThemedText style={[styles.label]}>Date:</ThemedText>
+                <Controller
+                    control={control}
+                    name="date"
+                    render={({ field: { onChange, value } }) => (
+                        <DateTimePicker
+
+                            value={value ? new Date(value) : new Date()}
+                            mode="date"
+                            display="default"
+                            onChange={(_, selectedDate) => {
+                                const currentDate = selectedDate || value;
+                                onChange(currentDate);
+                            }}
+                        />
+                    )}
+                />
+            </View>
+
             <View style={styles.field}>
                 <ThemedText style={[styles.section, styles.label]}>Category</ThemedText>
                 <CategoryPicker categoriesToggle={categoriesToggle} />
@@ -137,6 +156,8 @@ export default function ExpenseForm({ expenseToEdit, month, year, onClose }: Exp
                     <ThemedText style={styles.errorText}>{errors.categoryId.message}</ThemedText>
                 )}
             </View>
+
+
 
             <View style={[styles.section, styles.buttons]}>
                 <ThemedButton
@@ -163,6 +184,10 @@ const styles = StyleSheet.create({
     },
     field: {
         gap: 8,
+    },
+    horizontal: {
+        flexDirection: 'row',
+        alignItems: 'center',
     },
     label: {
         fontSize: 16,

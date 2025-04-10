@@ -1,12 +1,12 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { StyleSheet, Keyboard } from 'react-native';
-import { BottomSheetBackdrop, BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet';
-import { BottomSheetDefaultBackdropProps } from '@gorhom/bottom-sheet/lib/typescript/components/bottomSheetBackdrop/types';
+import Animated, { Extrapolation, interpolate, useAnimatedStyle } from 'react-native-reanimated';
+import { BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet';
+import { BottomSheetBackdropProps } from '@gorhom/bottom-sheet/lib/typescript/components/bottomSheetBackdrop/types';
 import { IExpense } from '~/types';
 import { useTheme } from '~/theme';
 import ThemedText from '~/components/themed/ThemedText';
 import ThemedView from '~/components/themed/ThemedView';
-import ThemedBottomSheetHandle from '~/components/themed/ThemedBottomSheetHandle';
 import ExpenseForm from '~/components/ExpenseForm';
 
 type SaveExpenseSheetProps = {
@@ -23,17 +23,6 @@ export default function SaveExpenseSheet({ bottomSheetRef, month, year }: SaveEx
         bottomSheetRef.current?.dismiss();
     }, []);
 
-    const renderBackdrop = useCallback(
-        (props: BottomSheetDefaultBackdropProps) => (
-            <BottomSheetBackdrop
-                {...props}
-                disappearsOnIndex={-1}
-                appearsOnIndex={0}
-            />
-        ),
-        []
-    );
-
     return (
         <BottomSheetModal
             ref={bottomSheetRef}
@@ -42,8 +31,9 @@ export default function SaveExpenseSheet({ bottomSheetRef, month, year }: SaveEx
             keyboardBehavior="interactive"
             onDismiss={handleClose}
             backgroundStyle={{ backgroundColor: theme.background }}
-            handleComponent={ThemedBottomSheetHandle}
-            backdropComponent={renderBackdrop}
+            handleIndicatorStyle={{ backgroundColor: theme.border }}
+            handleStyle={{ backgroundColor: theme.background }}
+            backdropComponent={CustomBackdrop}
         >
             {({ data }) => (
                 <ThemedView as={BottomSheetView} style={styles.container}>
@@ -61,6 +51,34 @@ export default function SaveExpenseSheet({ bottomSheetRef, month, year }: SaveEx
         </BottomSheetModal>
     );
 }
+
+const CustomBackdrop = ({ animatedIndex, style }: BottomSheetBackdropProps) => {
+    const { theme } = useTheme()
+
+    const containerAnimatedStyle = useAnimatedStyle(() => ({
+        opacity: interpolate(
+            animatedIndex.value,
+            [-1, 0],
+            [0, 0.5],
+            Extrapolation.CLAMP
+        ),
+    }));
+
+    // styles
+    const containerStyle = useMemo(
+        () => [
+            style,
+            {
+                backgroundColor: theme.shadow,
+            },
+            containerAnimatedStyle,
+        ],
+        [style, containerAnimatedStyle]
+    );
+
+    return <Animated.View style={containerStyle} />;
+};
+
 
 const styles = StyleSheet.create({
     container: {

@@ -1,5 +1,7 @@
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import dayjs from "dayjs";
 import { ICreateExpenseDto, IExpense, IUpdateExpenseDto } from "~/types";
+import { DATE_FORMAT_TO_SAVE_IN_DB } from "~/constants";
 import { categoriesTable, expensesTable } from "~/db/schema";
 import { db } from "./db";
 
@@ -65,7 +67,7 @@ const createExpense = async (dto: ICreateExpenseDto): Promise<void> => {
         .values({
             categoryId: dto.categoryId,
             amount: dto.amount,
-            date: dto.date,
+            date: dayjs(dto.date).format(DATE_FORMAT_TO_SAVE_IN_DB),
             description: dto.description
         });
 
@@ -84,7 +86,8 @@ const updateExpense = async (dto: IUpdateExpenseDto): Promise<void> => {
         .set({
             categoryId: dto.categoryId,
             amount: dto.amount,
-            description: dto.description
+            description: dto.description,
+            date: dayjs(dto.date).format(DATE_FORMAT_TO_SAVE_IN_DB)
         })
         .where(eq(expensesTable.id, dto.id));
 
