@@ -21,6 +21,6 @@ export const transactionsTable = sqliteTable('transactions', {
 
 export const schema = {
     categories: categoriesTable,
-    transactionTypesTable,
+    transactionTypes: transactionTypesTable,
     transactions: transactionsTable,
 };
