@@ -20,16 +20,8 @@ export const budgetsTable = sqliteTable('budgets', {
     amount: real().notNull(),
 })
 
-export const incomesTable = sqliteTable('incomes', {
-    id: int().primaryKey({ autoIncrement: true }),
-    amount: real().notNull(),
-    date: text().notNull(),
-    description: text(),
-});
-
 export const schema = {
     budgets: budgetsTable,
     categories: categoriesTable,
     expenses: expensesTable,
-    incomes: incomesTable,
 };

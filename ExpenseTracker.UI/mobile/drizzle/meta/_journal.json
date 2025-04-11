@@ -8,13 +8,6 @@
       "when": 1744009759053,
       "tag": "0000_initial",
       "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "6",
-      "when": 1744318263105,
-      "tag": "0001_add_incomes_table",
-      "breakpoints": true
     }
   ]
 }
