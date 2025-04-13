@@ -5,6 +5,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import dayjs from 'dayjs';
 import { ExpenseFormData, ExpenseFormSchema, Expense } from '~/types';
 import { transactionsService } from '~/services/transactions';
 import { useCategoriesToggle } from '~/hooks/useCategoriesToggle';
@@ -26,7 +27,7 @@ export default function ExpenseForm({ expenseToEdit, onClose }: ExpenseFormProps
             amount: expenseToEdit?.amount ?? null,
             description: expenseToEdit?.description ?? '',
             categoryId: expenseToEdit?.categoryId ?? null,
-            date: new Date()
+            date: expenseToEdit?.date ? dayjs(expenseToEdit.date).toDate() : new Date()
         },
     });
 
