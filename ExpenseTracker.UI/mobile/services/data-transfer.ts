@@ -3,24 +3,23 @@ import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import * as DocumentPicker from 'expo-document-picker';
 import * as XLSX from 'xlsx';
-import { expensesService } from './expenses';
-import { budgetsService } from './budgets';
-import { categoriesService } from './categories';
-import { mapBudgetToBudgetExcelDto, mapCategoryToCategoryExcelDto, mapExpenseToExpenseExcelDto } from '~/utils';
-import { ICreateBudgetDto, ICreateCategoryDto, ICreateExpenseDto, IImportResult } from '~/types';
+import dayjs from 'dayjs';
+import { CreateIncomeDto, ExpenseExcelDto, ICreateCategoryDto, ICreateExpenseDto, IImportResult, IncomeExcelDto, TransactionTypeEnum } from '~/types';
+import { mapCategoryToCategoryExcelDto, mapTransactionToExpenseExcelDto, mapTransactionToIncomeExcelDto, } from '~/utils';
+import { categoriesService } from '~/services/categories';
+import { transactionsService } from '~/services/transactions';
 
 export const exportData = async (): Promise<void> => {
     try {
         // Fetch all data
-        const [categories, expenses, budgets] = await Promise.all([
+        const [categories, transactions] = await Promise.all([
             categoriesService.getCategories(),
-            expensesService.getExpenses(),
-            budgetsService.getBudgets()
+            transactionsService.getTransactions()
         ]);
 
         const categoriesToExport = categories.map(mapCategoryToCategoryExcelDto);
-        const expensesToExport = expenses.map(mapExpenseToExpenseExcelDto);
-        const budgetsToExport = budgets.map(mapBudgetToBudgetExcelDto);
+        const incomesToExport = transactions.filter(({ type }) => type === 'income').map(mapTransactionToIncomeExcelDto);
+        const expensesToExport = transactions.filter(({ type }) => type === 'expense').map(mapTransactionToExpenseExcelDto)
 
         // Create workbook with multiple sheets
         const wb = XLSX.utils.book_new();
@@ -29,13 +28,13 @@ export const exportData = async (): Promise<void> => {
         const categoriesSheet = XLSX.utils.json_to_sheet(categoriesToExport);
         XLSX.utils.book_append_sheet(wb, categoriesSheet, "Categories");
 
+        // Add incomes sheet
+        const incomesSheet = XLSX.utils.json_to_sheet(incomesToExport);
+        XLSX.utils.book_append_sheet(wb, incomesSheet, "Incomes");
+
         // Add expenses sheet
         const expensesSheet = XLSX.utils.json_to_sheet(expensesToExport);
         XLSX.utils.book_append_sheet(wb, expensesSheet, "Expenses");
-
-        // Add budgets sheet
-        const budgetsSheet = XLSX.utils.json_to_sheet(budgetsToExport);
-        XLSX.utils.book_append_sheet(wb, budgetsSheet, "Budgets");
 
         // Write to buffer
         const wbout = XLSX.write(wb, {
@@ -105,8 +104,17 @@ export const importData = async (): Promise<IImportResult | null> => {
         const importResult: IImportResult = {
             categories: { added: 0, errors: [] },
             expenses: { added: 0, errors: [] },
-            budgets: { added: 0, errors: [] }
+            incomes: { added: 0, errors: [] }
         };
+
+        // Create transaction types
+        Object.values(TransactionTypeEnum).forEach(async (type) => {
+            try {
+                await transactionsService.createTransactionType(type);
+            } catch (error) {
+                console.error(`Failed to create transaction type "${type}": ${error instanceof Error ? error.message : 'Unknown error'}`);
+            }
+        });
 
         // Import categories if the sheet exists
         if (workbook.SheetNames.includes('Categories')) {
@@ -133,12 +141,7 @@ export const importData = async (): Promise<IImportResult | null> => {
         // Import expenses if the sheet exists
         if (workbook.SheetNames.includes('Expenses')) {
             const expensesSheet = workbook.Sheets['Expenses'];
-            const expenses = XLSX.utils.sheet_to_json<{
-                amount: number,
-                description: string,
-                category: string,
-                date: string
-            }>(expensesSheet);
+            const expenses = XLSX.utils.sheet_to_json<ExpenseExcelDto>(expensesSheet);
 
             // Get all categories for mapping
             const categories = await categoriesService.getCategories();
@@ -158,10 +161,10 @@ export const importData = async (): Promise<IImportResult | null> => {
                         amount: Number(expense.amount),
                         description: expense.description,
                         categoryId: category.id,
-                        date: expense.date
+                        date: dayjs(expense.date).toDate()
                     };
 
-                    await expensesService.createExpense(createExpense);
+                    await transactionsService.createExpense(createExpense);
                     importResult.expenses.added++;
                 } catch (error) {
                     importResult.expenses.errors.push(
@@ -171,32 +174,28 @@ export const importData = async (): Promise<IImportResult | null> => {
             }));
         }
 
-        // Import budgets if the sheet exists
-        if (workbook.SheetNames.includes('Budgets')) {
-            const budgetsSheet = workbook.Sheets['Budgets'];
-            const budgets = XLSX.utils.sheet_to_json<{
-                amount: number,
-                month: number,
-                year: number
-            }>(budgetsSheet);
+        // Import incomes if the sheet exists
+        if (workbook.SheetNames.includes('Incomes')) {
+            const incomesSheet = workbook.Sheets['Incomes'];
+            const incomes = XLSX.utils.sheet_to_json<IncomeExcelDto>(incomesSheet);
 
-            await Promise.all(budgets.map(async (budget) => {
+            await Promise.all(incomes.map(async (income) => {
                 try {
-                    if (!budget.amount) throw new Error('Amount is required');
-                    if (!budget.month) throw new Error('Month is required');
-                    if (!budget.year) throw new Error('Year is required');
+                    if (!income.amount) throw new Error('Amount is required');
+                    if (!income.description) throw new Error('Description is required');
+                    if (!income.date) throw new Error('Date is required');
 
-                    const createBudget: ICreateBudgetDto = {
-                        amount: Number(budget.amount),
-                        month: Number(budget.month),
-                        year: Number(budget.year)
+                    const createIncome: CreateIncomeDto = {
+                        amount: Number(income.amount),
+                        description: income.description,
+                        date: dayjs(income.date).toDate()
                     };
 
-                    await budgetsService.createBudget(createBudget);
-                    importResult.budgets.added++;
+                    await transactionsService.createIncome(createIncome);
+                    importResult.incomes.added++;
                 } catch (error) {
-                    importResult.budgets.errors.push(
-                        `Failed to import budget for ${budget.month}/${budget.year}: ${error instanceof Error ? error.message : 'Unknown error'}`
+                    importResult.incomes.errors.push(
+                        `Failed to import income "${income.description}": ${error instanceof Error ? error.message : 'Unknown error'}`
                     );
                 }
             }));

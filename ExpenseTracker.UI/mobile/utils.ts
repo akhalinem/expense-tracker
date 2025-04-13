@@ -1,4 +1,4 @@
-import { IBudget, IBudgetExcelDto, ICategory, ICategoryExcelDto, IExpense, IExpenseExcelDto } from "./types";
+import { ExpenseExcelDto, ICategory, ICategoryExcelDto, IExpense, IExpenseExcelDto, IncomeExcelDto, Transaction, } from "./types";
 
 export function displayCurrency(amount: number) {
     return amount.toLocaleString(
@@ -7,27 +7,6 @@ export function displayCurrency(amount: number) {
             style: "currency",
             currency: process.env.EXPO_PUBLIC_CURRENCY
         })
-}
-
-export function displayMonth(month: number, year?: number) {
-    const currentYear = new Date().getFullYear();
-
-    year ??= currentYear;
-
-    if (year === currentYear) {
-        return new Date(year, month - 1).toLocaleString(
-            process.env.EXPO_PUBLIC_LOCALE,
-            {
-                month: 'long'
-            });
-    }
-
-    return new Date(year, month - 1).toLocaleString(
-        process.env.EXPO_PUBLIC_LOCALE,
-        {
-            month: 'long',
-            year: 'numeric'
-        });
 }
 
 export function displayDate(date: string) {
@@ -50,8 +29,15 @@ export const mapExpenseToExpenseExcelDto = (expense: IExpense): IExpenseExcelDto
     date: expense.date
 });
 
-export const mapBudgetToBudgetExcelDto = (budget: IBudget): IBudgetExcelDto => ({
-    amount: budget.amount,
-    month: budget.month,
-    year: budget.year
+export const mapTransactionToIncomeExcelDto = (transaction: Transaction): IncomeExcelDto => ({
+    amount: transaction.amount,
+    description: transaction.description,
+    date: transaction.date,
+});
+
+export const mapTransactionToExpenseExcelDto = (transaction: Transaction): ExpenseExcelDto => ({
+    amount: transaction.amount,
+    description: transaction.description,
+    date: transaction.date,
+    category: transaction.categoryName ?? ''
 });

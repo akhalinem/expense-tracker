@@ -11,11 +11,9 @@ import ExpenseForm from '~/components/ExpenseForm';
 
 type SaveExpenseSheetProps = {
     bottomSheetRef: React.RefObject<BottomSheetModal<IExpense | null>>;
-    month: number;
-    year: number;
 }
 
-export default function SaveExpenseSheet({ bottomSheetRef, month, year }: SaveExpenseSheetProps) {
+export default function SaveExpenseSheet({ bottomSheetRef }: SaveExpenseSheetProps) {
     const { theme } = useTheme();
 
     const handleClose = useCallback(() => {
@@ -43,8 +41,6 @@ export default function SaveExpenseSheet({ bottomSheetRef, month, year }: SaveEx
                     <ExpenseForm
                         expenseToEdit={data}
                         onClose={handleClose}
-                        month={month}
-                        year={year}
                     />
                 </ThemedView>
             )}

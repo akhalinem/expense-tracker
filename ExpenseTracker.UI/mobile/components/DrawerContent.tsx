@@ -16,9 +16,9 @@ export default function CustomDrawerContent(props: DrawerContentComponentProps) 
             let message = `Import completed:\n`;
             message += `- ${result.categories.added} categories added\n`;
             message += `- ${result.expenses.added} expenses added\n`;
-            message += `- ${result.budgets.added} budgets added\n`;
+            message += `- ${result.incomes.added} incomes added\n`;
 
-            if (result.categories.errors.length || result.expenses.errors.length || result.budgets.errors.length) {
+            if (result.categories.errors.length || result.expenses.errors.length || result.incomes.errors.length) {
                 message += `\nThere were some errors during import.`;
             }
 
@@ -26,11 +26,7 @@ export default function CustomDrawerContent(props: DrawerContentComponentProps) 
                 {
                     text: "OK",
                     onPress: () => {
-                        // Invalidate all relevant queries to refresh data
-                        queryClient.invalidateQueries({ queryKey: ['expenses'] });
-                        queryClient.invalidateQueries({ queryKey: ['budgets'] });
-                        queryClient.invalidateQueries({ queryKey: ['categories'] });
-                        queryClient.invalidateQueries({ queryKey: ['budgetsHistory'] });
+                        queryClient.invalidateQueries();
                     }
                 }
             ]);

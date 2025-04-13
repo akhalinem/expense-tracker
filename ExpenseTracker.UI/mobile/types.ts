@@ -9,21 +9,40 @@ export const ExpenseFormSchema = z.object({
 
 export type ExpenseFormData = z.infer<typeof ExpenseFormSchema>;
 
-export const TransactionTypeSchema = z.enum([
-    "income",
-    "expense",
-]);
+export enum TransactionTypeEnum {
+    INCOME = "income",
+    EXPENSE = "expense",
+}
 
-export type TransactionType = z.infer<typeof TransactionTypeSchema>;
+export const TransactionTypeEnumSchema = z.nativeEnum(TransactionTypeEnum);
+
+export type TransactionType = {
+    id: number;
+    name: string;
+}
 
 export type Transaction = {
     id: number;
-    type: TransactionType;
-    category: string | null;
+    type: TransactionTypeEnum;
+    categoryId: number | null;
+    categoryName: string | null;
     amount: number;
     description: string;
     date: string;
 };
+
+export type ExpenseExcelDto = {
+    category: string;
+    amount: number;
+    description: string;
+    date: string;
+}
+
+export type IncomeExcelDto = {
+    amount: number;
+    description: string;
+    date: string;
+}
 
 export interface IExpense {
     id: number;
@@ -32,11 +51,6 @@ export interface IExpense {
     categoryId: number;
     categoryName: string;
     date: string;
-}
-export interface IBudget {
-    amount: number;
-    month: number;
-    year: number;
 }
 
 export interface ICategory {
@@ -59,14 +73,14 @@ export interface IUpdateExpenseDto {
     date: Date;
 }
 
-export interface ICreateCategoryDto {
-    name: string;
+export type CreateIncomeDto = {
+    amount: number;
+    description: string;
+    date: Date;
 }
 
-export interface ICreateBudgetDto {
-    amount: number;
-    month: number;
-    year: number;
+export interface ICreateCategoryDto {
+    name: string;
 }
 
 export interface ICategoryExcelDto {
@@ -80,12 +94,6 @@ export interface IExpenseExcelDto {
     date: string;
 }
 
-export interface IBudgetExcelDto {
-    amount: number;
-    month: number;
-    year: number;
-}
-
 export interface IImportResult {
     categories: {
         added: number;
@@ -95,7 +103,7 @@ export interface IImportResult {
         added: number;
         errors: string[];
     };
-    budgets: {
+    incomes: {
         added: number;
         errors: string[];
     };

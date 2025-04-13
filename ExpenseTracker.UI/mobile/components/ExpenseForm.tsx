@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ExpenseFormData, ExpenseFormSchema, IExpense } from '~/types';
-import { expensesService, } from '~/services/expenses';
+import { transactionsService } from '~/services/transactions';
 import { useCategoriesToggle } from '~/hooks/useCategoriesToggle';
 import ThemedText from '~/components/themed/ThemedText';
 import ThemedButton from '~/components/themed/ThemedButton';
@@ -15,12 +15,10 @@ import ThemedTextInput from '~/components/themed/ThemedTextInput';
 
 type ExpenseFormProps = {
     expenseToEdit?: IExpense | null;
-    month: number;
-    year: number;
     onClose: () => void;
 }
 
-export default function ExpenseForm({ expenseToEdit, month, year, onClose }: ExpenseFormProps) {
+export default function ExpenseForm({ expenseToEdit, onClose }: ExpenseFormProps) {
     const queryClient = useQueryClient();
     const { control, setValue, handleSubmit, formState: { errors, isSubmitting } } = useForm<ExpenseFormData>({
         resolver: zodResolver(ExpenseFormSchema),
@@ -40,17 +38,17 @@ export default function ExpenseForm({ expenseToEdit, month, year, onClose }: Exp
     });
 
     const addExpenseMutation = useMutation({
-        mutationFn: expensesService.createExpense,
+        mutationFn: transactionsService.createExpense,
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['expenses', { month, year }] });
+            queryClient.invalidateQueries({ queryKey: ['transactions'] });
             onClose();
         },
     });
 
     const updateExpenseMutation = useMutation({
-        mutationFn: expensesService.updateExpense,
+        mutationFn: transactionsService.updateExpense,
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['expenses', { month, year }] });
+            queryClient.invalidateQueries({ queryKey: ['transactions'] });
             onClose();
         },
     });

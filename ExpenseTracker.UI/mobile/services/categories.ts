@@ -1,12 +1,8 @@
 import { ICategory, ICreateCategoryDto } from '~/types';
 import { categoriesTable } from '~/db/schema';
-import { db } from './db';
+import { db } from '~/services/db';
 
 const getCategories = async (): Promise<ICategory[]> => {
-    if (!db) {
-        throw new Error("Database not initialized");
-    }
-
     const result = await db.query.categories.findMany();
 
     return result.map((category => ({
@@ -16,10 +12,6 @@ const getCategories = async (): Promise<ICategory[]> => {
 }
 
 const createCategory = async (category: ICreateCategoryDto): Promise<void> => {
-    if (!db) {
-        throw new Error('Database not initialized');
-    }
-
     const result = await db.insert(categoriesTable).values({
         name: category.name
     });
