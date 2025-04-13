@@ -1,32 +1,14 @@
-import { ScrollView, Pressable, StyleSheet, View, Alert } from 'react-native';
+import { StyleSheet, View, Alert } from 'react-native';
 import { DrawerContentComponentProps, DrawerContentScrollView } from '@react-navigation/drawer';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useRouter } from 'expo-router';
-import { IBudget } from '~/types';
-import { displayMonth } from '~/utils';
-import { budgetsService } from '~/services/budgets';
+import { useQueryClient } from '@tanstack/react-query';
 import { exportData, importData } from '~/services/data-transfer';
-import { useTheme } from '~/theme';
-import { usePeriod } from '~/contexts/PeriodContext';
 import ThemedView from '~/components/themed/ThemedView';
-import ThemedText from '~/components/themed/ThemedText';
 import ThemedButton from '~/components/themed/ThemedButton';
+import { useTheme } from '~/theme';
 
 export default function CustomDrawerContent(props: DrawerContentComponentProps) {
-    const router = useRouter();
     const queryClient = useQueryClient();
-    const { theme } = useTheme();
-    const { setSelectedPeriod } = usePeriod();
-
-    const budgetsHistoryQuery = useQuery({
-        queryKey: ['budgetsHistory'],
-        queryFn: () => budgetsService.getHistory()
-    });
-
-    const handlePeriodSelect = (month: number, year: number) => {
-        setSelectedPeriod({ month, year });
-        router.push('/');
-    };
+    const { theme } = useTheme()
 
     const handleImport = async () => {
         const result = await importData();
@@ -55,11 +37,6 @@ export default function CustomDrawerContent(props: DrawerContentComponentProps) 
         }
     };
 
-    const history: IBudget[] = [
-        { month: new Date().getMonth() + 1, year: new Date().getFullYear(), amount: 0 },
-        ...(budgetsHistoryQuery.data ?? [])
-    ];
-
     return (
         <ThemedView as={DrawerContentScrollView} {...props} style={styles.container}>
             <View style={styles.section}>
@@ -67,29 +44,17 @@ export default function CustomDrawerContent(props: DrawerContentComponentProps) 
                     <ThemedButton
                         title="Import"
                         onPress={handleImport}
-                        style={[styles.dataAction, styles.importButton]}
+                        style={[styles.dataAction, { backgroundColor: theme.surface }]}
                         icon="cloud-upload-outline"
                     />
                     <ThemedButton
                         title="Export"
                         onPress={exportData}
-                        style={[styles.dataAction, styles.exportButton]}
+                        style={[styles.dataAction, { backgroundColor: theme.surface }]}
                         icon="cloud-download-outline"
                     />
                 </View>
             </View>
-            <View style={{ borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#ccc' }} />
-            <ScrollView style={styles.section}>
-                {history.map(({ month, year }) => (
-                    <Pressable
-                        key={`${year}-${month}`}
-                        style={[styles.periodItem]}
-                        onPress={() => handlePeriodSelect(month, year)}
-                    >
-                        <ThemedText style={[styles.periodText, { color: theme.text }]}>{displayMonth(month, year)}</ThemedText>
-                    </Pressable>
-                ))}
-            </ScrollView>
         </ThemedView>
     );
 }
@@ -98,32 +63,16 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
     },
-    periodItem: {
-        paddingVertical: 16,
-        borderBottomWidth: StyleSheet.hairlineWidth,
-        borderBottomColor: '#ccc',
-    },
-    periodText: {
-        fontSize: 16,
-        fontWeight: 'bold',
-    },
     section: {
         marginBottom: 24,
     },
     dataActionsContainer: {
-        flexDirection: 'row',
+        flexDirection: 'column',
         justifyContent: 'space-between',
-        marginHorizontal: 8,
-        marginVertical: 8,
+        gap: 16,
     },
     dataAction: {
         flex: 1,
         marginHorizontal: 4,
-    },
-    importButton: {
-        backgroundColor: '#3b82f6',
-    },
-    exportButton: {
-        backgroundColor: '#007AFF',
     },
 });

@@ -9,6 +9,22 @@ export const ExpenseFormSchema = z.object({
 
 export type ExpenseFormData = z.infer<typeof ExpenseFormSchema>;
 
+export const TransactionTypeSchema = z.enum([
+    "income",
+    "expense",
+]);
+
+export type TransactionType = z.infer<typeof TransactionTypeSchema>;
+
+export type Transaction = {
+    id: number;
+    type: TransactionType;
+    category: string | null;
+    amount: number;
+    description: string;
+    date: string;
+};
+
 export interface IExpense {
     id: number;
     amount: number;

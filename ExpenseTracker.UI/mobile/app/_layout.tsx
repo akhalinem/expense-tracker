@@ -7,11 +7,9 @@ import { useDrizzleStudio } from 'expo-drizzle-studio-plugin';
 import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator'
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { displayMonth } from '~/utils';
 import { db, expoSqliteDb } from '~/services/db';
 import migrations from '~/drizzle/migrations';
 import { theme, ThemeContext } from '~/theme';
-import { PeriodContext, PeriodProvider } from '~/contexts/PeriodContext';
 import CustomDrawerContent from '~/components/DrawerContent';
 
 const queryClient = new QueryClient({
@@ -64,32 +62,13 @@ export default function RootLayout() {
                 <SafeAreaProvider>
                     <GestureHandlerRootView style={{ flex: 1 }}>
                         <BottomSheetModalProvider>
-                            <PeriodProvider>
-                                <PeriodContext.Consumer>
-                                    {({ selectedPeriod: { month, year } }) =>
-                                        <Drawer drawerContent={(props) => <CustomDrawerContent {...props} />}>
-                                            <Drawer.Screen
-                                                name="index"
-                                                options={{
-                                                    title: `Expenses for ${displayMonth(month, year)}`,
-                                                    lazy: false,
-                                                    headerStyle: {
-                                                        backgroundColor: themeValue.theme.background,
-                                                    },
-                                                    headerTitleStyle: {
-                                                        color: themeValue.theme.text
-                                                    },
-                                                    headerTintColor: themeValue.theme.primary
-                                                }}
-                                            />
-                                        </Drawer>
-                                    }
-                                </PeriodContext.Consumer>
-                            </PeriodProvider>
+                            <Drawer drawerContent={(props) => <CustomDrawerContent {...props} />}>
+                                <Drawer.Screen name="index" />
+                            </Drawer>
                         </BottomSheetModalProvider>
                     </GestureHandlerRootView>
                 </SafeAreaProvider>
-            </ThemeContext.Provider>
-        </QueryClientProvider>
+            </ThemeContext.Provider >
+        </QueryClientProvider >
     );
 }

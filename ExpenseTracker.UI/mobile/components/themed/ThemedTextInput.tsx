@@ -24,7 +24,7 @@ export default function ThemedTextInput<C extends ComponentType<any> = typeof Te
                 {
                     color: theme.text,
                     backgroundColor: theme.surface,
-                    borderColor: error ? theme.error : isFocused ? theme.borderFocused : theme.border,
+                    borderColor: error ? theme.error : isFocused ? theme.primary : theme.border,
                 },
                 style,
             ]}
