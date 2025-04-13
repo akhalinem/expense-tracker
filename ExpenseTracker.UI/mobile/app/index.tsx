@@ -51,7 +51,7 @@ const Header: FC<DrawerHeaderProps & { totalBalance: number }> = ({ totalBalance
         <ThemedView style={[styles.container, { paddingTop: insets.top }]}>
             <ThemedView>
                 <ThemedText style={[styles.balanceLabel, { color: theme.secondary }]}>
-                    Current Balance
+                    Balance
                 </ThemedText>
                 <ThemedText
                     style={[
