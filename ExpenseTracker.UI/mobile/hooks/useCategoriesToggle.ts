@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { ICategory } from '~/types';
+import { Category } from '~/types';
 import { categoriesService } from '~/services/categories';
 
 export type UseCategoriesToggleProps = {
@@ -11,7 +11,7 @@ export type UseCategoriesToggleProps = {
 
 export type UserCategoriesToggleReturn = {
     multiple: boolean;
-    categories: ICategory[];
+    categories: Category[];
     selected: Set<number>;
     toggle: (categoryId: number) => void;
     refetch: () => void;

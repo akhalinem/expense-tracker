@@ -1,8 +1,8 @@
-import { ICategory, ICreateCategoryDto } from '~/types';
+import { Category, CreateCategoryDto } from '~/types';
 import { categoriesTable } from '~/db/schema';
 import { db } from '~/services/db';
 
-const getCategories = async (): Promise<ICategory[]> => {
+const getCategories = async (): Promise<Category[]> => {
     const result = await db.query.categories.findMany();
 
     return result.map((category => ({
@@ -11,7 +11,7 @@ const getCategories = async (): Promise<ICategory[]> => {
     })));
 }
 
-const createCategory = async (category: ICreateCategoryDto): Promise<void> => {
+const createCategory = async (category: CreateCategoryDto): Promise<void> => {
     const result = await db.insert(categoriesTable).values({
         name: category.name
     });

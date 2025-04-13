@@ -44,7 +44,7 @@ export type IncomeExcelDto = {
     date: string;
 }
 
-export interface IExpense {
+export type Expense = {
     id: number;
     amount: number;
     description: string;
@@ -53,19 +53,19 @@ export interface IExpense {
     date: string;
 }
 
-export interface ICategory {
+export type Category = {
     id: number;
     name: string;
 }
 
-export interface ICreateExpenseDto {
+export type CreateExpenseDto = {
     amount: number;
     description: string;
     categoryId: number;
     date: Date;
 }
 
-export interface IUpdateExpenseDto {
+export type UpdateExpenseDto = {
     id: number;
     amount: number;
     description: string;
@@ -79,22 +79,15 @@ export type CreateIncomeDto = {
     date: Date;
 }
 
-export interface ICreateCategoryDto {
+export type CreateCategoryDto = {
     name: string;
 }
 
-export interface ICategoryExcelDto {
+export type CategoryExcelDto = {
     name: string;
 }
 
-export interface IExpenseExcelDto {
-    amount: number;
-    description: string;
-    category: string;
-    date: string;
-}
-
-export interface IImportResult {
+export type ImportResult = {
     categories: {
         added: number;
         errors: string[];

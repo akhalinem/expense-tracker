@@ -3,7 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '~/theme';
 import ThemedText from '~/components/themed/ThemedText';
 
-interface ThemedButtonProps {
+type ThemedButtonProps = {
     title: string;
     variant?: 'primary' | 'secondary';
     disabled?: boolean;

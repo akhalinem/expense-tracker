@@ -3,14 +3,14 @@ import { StyleSheet, Keyboard } from 'react-native';
 import Animated, { Extrapolation, interpolate, useAnimatedStyle } from 'react-native-reanimated';
 import { BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet';
 import { BottomSheetBackdropProps } from '@gorhom/bottom-sheet/lib/typescript/components/bottomSheetBackdrop/types';
-import { IExpense } from '~/types';
+import { Expense } from '~/types';
 import { useTheme } from '~/theme';
 import ThemedText from '~/components/themed/ThemedText';
 import ThemedView from '~/components/themed/ThemedView';
 import ExpenseForm from '~/components/ExpenseForm';
 
 type SaveExpenseSheetProps = {
-    bottomSheetRef: React.RefObject<BottomSheetModal<IExpense | null>>;
+    bottomSheetRef: React.RefObject<BottomSheetModal<Expense | null>>;
 }
 
 export default function SaveExpenseSheet({ bottomSheetRef }: SaveExpenseSheetProps) {

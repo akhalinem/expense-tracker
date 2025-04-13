@@ -6,7 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import dayjs from "dayjs";
-import { IExpense, Transaction } from "~/types";
+import { Expense, Transaction } from "~/types";
 import { displayCurrency, displayDate } from "~/utils";
 import { transactionsService } from "~/services/transactions";
 import { Theme, useTheme } from "~/theme";
@@ -16,7 +16,7 @@ import SaveExpenseSheet from "~/components/SaveExpenseSheet";
 
 export const Transactions: FC<{ transactions: Transaction[] }> = ({ transactions }) => {
     const insets = useSafeAreaInsets()
-    const bottomSheetRef = useRef<BottomSheetModal<IExpense | null>>(null);
+    const bottomSheetRef = useRef<BottomSheetModal<Expense | null>>(null);
 
     const handleAddExpense = () => {
         bottomSheetRef.current?.present();
@@ -90,7 +90,7 @@ const getTransactionIcon = (type: string, theme: Theme): TransactionIcon => {
 const TransactionItem: FC<{ transaction: Transaction, }> = ({ transaction, }) => {
     const { theme } = useTheme();
     const queryClient = useQueryClient()
-    const bottomSheetRef = useRef<BottomSheetModal<IExpense | null>>(null);
+    const bottomSheetRef = useRef<BottomSheetModal<Expense | null>>(null);
 
     const deleteExpenseMutation = useMutation({
         mutationFn: transactionsService.deleteExpense,

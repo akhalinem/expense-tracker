@@ -1,4 +1,4 @@
-import { ExpenseExcelDto, ICategory, ICategoryExcelDto, IExpense, IExpenseExcelDto, IncomeExcelDto, Transaction, } from "./types";
+import { ExpenseExcelDto, Category, CategoryExcelDto, Expense, IncomeExcelDto, Transaction, } from "./types";
 
 export function displayCurrency(amount: number) {
     return amount.toLocaleString(
@@ -18,11 +18,11 @@ export function displayDate(date: string) {
     )
 }
 
-export const mapCategoryToCategoryExcelDto = (category: ICategory): ICategoryExcelDto => ({
+export const mapCategoryToCategoryExcelDto = (category: Category): CategoryExcelDto => ({
     name: category.name
 })
 
-export const mapExpenseToExpenseExcelDto = (expense: IExpense): IExpenseExcelDto => ({
+export const mapExpenseToExpenseExcelDto = (expense: Expense): ExpenseExcelDto => ({
     amount: expense.amount,
     description: expense.description,
     category: expense.categoryName,

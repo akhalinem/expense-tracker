@@ -2,7 +2,7 @@ import { TextInput, TextInputProps, StyleSheet } from 'react-native';
 import { useState, ComponentType } from 'react';
 import { useTheme } from '~/theme';
 
-interface ThemedTextInputProps<C extends ComponentType<any>> extends TextInputProps {
+type ThemedTextInputProps<C extends ComponentType<any>> = TextInputProps & {
     error?: boolean;
     as?: C;
 }

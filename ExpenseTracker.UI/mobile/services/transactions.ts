@@ -1,6 +1,6 @@
 import { desc, eq } from "drizzle-orm";
 import dayjs from "dayjs";
-import { CreateIncomeDto, ICreateExpenseDto, IUpdateExpenseDto, Transaction, TransactionTypeEnum, TransactionTypeEnumSchema } from "~/types";
+import { CreateIncomeDto, CreateExpenseDto, UpdateExpenseDto, Transaction, TransactionTypeEnum, TransactionTypeEnumSchema } from "~/types";
 import { DATE_FORMAT_TO_SAVE_IN_DB } from "~/constants";
 import { categoriesTable, transactionsTable, transactionTypesTable } from "~/db/schema";
 import { db } from "~/services/db";
@@ -59,7 +59,7 @@ const deleteExpense = async (transactionId: number): Promise<void> => {
     }
 };
 
-const createExpense = async (dto: ICreateExpenseDto): Promise<void> => {
+const createExpense = async (dto: CreateExpenseDto): Promise<void> => {
     if (!db) {
         throw new Error("Database not initialized");
     }
@@ -86,7 +86,7 @@ const createExpense = async (dto: ICreateExpenseDto): Promise<void> => {
     }
 };
 
-const updateExpense = async (dto: IUpdateExpenseDto): Promise<void> => {
+const updateExpense = async (dto: UpdateExpenseDto): Promise<void> => {
     if (!db) {
         throw new Error("Database not initialized");
     }

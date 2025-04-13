@@ -5,7 +5,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { ExpenseFormData, ExpenseFormSchema, IExpense } from '~/types';
+import { ExpenseFormData, ExpenseFormSchema, Expense } from '~/types';
 import { transactionsService } from '~/services/transactions';
 import { useCategoriesToggle } from '~/hooks/useCategoriesToggle';
 import ThemedText from '~/components/themed/ThemedText';
@@ -14,7 +14,7 @@ import CategoryPicker from '~/components/CategoryPicker';
 import ThemedTextInput from '~/components/themed/ThemedTextInput';
 
 type ExpenseFormProps = {
-    expenseToEdit?: IExpense | null;
+    expenseToEdit?: Expense | null;
     onClose: () => void;
 }
 

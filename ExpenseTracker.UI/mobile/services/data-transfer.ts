@@ -4,7 +4,7 @@ import * as Sharing from 'expo-sharing';
 import * as DocumentPicker from 'expo-document-picker';
 import * as XLSX from 'xlsx';
 import dayjs from 'dayjs';
-import { CreateIncomeDto, ExpenseExcelDto, ICreateCategoryDto, ICreateExpenseDto, IImportResult, IncomeExcelDto, TransactionTypeEnum } from '~/types';
+import { CreateIncomeDto, ExpenseExcelDto, CreateCategoryDto, CreateExpenseDto, ImportResult, IncomeExcelDto, TransactionTypeEnum } from '~/types';
 import { mapCategoryToCategoryExcelDto, mapTransactionToExpenseExcelDto, mapTransactionToIncomeExcelDto, } from '~/utils';
 import { categoriesService } from '~/services/categories';
 import { transactionsService } from '~/services/transactions';
@@ -79,7 +79,7 @@ export const exportData = async (): Promise<void> => {
     }
 };
 
-export const importData = async (): Promise<IImportResult | null> => {
+export const importData = async (): Promise<ImportResult | null> => {
     try {
         // Pick an Excel file
         const result = await DocumentPicker.getDocumentAsync({
@@ -101,7 +101,7 @@ export const importData = async (): Promise<IImportResult | null> => {
         const workbook = XLSX.read(fileContent, { type: 'base64' });
 
         // Initialize result object
-        const importResult: IImportResult = {
+        const importResult: ImportResult = {
             categories: { added: 0, errors: [] },
             expenses: { added: 0, errors: [] },
             incomes: { added: 0, errors: [] }
@@ -125,7 +125,7 @@ export const importData = async (): Promise<IImportResult | null> => {
                 try {
                     if (!category.name) throw new Error('Category name is required');
 
-                    const createCategory: ICreateCategoryDto = {
+                    const createCategory: CreateCategoryDto = {
                         name: category.name
                     };
                     await categoriesService.createCategory(createCategory);
@@ -157,7 +157,7 @@ export const importData = async (): Promise<IImportResult | null> => {
                     const category = categories.find(c => c.name === expense.category);
                     if (!category) throw new Error(`Category "${expense.category}" not found`);
 
-                    const createExpense: ICreateExpenseDto = {
+                    const createExpense: CreateExpenseDto = {
                         amount: Number(expense.amount),
                         description: expense.description,
                         categoryId: category.id,
