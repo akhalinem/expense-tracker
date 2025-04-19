@@ -81,84 +81,86 @@ export default function ExpenseForm({ expenseToEdit, onClose }: ExpenseFormProps
 
     return (
         <View style={styles.form}>
-            <View style={[styles.section, styles.field]}>
-                <ThemedText style={styles.label}>Amount</ThemedText>
-                <Controller
-                    control={control}
-                    name="amount"
-                    render={({ field }) => (
-                        <NumericFormat
-                            value={field.value}
-                            displayType='text'
-                            thousandSeparator=' '
-                            renderText={(formattedValue) => (
-                                <ThemedTextInput
-                                    as={BottomSheetTextInput}
-                                    keyboardType="decimal-pad"
-                                    placeholder="0.00"
-                                    value={formattedValue}
-                                    onChangeText={(value) => {
-                                        const extractedValue = numericFormat.removeFormatting?.(value);
-                                        const parsedValue = extractedValue ? Number(extractedValue) : null;
+            <View style={styles.content}>
 
-                                        field.onChange(parsedValue);
-                                    }}
-                                    error={!!errors.amount} />
-                            )} />
+
+                <View style={[styles.section, styles.field]}>
+                    <ThemedText style={styles.label}>Description</ThemedText>
+                    <Controller
+                        control={control}
+                        name="description"
+                        render={({ field: { onChange, value } }) => (
+                            <ThemedTextInput
+                                as={BottomSheetTextInput}
+                                placeholder="Enter description"
+                                value={value}
+                                onChangeText={onChange}
+                            />
+                        )}
+                    />
+                </View>
+
+                <View style={[styles.section, styles.field]}>
+                    <ThemedText style={styles.label}>Amount</ThemedText>
+                    <Controller
+                        control={control}
+                        name="amount"
+                        render={({ field }) => (
+                            <NumericFormat
+                                value={field.value}
+                                displayType='text'
+                                thousandSeparator=' '
+                                renderText={(formattedValue) => (
+                                    <ThemedTextInput
+                                        as={BottomSheetTextInput}
+                                        keyboardType="decimal-pad"
+                                        placeholder="0.00"
+                                        value={formattedValue}
+                                        onChangeText={(value) => {
+                                            const extractedValue = numericFormat.removeFormatting?.(value);
+                                            const parsedValue = extractedValue ? Number(extractedValue) : null;
+
+                                            field.onChange(parsedValue);
+                                        }}
+                                        error={!!errors.amount} />
+                                )} />
+                        )}
+                    />
+                    {errors.amount && (
+                        <ThemedText style={styles.errorText}>{errors.amount.message}</ThemedText>
                     )}
-                />
-                {errors.amount && (
-                    <ThemedText style={styles.errorText}>{errors.amount.message}</ThemedText>
-                )}
-            </View>
+                </View>
 
-            <View style={[styles.section, styles.field]}>
-                <ThemedText style={styles.label}>Description</ThemedText>
-                <Controller
-                    control={control}
-                    name="description"
-                    render={({ field: { onChange, value } }) => (
-                        <ThemedTextInput
-                            as={BottomSheetTextInput}
-                            placeholder="Enter description"
-                            value={value}
-                            onChangeText={onChange}
-                        />
+                <View style={[styles.section, styles.field, {}]}>
+                    <ThemedText style={[styles.label]}>Date:</ThemedText>
+                    <Controller
+                        control={control}
+                        name="date"
+                        render={({ field: { onChange, value } }) => (
+                            <DateTimePicker
+                                value={value ? new Date(value) : new Date()}
+                                mode="date"
+                                display='default'
+                                style={{ marginLeft: -8 }}
+                                onChange={(_, selectedDate) => {
+                                    const currentDate = selectedDate || value;
+                                    onChange(currentDate);
+                                }}
+                            />
+                        )}
+                    />
+                </View>
+
+                <View style={styles.field}>
+                    <ThemedText style={[styles.section, styles.label]}>Category</ThemedText>
+                    <CategoryPicker categoriesToggle={categoriesToggle} />
+                    {errors.categoryId && (
+                        <ThemedText style={styles.errorText}>{errors.categoryId.message}</ThemedText>
                     )}
-                />
+                </View>
             </View>
 
-            <View style={[styles.section, styles.field]}>
-                <ThemedText style={[styles.label]}>Date:</ThemedText>
-                <Controller
-                    control={control}
-                    name="date"
-                    render={({ field: { onChange, value } }) => (
-                        <DateTimePicker
-
-                            value={value ? new Date(value) : new Date()}
-                            mode="date"
-                            display="default"
-                            onChange={(_, selectedDate) => {
-                                const currentDate = selectedDate || value;
-                                onChange(currentDate);
-                            }}
-                        />
-                    )}
-                />
-            </View>
-
-            <View style={styles.field}>
-                <ThemedText style={[styles.section, styles.label]}>Category</ThemedText>
-                <CategoryPicker categoriesToggle={categoriesToggle} />
-                {errors.categoryId && (
-                    <ThemedText style={styles.errorText}>{errors.categoryId.message}</ThemedText>
-                )}
-            </View>
-
-
-
-            <View style={[styles.section, styles.buttons]}>
+            <View style={[styles.section, styles.footer]}>
                 <ThemedButton
                     title="Cancel"
                     onPress={onClose}
@@ -176,7 +178,14 @@ export default function ExpenseForm({ expenseToEdit, onClose }: ExpenseFormProps
 
 const styles = StyleSheet.create({
     form: {
+    },
+    content: {
         gap: 16,
+    },
+    footer: {
+        flexDirection: 'row',
+        gap: 12,
+        marginTop: 24,
     },
     section: {
         paddingHorizontal: 16,
@@ -191,11 +200,6 @@ const styles = StyleSheet.create({
     label: {
         fontSize: 16,
         fontWeight: '600',
-    },
-    buttons: {
-        flexDirection: 'row',
-        gap: 12,
-        marginTop: 24,
     },
     errorText: {
         color: 'red',

@@ -28,6 +28,8 @@ export default function SaveExpenseSheet({ bottomSheetRef }: SaveExpenseSheetPro
             keyboardBlurBehavior='restore'
             keyboardBehavior="interactive"
             onDismiss={handleClose}
+            snapPoints={[550]}
+            enableDynamicSizing={false}
             backgroundStyle={{ backgroundColor: theme.background }}
             handleIndicatorStyle={{ backgroundColor: theme.border }}
             handleStyle={{ backgroundColor: theme.background }}
