@@ -41,13 +41,13 @@ export default function CustomDrawerContent(props: DrawerContentComponentProps) 
                         title="Import"
                         onPress={handleImport}
                         style={[styles.dataAction, { backgroundColor: theme.surface }]}
-                        icon="cloud-upload-outline"
+                        icon="cloud-download-outline"
                     />
                     <ThemedButton
                         title="Export"
                         onPress={exportData}
                         style={[styles.dataAction, { backgroundColor: theme.surface }]}
-                        icon="cloud-download-outline"
+                        icon="cloud-upload-outline"
                     />
                 </View>
             </View>
@@ -63,8 +63,7 @@ const styles = StyleSheet.create({
         marginBottom: 24,
     },
     dataActionsContainer: {
-        flexDirection: 'column',
-        justifyContent: 'space-between',
+        flexDirection: 'row',
         gap: 16,
     },
     dataAction: {
