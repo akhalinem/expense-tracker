@@ -1,9 +1,10 @@
-import { FC, useRef } from "react";
-import { StyleSheet, View, FlatList, ListRenderItemInfo, TouchableOpacity, Alert } from "react-native";
+import { FC, useMemo, useRef } from "react";
+import { StyleSheet, View, TouchableOpacity, Alert } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeable";
 import { Ionicons } from '@expo/vector-icons';
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import { FlashList, ListRenderItemInfo } from "@shopify/flash-list";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import dayjs from "dayjs";
 import { Expense, Transaction } from "~/types";
@@ -22,14 +23,13 @@ export const Transactions: FC<{ transactions: Transaction[] }> = ({ transactions
         bottomSheetRef.current?.present();
     };
 
-    const { data, stickyHeaderIndices } = getListData(transactions);
+    const { data, stickyHeaderIndices } = useMemo(() => getListData(transactions), [transactions]);
 
     return (
         <>
-            <FlatList
+            <FlashList
                 data={data}
                 renderItem={ListItemRenderer}
-                keyExtractor={keyExtractor}
                 stickyHeaderIndices={stickyHeaderIndices}
             />
 
