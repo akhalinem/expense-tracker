@@ -13,7 +13,7 @@ export function displayDate(date: string) {
     return new Date(date).toLocaleString(
         process.env.EXPO_PUBLIC_LOCALE,
         {
-            dateStyle: 'long',
+            dateStyle: 'full',
         }
     )
 }
