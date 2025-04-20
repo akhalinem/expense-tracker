@@ -1,6 +1,6 @@
 import { desc, eq } from "drizzle-orm";
 import dayjs from "dayjs";
-import { CreateIncomeDto, CreateExpenseDto, UpdateExpenseDto, Transaction, TransactionTypeEnum, TransactionTypeEnumSchema } from "~/types";
+import { CreateIncomeDto, CreateExpenseDto, UpdateExpenseDto, Transaction, TransactionTypeEnum, TransactionTypeEnumSchema, UpdateIncomeDto } from "~/types";
 import { DATE_FORMAT_TO_SAVE_IN_DB } from "~/constants";
 import { categoriesTable, transactionsTable, transactionTypesTable } from "~/db/schema";
 import { db } from "~/services/db";
@@ -47,7 +47,7 @@ const getTransactions = async (): Promise<Transaction[]> => {
     }));
 }
 
-const deleteExpense = async (transactionId: number): Promise<void> => {
+const deleteTransaction = async (transactionId: number): Promise<void> => {
     if (!db) {
         throw new Error("Database not initialized");
     }
@@ -129,11 +129,28 @@ const createIncome = async (dto: CreateIncomeDto): Promise<void> => {
     }
 }
 
+const updateIncome = async (dto: UpdateIncomeDto): Promise<void> => {
+    const result = await db
+        .update(transactionsTable)
+        .set({
+            date: dayjs(dto.date).format(DATE_FORMAT_TO_SAVE_IN_DB),
+            description: dto.description,
+            categoryId: null,
+            amount: dto.amount,
+        })
+        .where(eq(transactionsTable.id, dto.id));
+
+    if (result.changes === 0) {
+        throw new Error("Failed to update income");
+    }
+}
+
 export const transactionsService = {
     createTransactionType,
     getTransactions,
     createExpense,
     updateExpense,
-    deleteExpense,
+    deleteTransaction,
     createIncome,
+    updateIncome,
 };

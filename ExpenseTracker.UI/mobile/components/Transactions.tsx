@@ -3,32 +3,22 @@ import { StyleSheet, View, TouchableOpacity, Alert } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeable";
 import { Ionicons } from '@expo/vector-icons';
-import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { FlashList, ListRenderItemInfo } from "@shopify/flash-list";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import dayjs from "dayjs";
-import { Expense, Transaction, TransactionTypeEnum } from "~/types";
+import { Transaction, TransactionTypeEnum } from "~/types";
 import { displayCurrency, displayDate } from "~/utils";
 import { transactionsService } from "~/services/transactions";
 import { Theme, useTheme } from "~/theme";
 import ThemedText from "~/components/themed/ThemedText";
 import ThemedButton from "~/components/themed/ThemedButton";
-import { useTransactionBottomSheet } from "~/components/SaveTransactionSheet";
-import ExpenseForm from "./ExpenseForm";
-
-type AddNewSheetData = {
-    type: TransactionTypeEnum.EXPENSE;
-    data: Expense | null;
-} | {
-    type: TransactionTypeEnum.INCOME;
-    data: unknown;
-}
+import { TransactionSheet, useTransactionSheet } from "~/components/SaveTransactionSheet";
 
 export const Transactions: FC<{ transactions: Transaction[] }> = ({ transactions }) => {
     const insets = useSafeAreaInsets()
-    const bottomSheet = useTransactionBottomSheet<AddNewSheetData>();
+    const sheet = useTransactionSheet()
 
-    const handleAddNew = () => bottomSheet.open({
+    const handleAddNew = () => sheet.open({
         type: TransactionTypeEnum.EXPENSE,
         data: null
     });
@@ -55,14 +45,7 @@ export const Transactions: FC<{ transactions: Transaction[] }> = ({ transactions
                 />
             </View>
 
-            <BottomSheetModal {...bottomSheet.sheetProps}>
-                {bottomSheet.data?.type === TransactionTypeEnum.EXPENSE && (
-                    <ExpenseForm
-                        expenseToEdit={bottomSheet.data.data}
-                        onClose={bottomSheet.close}
-                    />
-                )}
-            </BottomSheetModal>
+            <TransactionSheet sheet={sheet} />
         </>
     );
 };
@@ -105,10 +88,10 @@ const getTransactionIcon = (type: string, theme: Theme): TransactionIcon => {
 const TransactionItem: FC<{ transaction: Transaction, }> = ({ transaction, }) => {
     const { theme } = useTheme();
     const queryClient = useQueryClient()
-    const bottomSheet = useTransactionBottomSheet<Expense | null>()
+    const sheet = useTransactionSheet()
 
-    const deleteExpenseMutation = useMutation({
-        mutationFn: transactionsService.deleteExpense,
+    const deleteMutation = useMutation({
+        mutationFn: transactionsService.deleteTransaction,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['transactions'] });
         },
@@ -126,7 +109,7 @@ const TransactionItem: FC<{ transaction: Transaction, }> = ({ transaction, }) =>
                 {
                     text: "Delete",
                     style: "destructive",
-                    onPress: () => deleteExpenseMutation.mutate(transactionId)
+                    onPress: () => deleteMutation.mutate(transactionId)
                 }
             ]
         );
@@ -138,14 +121,29 @@ const TransactionItem: FC<{ transaction: Transaction, }> = ({ transaction, }) =>
             return;
         }
 
-        bottomSheet.open({
-            id: transaction.id,
-            amount: transaction.amount,
-            categoryId: transaction.categoryId,
-            categoryName: transaction.categoryName,
-            date: transaction.date,
-            description: transaction.description
-        });
+        if (transaction.type === TransactionTypeEnum.EXPENSE) {
+            sheet.open({
+                type: TransactionTypeEnum.EXPENSE,
+                data: {
+                    id: transaction.id,
+                    amount: transaction.amount,
+                    categoryId: transaction.categoryId,
+                    categoryName: transaction.categoryName,
+                    date: transaction.date,
+                    description: transaction.description
+                }
+            });
+        } else if (transaction.type === TransactionTypeEnum.INCOME) {
+            sheet.open({
+                type: TransactionTypeEnum.INCOME,
+                data: {
+                    id: transaction.id,
+                    amount: transaction.amount,
+                    date: transaction.date,
+                    description: transaction.description
+                }
+            });
+        }
     };
 
     const renderRightActions = (transaction: Transaction) => {
@@ -218,12 +216,7 @@ const TransactionItem: FC<{ transaction: Transaction, }> = ({ transaction, }) =>
                 </ReanimatedSwipeable>
             </View>
 
-            <BottomSheetModal {...bottomSheet.sheetProps}>
-                <ExpenseForm
-                    expenseToEdit={bottomSheet.data}
-                    onClose={bottomSheet.close}
-                />
-            </BottomSheetModal>
+            <TransactionSheet sheet={sheet} />
         </>
     );
 };

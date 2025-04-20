@@ -1,5 +1,13 @@
 import { z } from "zod";
 
+export const IncomeFormSchema = z.object({
+    amount: z.coerce.number().nullable(),
+    description: z.string(),
+    date: z.date()
+})
+
+export type IncomeFormData = z.infer<typeof IncomeFormSchema>;
+
 export const ExpenseFormSchema = z.object({
     amount: z.coerce.number().nullable(),
     description: z.string(),
@@ -44,6 +52,13 @@ export type IncomeExcelDto = {
     date: string;
 }
 
+export type Income = {
+    id: number;
+    amount: number;
+    description: string;
+    date: string;
+}
+
 export type Expense = {
     id: number;
     amount: number;
@@ -74,6 +89,13 @@ export type UpdateExpenseDto = {
 }
 
 export type CreateIncomeDto = {
+    amount: number;
+    description: string;
+    date: Date;
+}
+
+export type UpdateIncomeDto = {
+    id: number;
     amount: number;
     description: string;
     date: Date;

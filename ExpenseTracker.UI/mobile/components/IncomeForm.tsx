@@ -6,48 +6,38 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
-import { ExpenseFormData, ExpenseFormSchema, Expense } from '~/types';
+import { Income, IncomeFormData, IncomeFormSchema } from '~/types';
 import { transactionsService } from '~/services/transactions';
-import { useCategoriesToggle } from '~/hooks/useCategoriesToggle';
 import ThemedText from '~/components/themed/ThemedText';
 import ThemedButton from '~/components/themed/ThemedButton';
-import CategoryPicker from '~/components/CategoryPicker';
 import ThemedTextInput from '~/components/themed/ThemedTextInput';
 
-type ExpenseFormProps = {
-    data?: Expense | null;
+type IncomeFormProps = {
+    data?: Income | null;
     onClose: () => void;
 }
 
-export default function ExpenseForm({ data, onClose }: ExpenseFormProps) {
+export default function IncomeForm({ data, onClose }: IncomeFormProps) {
     const queryClient = useQueryClient();
-    const { control, setValue, handleSubmit, formState: { errors, isSubmitting } } = useForm<ExpenseFormData>({
-        resolver: zodResolver(ExpenseFormSchema),
+    const { control, handleSubmit, formState: { errors, isSubmitting } } = useForm<IncomeFormData>({
+        resolver: zodResolver(IncomeFormSchema),
         defaultValues: {
             amount: data?.amount ?? null,
             description: data?.description ?? '',
-            categoryId: data?.categoryId ?? null,
             date: data?.date ? dayjs(data.date).toDate() : new Date()
         },
     });
 
-    const categoriesToggle = useCategoriesToggle({
-        defaultSelected: data?.categoryId ? [data.categoryId] : [],
-        onChanged: ([selectedCategoryId]) => {
-            setValue('categoryId', selectedCategoryId);
-        }
-    });
-
-    const addExpenseMutation = useMutation({
-        mutationFn: transactionsService.createExpense,
+    const addMutation = useMutation({
+        mutationFn: transactionsService.createIncome,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['transactions'] });
             onClose();
         },
     });
 
-    const updateExpenseMutation = useMutation({
-        mutationFn: transactionsService.updateExpense,
+    const updateMutation = useMutation({
+        mutationFn: transactionsService.updateIncome,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['transactions'] });
             onClose();
@@ -57,18 +47,16 @@ export default function ExpenseForm({ data, onClose }: ExpenseFormProps) {
     const onSubmit = handleSubmit(async (formValues) => {
         try {
             if (data) {
-                await updateExpenseMutation.mutateAsync({
+                await updateMutation.mutateAsync({
                     id: data.id,
                     amount: formValues.amount ?? 0,
                     description: formValues.description,
-                    categoryId: +formValues.categoryId!,
                     date: formValues.date,
                 });
             } else {
-                await addExpenseMutation.mutateAsync({
+                await addMutation.mutateAsync({
                     amount: formValues.amount ?? 0,
                     description: formValues.description,
-                    categoryId: +formValues.categoryId!,
                     date: formValues.date,
                 });
             }
@@ -82,8 +70,6 @@ export default function ExpenseForm({ data, onClose }: ExpenseFormProps) {
     return (
         <View style={styles.form}>
             <View style={styles.content}>
-
-
                 <View style={[styles.section, styles.field]}>
                     <ThemedText style={styles.label}>Description</ThemedText>
                     <Controller
@@ -150,14 +136,6 @@ export default function ExpenseForm({ data, onClose }: ExpenseFormProps) {
                         )}
                     />
                 </View>
-
-                <View style={styles.field}>
-                    <ThemedText style={[styles.section, styles.label]}>Category</ThemedText>
-                    <CategoryPicker categoriesToggle={categoriesToggle} />
-                    {errors.categoryId && (
-                        <ThemedText style={styles.errorText}>{errors.categoryId.message}</ThemedText>
-                    )}
-                </View>
             </View>
 
             <View style={[styles.section, styles.footer]}>
@@ -192,10 +170,6 @@ const styles = StyleSheet.create({
     },
     field: {
         gap: 8,
-    },
-    horizontal: {
-        flexDirection: 'row',
-        alignItems: 'center',
     },
     label: {
         fontSize: 16,
