@@ -1,4 +1,4 @@
-import { FC, useMemo, useRef } from "react";
+import { FC, useMemo } from "react";
 import { StyleSheet, View, TouchableOpacity, Alert } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeable";
@@ -7,21 +7,31 @@ import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { FlashList, ListRenderItemInfo } from "@shopify/flash-list";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import dayjs from "dayjs";
-import { Expense, Transaction } from "~/types";
+import { Expense, Transaction, TransactionTypeEnum } from "~/types";
 import { displayCurrency, displayDate } from "~/utils";
 import { transactionsService } from "~/services/transactions";
 import { Theme, useTheme } from "~/theme";
 import ThemedText from "~/components/themed/ThemedText";
 import ThemedButton from "~/components/themed/ThemedButton";
-import SaveExpenseSheet from "~/components/SaveExpenseSheet";
+import { useTransactionBottomSheet } from "~/components/SaveTransactionSheet";
+import ExpenseForm from "./ExpenseForm";
+
+type AddNewSheetData = {
+    type: TransactionTypeEnum.EXPENSE;
+    data: Expense | null;
+} | {
+    type: TransactionTypeEnum.INCOME;
+    data: unknown;
+}
 
 export const Transactions: FC<{ transactions: Transaction[] }> = ({ transactions }) => {
     const insets = useSafeAreaInsets()
-    const bottomSheetRef = useRef<BottomSheetModal<Expense | null>>(null);
+    const bottomSheet = useTransactionBottomSheet<AddNewSheetData>();
 
-    const handleAddExpense = () => {
-        bottomSheetRef.current?.present();
-    };
+    const handleAddNew = () => bottomSheet.open({
+        type: TransactionTypeEnum.EXPENSE,
+        data: null
+    });
 
     const { data, stickyHeaderIndices } = useMemo(() => getListData(transactions), [transactions]);
 
@@ -41,11 +51,18 @@ export const Transactions: FC<{ transactions: Transaction[] }> = ({ transactions
                         marginBottom: insets.bottom,
                     }}
                     title="Add New"
-                    onPress={handleAddExpense}
+                    onPress={handleAddNew}
                 />
             </View>
 
-            <SaveExpenseSheet bottomSheetRef={bottomSheetRef} />
+            <BottomSheetModal {...bottomSheet.sheetProps}>
+                {bottomSheet.data?.type === TransactionTypeEnum.EXPENSE && (
+                    <ExpenseForm
+                        expenseToEdit={bottomSheet.data.data}
+                        onClose={bottomSheet.close}
+                    />
+                )}
+            </BottomSheetModal>
         </>
     );
 };
@@ -88,7 +105,7 @@ const getTransactionIcon = (type: string, theme: Theme): TransactionIcon => {
 const TransactionItem: FC<{ transaction: Transaction, }> = ({ transaction, }) => {
     const { theme } = useTheme();
     const queryClient = useQueryClient()
-    const bottomSheetRef = useRef<BottomSheetModal<Expense | null>>(null);
+    const bottomSheet = useTransactionBottomSheet<Expense | null>()
 
     const deleteExpenseMutation = useMutation({
         mutationFn: transactionsService.deleteExpense,
@@ -121,7 +138,7 @@ const TransactionItem: FC<{ transaction: Transaction, }> = ({ transaction, }) =>
             return;
         }
 
-        bottomSheetRef.current?.present({
+        bottomSheet.open({
             id: transaction.id,
             amount: transaction.amount,
             categoryId: transaction.categoryId,
@@ -199,9 +216,14 @@ const TransactionItem: FC<{ transaction: Transaction, }> = ({ transaction, }) =>
                         </View>
                     </View>
                 </ReanimatedSwipeable>
-            </View >
+            </View>
 
-            <SaveExpenseSheet bottomSheetRef={bottomSheetRef} />
+            <BottomSheetModal {...bottomSheet.sheetProps}>
+                <ExpenseForm
+                    expenseToEdit={bottomSheet.data}
+                    onClose={bottomSheet.close}
+                />
+            </BottomSheetModal>
         </>
     );
 };
