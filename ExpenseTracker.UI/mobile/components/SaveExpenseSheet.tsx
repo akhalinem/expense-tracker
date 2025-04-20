@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { FC, useCallback, useMemo } from 'react';
 import { StyleSheet, Keyboard } from 'react-native';
 import Animated, { Extrapolation, interpolate, useAnimatedStyle } from 'react-native-reanimated';
 import { BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet';
@@ -35,20 +35,21 @@ export default function SaveExpenseSheet({ bottomSheetRef }: SaveExpenseSheetPro
             handleStyle={{ backgroundColor: theme.background }}
             backdropComponent={CustomBackdrop}
         >
-            {({ data }) => (
-                <ThemedView as={BottomSheetView} style={styles.container}>
-                    <ThemedText style={[styles.section, styles.title]}>
-                        {data ? 'Edit Expense' : 'Add Expense'}
-                    </ThemedText>
-                    <ExpenseForm
-                        expenseToEdit={data}
-                        onClose={handleClose}
-                    />
-                </ThemedView>
-            )}
+            {ContentRenderer}
         </BottomSheetModal>
     );
 }
+
+const ContentRenderer: FC<{ data?: Expense | null }> = ({ data }) => (
+    <ThemedView as={BottomSheetView} style={styles.container}>
+        <ThemedText style={[styles.section, styles.title]}>
+            {data ? 'Edit Expense' : 'Add Expense'}
+        </ThemedText>
+        <ExpenseForm
+            expenseToEdit={data}
+            onClose={() => { }} />
+    </ThemedView>
+)
 
 const CustomBackdrop = ({ animatedIndex, style }: BottomSheetBackdropProps) => {
     const { theme } = useTheme()
