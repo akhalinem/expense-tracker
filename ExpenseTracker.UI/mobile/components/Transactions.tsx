@@ -45,8 +45,6 @@ export const Transactions: FC<{ transactions: Transaction[] }> = ({ transactions
                 />
             </View>
 
-
-
             <SaveExpenseSheet bottomSheetRef={bottomSheetRef} />
         </>
     );
