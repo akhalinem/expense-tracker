@@ -225,11 +225,6 @@ const DateHeader: FC<{ date: string, dailyExpense: number }> = ({ date, dailyExp
     );
 };
 
-const keyExtractor = (item: ListItem,) =>
-    item.type === ItemType.HEADER
-        ? `header-${item.date}`
-        : `transaction-${item.transaction.id}`
-
 const ListItemRenderer = (props: ListRenderItemInfo<ListItem>) => {
     const { item } = props
 
