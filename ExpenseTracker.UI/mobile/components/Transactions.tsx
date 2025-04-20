@@ -158,7 +158,6 @@ const TransactionItem: FC<{ transaction: Transaction, }> = ({ transaction, }) =>
 
     return (
         <>
-
             <View style={[styles.transactionItemContainer, { borderTopColor: theme.border }]}>
                 <ReanimatedSwipeable
                     renderRightActions={() => renderRightActions(transaction)}
