@@ -132,7 +132,7 @@ const SegmentedControlHeader = ({ sheet }: { sheet: UseTransactionSheetReturn })
 
     return (
         <SegmentedControl
-            style={{ marginBottom: 16 }}
+            style={{ marginBottom: 16, height: 40 }}
             fontStyle={{ fontSize: 16, color: theme.text }}
             activeFontStyle={{ fontSize: 16, color: theme.text }}
             tabStyle={{ backgroundColor: theme.background }}
