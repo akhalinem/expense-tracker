@@ -116,12 +116,12 @@ const TransactionItem: FC<{ transaction: Transaction, }> = ({ transaction, }) =>
     };
 
     const handleEdit = (transaction: Transaction) => {
-        if (!transaction.categoryId || !transaction.categoryName) {
-            console.error('Category ID or name is missing');
-            return;
-        }
-
         if (transaction.type === TransactionTypeEnum.EXPENSE) {
+            if (!transaction.categoryId || !transaction.categoryName) {
+                console.error('Category ID or name is missing');
+                return;
+            }
+
             sheet.open({
                 type: TransactionTypeEnum.EXPENSE,
                 data: {
