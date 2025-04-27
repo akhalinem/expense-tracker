@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Text, useColorScheme, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { Drawer } from 'expo-router/drawer';
+import { Slot } from 'expo-router';
 import { useDrizzleStudio } from 'expo-drizzle-studio-plugin';
 import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator'
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
@@ -10,7 +10,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { db, expoSqliteDb } from '~/services/db';
 import migrations from '~/drizzle/migrations';
 import { theme, ThemeContext } from '~/theme';
-import CustomDrawerContent from '~/components/DrawerContent';
 
 const queryClient = new QueryClient({
     defaultOptions: {
@@ -62,9 +61,7 @@ export default function RootLayout() {
                 <SafeAreaProvider>
                     <GestureHandlerRootView style={{ flex: 1 }}>
                         <BottomSheetModalProvider>
-                            <Drawer drawerContent={(props) => <CustomDrawerContent {...props} />}>
-                                <Drawer.Screen name="index" />
-                            </Drawer>
+                            <Slot />
                         </BottomSheetModalProvider>
                     </GestureHandlerRootView>
                 </SafeAreaProvider>

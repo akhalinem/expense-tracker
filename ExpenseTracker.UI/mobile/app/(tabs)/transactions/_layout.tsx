@@ -10,9 +10,9 @@ import { transactionsService } from '~/services/transactions';
 import { useTheme } from '~/theme';
 import ThemedText from '~/components/themed/ThemedText';
 import ThemedView from '~/components/themed/ThemedView';
-import { Transactions } from '~/components/Transactions';
+import CustomDrawerContent from '~/components/DrawerContent';
 
-export default function HomeScreen() {
+export default function TransactionsLayout() {
     const transactionsQuery = useQuery({
         queryKey: ['transactions'],
         queryFn: transactionsService.getTransactions
@@ -26,8 +26,9 @@ export default function HomeScreen() {
     }, 0);
 
     return (
-        <>
+        <Drawer drawerContent={(props) => <CustomDrawerContent {...props} />}>
             <Drawer.Screen
+                name='index'
                 options={{
                     title: 'Transactions',
                     header: (drawerHeaderProps) => (
@@ -35,11 +36,7 @@ export default function HomeScreen() {
                     )
                 }}
             />
-
-            <ThemedView style={{ flex: 1 }}>
-                <Transactions transactions={transactions} />
-            </ThemedView>
-        </>
+        </Drawer>
     );
 }
 

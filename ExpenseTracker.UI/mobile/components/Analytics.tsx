@@ -1,0 +1,71 @@
+import { FC } from 'react';
+import { StyleSheet, ScrollView, Dimensions } from 'react-native';
+import { Transaction } from '~/types';
+import ThemedView from './themed/ThemedView';
+import ThemedText from './themed/ThemedText';
+import ThemedCard from './themed/ThemedCard';
+import { TopCategoriesChart, TopCategoryChartItem } from './charts/TopCategoriesChart';
+
+export const Analytics: FC<{ transactions: Transaction[] }> = ({ transactions }) => {
+    const topCategoriesChartData = getTopCategoriesChartData(transactions)
+
+    return (
+        <ThemedView as={ScrollView} style={styles.container}>
+            <ThemedCard>
+                <ThemedText style={styles.cardTitle}>Top 5 Categories</ThemedText>
+                <TopCategoriesChart
+                    data={topCategoriesChartData}
+                    width={width - 40}
+                    height={250}
+                />
+            </ThemedCard>
+        </ThemedView>
+    );
+};
+
+const { width } = Dimensions.get('window');
+
+const categoryColors = [
+    '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40',
+    '#4CAF50', '#E91E63', '#2196F3', '#FFC107', '#9C27B0', '#00BCD4',
+    '#8BC34A', '#F44336', '#3F51B5', '#CDDC39', '#673AB7', '#009688',
+    '#795548', '#607D8B', '#FF5722', '#03A9F4'
+];
+
+const getTopCategoriesChartData = (transactions: Transaction[]): TopCategoryChartItem[] => {
+    const expenses = transactions.filter(transaction => transaction.type === 'expense');
+    const expensesByCategory = expenses
+        .filter(({ categoryName }) => !!categoryName)
+        .reduce((acc, transaction) => {
+            const category = transaction.categoryName!;
+            const amount = transaction.amount ?? 0;
+
+            if (acc[category] === undefined) acc[category] = 0;
+            else acc[category] += amount;
+
+            return acc;
+        }, {} as Record<string, number>);
+
+    const pieChartData: TopCategoryChartItem[] = Object.entries(expensesByCategory)
+        .map(([category, amount], index) => ({
+            category,
+            amount,
+            color: categoryColors[index % categoryColors.length],
+        }))
+        .sort((a, b) => b.amount - a.amount)
+        .slice(0, 5) // Limit to top 5 categories
+
+    return pieChartData;
+}
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        padding: 16,
+    },
+    cardTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 8
+    }
+});

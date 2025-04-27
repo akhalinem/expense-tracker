@@ -36,9 +36,7 @@ export const Transactions: FC<{ transactions: Transaction[] }> = ({ transactions
             <View>
                 <ThemedButton
                     style={{
-                        borderRadius: 16,
                         paddingVertical: 24,
-                        marginBottom: insets.bottom,
                     }}
                     title="Add New"
                     onPress={handleAddNew}
