@@ -6,6 +6,8 @@ import * as XLSX from 'xlsx';
 import dayjs from 'dayjs';
 import { CreateIncomeDto, ExpenseExcelDto, CreateCategoryDto, CreateExpenseDto, ImportResult, IncomeExcelDto, TransactionTypeEnum } from '~/types';
 import { mapCategoryToCategoryExcelDto, mapTransactionToExpenseExcelDto, mapTransactionToIncomeExcelDto, } from '~/utils';
+import { transactionsTable, categoriesTable } from '~/db/schema';
+import { db } from '~/services/db';
 import { categoriesService } from '~/services/categories';
 import { transactionsService } from '~/services/transactions';
 
@@ -210,3 +212,13 @@ export const importData = async (): Promise<ImportResult | null> => {
         return null;
     }
 };
+
+export const clearDb = async (): Promise<void> => {
+    try {
+        await db.delete(transactionsTable);
+        await db.delete(categoriesTable);
+    } catch (error) {
+        console.error('Error clearing database:', error);
+        throw new Error('Failed to clear database');
+    }
+}

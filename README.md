@@ -1,153 +1,110 @@
-# Expense Tracker
+# Expense Tracker Mobile
 
-A full-stack expense tracking application with CLI, Web API, React frontend, and mobile app.
-
-[![codecov](https://codecov.io/gh/akhalinem/expense-tracker/branch/master/graph/badge.svg)](https://codecov.io/gh/akhalinem/expense-tracker)
-
-This project was initially built as part of the [Roadmap.sh Projects](https://roadmap.sh/projects/expense-tracker) collection.
+A React Native mobile expense tracking application with offline-first functionality.
 
 ## Overview
 
-This application helps users manage their personal finances by tracking expenses and budgets through multiple interfaces:
-- Command-line interface for quick access
-- Web API for integration
-- React-based web interface for user-friendly interaction
-- React Native mobile app for on-the-go expense tracking
+This application helps users manage their personal finances by tracking income and expenses on their mobile device. Built with React Native and Expo, it offers a seamless experience with local data storage.
 
 ## Features
 
-- Add, update, and delete expenses with amount, category, and description
-- Set and manage monthly budgets
-- View expense summaries with budget tracking
-- Export expenses to CSV
-- Interactive CLI with command history
-- RESTful API with OpenAPI documentation
-- Modern React frontend with real-time updates
+- **Offline-First Architecture**: Store all your financial data locally on your device
+- **Income & Expense Tracking**: Record both income and expense transactions with detailed information
+- **Categories**: Organize expenses by customizable categories
+- **Analytics**: Visualize spending patterns with charts and category breakdowns
+- **Import/Export**: Backup and restore your financial data
+- **Dark/Light Mode**: User-friendly interface that adapts to your device preferences
 
-## Prerequisites
+## Screenshots
 
-- .NET 9.0 or higher
-- Node.js 18+ for the frontend
-- Expo CLI for mobile development
-- Command-line terminal
+### Transactions List & Analytics
+<table>
+  <tr>
+    <td><img src="docs/screenshots/transactions-list.png" alt="Transactions List" width="250"/></td>
+    <td><img src="docs/screenshots/analytics-chart.png" alt="Analytics View" width="250"/></td>
+  </tr>
+</table>
 
-## Installation
-
-1. Clone the repository:
-```bash
-git clone https://github.com/akhalinem/expense-tracker
-cd expense-tracker
-```
-
-2. Build the .NET solution:
-```bash
-dotnet build
-```
-
-3. Install frontend dependencies:
-```bash
-cd ExpenseTracker.UI/web
-npm install
-cd ../mobile
-npm install
-```
-
-## Running the Applications
-
-### CLI Application
-```bash
-cd ExpenseTracker.Cli
-dotnet run
-```
-
-### Web API
-```bash
-cd ExpenseTracker.Api
-dotnet run
-```
-
-### Frontend
-```bash
-cd ExpenseTracker.UI/web
-npm run dev
-```
-
-### Mobile App
-```bash
-cd ExpenseTracker.UI/mobile
-npm start
-```
-Then use Expo Go app on your device or simulator to run the application.
-
-## Project Structure
-
-The solution follows a clean architecture approach with the following projects:
-
-- **ExpenseTracker.Core**: Domain entities, interfaces, and business logic
-- **ExpenseTracker.Infrastructure**: Data access and service implementations
-- **ExpenseTracker.Api**: REST API with CORS support
-- **ExpenseTracker.Cli**: Interactive command-line interface
-- **ExpenseTracker.UI**: 
-  - React-based web frontend
-  - React Native mobile app using Expo
-- **ExpenseTracker.TestUtils**: Shared testing utilities
-- **\*.Tests**: Unit tests for respective projects
+### Add New Transaction & Data Management
+<table>
+  <tr>
+    <td><img src="docs/screenshots/add-transaction.png" alt="Add Transaction" width="250"/></td>
+    <td><img src="docs/screenshots/import-export.png" alt="Import/Export" width="250"/></td>
+  </tr>
+</table>
 
 ## Technology Stack
 
-### Backend
-- .NET 9
-- Entity Framework Core with SQLite
-- ASP.NET Core Web API
-- System.CommandLine for CLI
-- xUnit for testing
+- **React Native**: Cross-platform mobile development
+- **Expo**: Simplified React Native development workflow
+- **SQLite with Drizzle ORM**: Local database storage
+- **React Query**: Data fetching and state management
+- **React Navigation**: Navigation and routing
+- **Reanimated**: Smooth animations and gestures
+- **React Hook Form**: Form handling with validations
+- **Zod**: Type validation
+- **Shopify's React Native Skia**: High-performance graphics rendering for charts
 
-### Frontend
-- Next.js 15
-- React 19
-- React Native with Expo
-- Tailwind CSS
-- Axios for API communication
+## Getting Started
 
-## Database Management
+### Prerequisites
 
-The application includes database backup and restore functionality:
+- Node.js 18+ 
+- npm or yarn
+- Expo CLI
+- iOS Simulator (Mac) or Android Emulator
 
-### Backup
+### Installation
+
+1. Clone the repository:
 ```bash
-./scripts/db-backup.sh
+git clone https://github.com/akhalinem/expense-tracker.git
+cd expense-tracker
+git checkout offline-first-mobile
 ```
-Creates a timestamped backup in the `data/backup` directory.
 
-### Restore
+2. Install dependencies:
 ```bash
-./scripts/db-restore.sh YYYYMMDD_HHMMSS
+cd ExpenseTracker.UI/mobile
+npm install
 ```
-Restores database from a specific backup.
 
-### Reset
+3. Start the development server:
 ```bash
-./scripts/db-reset.sh
+npm start
 ```
-Resets the database to an empty state.
 
-### Seed
-```bash
-./scripts/db-seed.sh
-```
-Seeds the database with initial data.
+4. Use Expo Go app on your device or an emulator to run the application.
 
-## API Endpoints
+### Database Management
 
-- `GET /api/expenses`: List expenses
-- `POST /api/expenses`: Create expense
-- `PUT /api/expenses/{id}`: Update expense
-- `DELETE /api/expenses/{id}`: Delete expense
-- `GET /api/budgets/current`: Get current month's budget
+The application uses SQLite with Drizzle ORM for local data storage. Database migrations are automatically applied when the app starts.
 
-## Project Status
+## Project Structure
 
-Currently under development
+- **app/**: Contains screens and navigation setup using Expo Router
+- **components/**: Reusable UI components
+- **db/**: Database schema and setup
+- **drizzle/**: Database migrations
+- **hooks/**: Custom React hooks
+- **services/**: Business logic and data services
+- **theme/**: Theming and styling utilities
+- **types/**: TypeScript type definitions
+
+## Features in Detail
+
+### Transactions Management
+- Add, edit, and delete income/expense transactions
+- Categorize expenses with custom categories
+- View transaction history with daily summaries
+
+### Analytics
+- Visualize spending by category with pie charts
+- Track expense distribution across different categories
+
+### Data Backup
+- Export transaction data to Excel
+- Import data from external sources
 
 ## License
 

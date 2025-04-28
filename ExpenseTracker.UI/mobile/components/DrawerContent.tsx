@@ -1,14 +1,16 @@
 import { StyleSheet, View, Alert } from 'react-native';
-import { DrawerContentComponentProps, DrawerContentScrollView } from '@react-navigation/drawer';
-import { useQueryClient } from '@tanstack/react-query';
-import { exportData, importData } from '~/services/data-transfer';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { DrawerContentComponentProps } from '@react-navigation/drawer';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { clearDb, exportData, importData } from '~/services/data-transfer';
+import { useTheme } from '~/theme';
 import ThemedView from '~/components/themed/ThemedView';
 import ThemedButton from '~/components/themed/ThemedButton';
-import { useTheme } from '~/theme';
 
 export default function CustomDrawerContent(props: DrawerContentComponentProps) {
     const queryClient = useQueryClient();
     const { theme } = useTheme()
+    const clearDbMutation = useMutation({ mutationFn: clearDb })
 
     const handleImport = async () => {
         const result = await importData();
@@ -34,15 +36,16 @@ export default function CustomDrawerContent(props: DrawerContentComponentProps) 
     };
 
     return (
-        <ThemedView as={DrawerContentScrollView} {...props} style={styles.container}>
-            <View style={styles.section}>
-                <View style={styles.dataActionsContainer}>
+        <ThemedView style={styles.container}>
+            <ThemedView as={SafeAreaView} style={styles.container} edges={['top']}>
+                <View style={[styles.section, styles.dataActionsContainer, { flex: 1, alignItems: 'flex-start' }]}>
                     <ThemedButton
                         title="Import"
                         onPress={handleImport}
                         style={[styles.dataAction, { backgroundColor: theme.surface }]}
                         icon="cloud-download-outline"
                     />
+
                     <ThemedButton
                         title="Export"
                         onPress={exportData}
@@ -50,7 +53,34 @@ export default function CustomDrawerContent(props: DrawerContentComponentProps) 
                         icon="cloud-upload-outline"
                     />
                 </View>
-            </View>
+
+                <View style={styles.section}>
+                    <ThemedButton
+                        title="Clear"
+                        style={[styles.deleteButton, { borderColor: theme.error }]}
+                        icon="trash-outline"
+                        onPress={async () => {
+                            Alert.alert(
+                                "Clear Database",
+                                "Are you sure you want to clear the database? This action cannot be undone.",
+                                [
+                                    {
+                                        text: "Cancel",
+                                        style: "cancel"
+                                    },
+                                    {
+                                        text: "OK",
+                                        onPress: async () => {
+                                            await clearDbMutation.mutateAsync();
+                                            queryClient.invalidateQueries();
+                                        }
+                                    }
+                                ]
+                            );
+                        }}
+                    />
+                </View>
+            </ThemedView>
         </ThemedView>
     );
 }
@@ -60,14 +90,18 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     section: {
-        marginBottom: 24,
+        paddingHorizontal: 16
     },
     dataActionsContainer: {
         flexDirection: 'row',
-        gap: 16,
+        gap: 8,
     },
     dataAction: {
-        flex: 1,
         marginHorizontal: 4,
+    },
+    deleteButton: {
+        marginBottom: 16,
+        borderWidth: StyleSheet.hairlineWidth,
+        backgroundColor: 'transparent',
     },
 });
