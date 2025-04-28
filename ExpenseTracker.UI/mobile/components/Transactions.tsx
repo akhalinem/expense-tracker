@@ -10,6 +10,7 @@ import { Transaction, TransactionTypeEnum } from "~/types";
 import { displayCurrency, displayDate } from "~/utils";
 import { transactionsService } from "~/services/transactions";
 import { Theme, useTheme } from "~/theme";
+import ThemedView from "~/components/themed/ThemedView";
 import ThemedText from "~/components/themed/ThemedText";
 import ThemedButton from "~/components/themed/ThemedButton";
 import { TransactionSheet, useTransactionSheet } from "~/components/SaveTransactionSheet";
@@ -25,6 +26,14 @@ export const Transactions: FC<{ transactions: Transaction[] }> = ({ transactions
 
     const { data, stickyHeaderIndices } = useMemo(() => getListData(transactions), [transactions]);
 
+    if (!data.length) {
+        return (
+            <ThemedView style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingBottom: insets.bottom }}>
+                <ThemedText>No transactions found.</ThemedText>
+            </ThemedView>
+        );
+    }
+
     return (
         <>
             <FlashList
@@ -37,6 +46,7 @@ export const Transactions: FC<{ transactions: Transaction[] }> = ({ transactions
                 <ThemedButton
                     style={{
                         paddingVertical: 24,
+                        borderRadius: 0,
                     }}
                     title="Add New"
                     onPress={handleAddNew}
