@@ -7,14 +7,21 @@ import ThemedCard from './themed/ThemedCard';
 import { TopCategoriesChart, TopCategoryChartItem } from './charts/TopCategoriesChart';
 
 export const Analytics: FC<{ transactions: Transaction[] }> = ({ transactions }) => {
-    const topCategoriesChartData = getTopCategoriesChartData(transactions)
+    const currentMonthsTransactions = transactions.filter(transaction => {
+        const transactionDate = new Date(transaction.date);
+        const currentDate = new Date();
+        return transactionDate.getMonth() === currentDate.getMonth() && transactionDate.getFullYear() === currentDate.getFullYear();
+    });
+
+    // Limit to top 5 categories
+    const topCategoriesOfCurrentMonth = getTopCategoriesChartData(currentMonthsTransactions, 5)
 
     return (
         <ThemedView as={ScrollView} style={styles.container}>
             <ThemedCard>
                 <ThemedText style={styles.cardTitle}>Top 5 Categories</ThemedText>
                 <TopCategoriesChart
-                    data={topCategoriesChartData}
+                    data={topCategoriesOfCurrentMonth}
                     width={width - 40}
                     height={250}
                 />
@@ -32,7 +39,7 @@ const categoryColors = [
     '#795548', '#607D8B', '#FF5722', '#03A9F4'
 ];
 
-const getTopCategoriesChartData = (transactions: Transaction[]): TopCategoryChartItem[] => {
+const getTopCategoriesChartData = (transactions: Transaction[], top: number): TopCategoryChartItem[] => {
     const expenses = transactions.filter(transaction => transaction.type === 'expense');
     const expensesByCategory = expenses
         .filter(({ categoryName }) => !!categoryName)
@@ -53,7 +60,7 @@ const getTopCategoriesChartData = (transactions: Transaction[]): TopCategoryChar
             color: categoryColors[index % categoryColors.length],
         }))
         .sort((a, b) => b.amount - a.amount)
-        .slice(0, 5) // Limit to top 5 categories
+        .slice(0, top)
 
     return pieChartData;
 }
