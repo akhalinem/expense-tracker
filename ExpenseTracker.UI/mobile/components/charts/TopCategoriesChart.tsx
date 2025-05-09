@@ -16,7 +16,7 @@ export type TopCategoriesChartProps = {
 }
 
 export const TopCategoriesChart = ({ data, width, height }: TopCategoriesChartProps) => {
-    const radius = Math.min(width, height) / 2 - 20;
+    const radius = Math.min(width, height) / 2 - 20; // 20 for padding
     const center = vec(width / 2, height / 2);
 
     // Calculate total amount
@@ -49,7 +49,7 @@ export const TopCategoriesChart = ({ data, width, height }: TopCategoriesChartPr
                 color: item.color,
                 category: item.category,
                 amount: item.amount,
-                percentage: (item.amount / total) * 100
+                percentage: Math.round((item.amount / total) * 100)
             });
 
             startAngle += sweepAngle;
@@ -62,11 +62,11 @@ export const TopCategoriesChart = ({ data, width, height }: TopCategoriesChartPr
         <View style={styles.container}>
             <Canvas style={{ width, height }}>
                 <Group>
-                    {paths.map((segment, index) => (
+                    {paths.map(({ path, color }, index) => (
                         <Path
                             key={index}
-                            path={segment.path}
-                            color={segment.color}
+                            path={path}
+                            color={color}
                         />
                     ))}
                 </Group>
@@ -74,15 +74,11 @@ export const TopCategoriesChart = ({ data, width, height }: TopCategoriesChartPr
 
             {/* Legend */}
             <View style={styles.legend}>
-                {data
-                    .map(item => ({
-                        ...item,
-                        percentage: Math.round((item.amount / total) * 100),
-                    }))
-                    .map((item, index) => (
+                {paths
+                    .map(({ color, category, percentage }, index) => (
                         <View key={index} style={styles.legendItem}>
-                            <View style={[styles.colorBox, { backgroundColor: item.color }]} />
-                            <ThemedText>{item.category}: {item.percentage}%</ThemedText>
+                            <View style={[styles.colorBox, { backgroundColor: color }]} />
+                            <ThemedText>{category}: {percentage}%</ThemedText>
                         </View>
                     ))}
             </View>
