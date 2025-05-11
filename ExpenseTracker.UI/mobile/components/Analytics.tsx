@@ -13,8 +13,7 @@ export const Analytics: FC<{ transactions: Transaction[] }> = ({ transactions })
         return transactionDate.getMonth() === currentDate.getMonth() && transactionDate.getFullYear() === currentDate.getFullYear();
     });
 
-    // Limit to top 5 categories
-    const topCategoriesOfCurrentMonth = getTopCategoriesChartData(currentMonthsTransactions, 5)
+    const topCategoriesOfCurrentMonth = getTopCategoriesChartData(currentMonthsTransactions)
 
     return (
         <ThemedView as={ScrollView} style={styles.container}>
@@ -39,7 +38,7 @@ const categoryColors = [
     '#795548', '#607D8B', '#FF5722', '#03A9F4'
 ];
 
-const getTopCategoriesChartData = (transactions: Transaction[], top: number): TopCategoryChartItem[] => {
+const getTopCategoriesChartData = (transactions: Transaction[], top: number = transactions.length): TopCategoryChartItem[] => {
     const expenses = transactions.filter(transaction => transaction.type === 'expense');
     const expensesByCategory = expenses
         .filter(({ categoryName }) => !!categoryName)
