@@ -1,9 +1,6 @@
 import { useTheme } from '~/theme';
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { boolean } from 'drizzle-orm/gel-core';
-
 
 export default function RootLayout() {
     const { theme } = useTheme()
@@ -50,6 +47,18 @@ export default function RootLayout() {
                     headerShown: false,
                 }}
             />
+
+            <Tabs.Screen
+                name="settings"
+                options={{
+                    title: "Settings",
+                    tabBarIcon: ({ color, size }) => (
+                        <Ionicons name="settings-outline" size={size} color={color} />
+                    ),
+                    headerShown: false,
+                }}
+            />
+
         </Tabs>
     );
 }

@@ -1,16 +1,13 @@
 import { FC } from 'react';
 import { StyleSheet } from 'react-native';
-import { DrawerHeaderProps } from '@react-navigation/drawer';
-import Drawer from 'expo-router/drawer';
-import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Slot } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { displayCurrency } from '~/utils';
 import { transactionsService } from '~/services/transactions';
 import { useTheme } from '~/theme';
 import ThemedText from '~/components/themed/ThemedText';
 import ThemedView from '~/components/themed/ThemedView';
-import CustomDrawerContent from '~/components/DrawerContent';
 
 export default function TransactionsLayout() {
     const transactionsQuery = useQuery({
@@ -26,21 +23,14 @@ export default function TransactionsLayout() {
     }, 0);
 
     return (
-        <Drawer drawerContent={(props) => <CustomDrawerContent {...props} />}>
-            <Drawer.Screen
-                name='index'
-                options={{
-                    title: 'Transactions',
-                    header: (drawerHeaderProps) => (
-                        <Header {...drawerHeaderProps} totalBalance={totalBalance} />
-                    )
-                }}
-            />
-        </Drawer>
+        <>
+            <Header totalBalance={totalBalance} />
+            <Slot />
+        </>
     );
 }
 
-const Header: FC<DrawerHeaderProps & { totalBalance: number }> = ({ totalBalance, navigation }) => {
+const Header: FC<{ totalBalance: number }> = ({ totalBalance, }) => {
     const { theme } = useTheme()
     const insets = useSafeAreaInsets();
 
@@ -58,8 +48,6 @@ const Header: FC<DrawerHeaderProps & { totalBalance: number }> = ({ totalBalance
                     {displayCurrency(totalBalance)}
                 </ThemedText>
             </ThemedView>
-
-            <Ionicons name='settings-sharp' size={28} color={theme.text} onPress={navigation.toggleDrawer} />
         </ThemedView>
     )
 }
