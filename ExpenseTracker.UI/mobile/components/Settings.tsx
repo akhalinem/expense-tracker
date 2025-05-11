@@ -1,11 +1,10 @@
-import { StyleSheet, View, Alert, Button } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { DrawerContentComponentProps } from '@react-navigation/drawer';
+import { FC, PropsWithChildren } from 'react';
+import { StyleSheet, View, Alert, Text, Button } from 'react-native';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { clearDb, exportData, importData } from '~/services/data-transfer';
 import { useTheme } from '~/theme';
+import ThemedCard from '~/components/themed/ThemedCard';
 import ThemedView from '~/components/themed/ThemedView';
-import ThemedButton from '~/components/themed/ThemedButton';
 
 export default function Settings() {
     const queryClient = useQueryClient();
@@ -66,58 +65,95 @@ export default function Settings() {
 
     return (
         <ThemedView style={styles.container}>
-            <Divider />
-            <Button
-                title="Import"
-                color={theme.primary}
-                onPress={handleImport}
-            />
-            <Divider />
-            <Button
-                title="Export"
-                color={theme.primary}
-                onPress={handleExport}
-            />
-            <Divider />
-            <Button
-                title="Clear"
-                color={theme.error}
-                onPress={handleClear}
-            />
-            <Divider />
+            <SectionHeader title="Data" />
+            <SettingsSection>
+                <Button
+                    title="Import Data"
+                    color={theme.primary}
+                    onPress={handleImport}
+                />
+                <Divider />
+                <Button
+                    title="Export Data"
+                    color={theme.primary}
+                    onPress={handleExport}
+                />
+                <Divider />
+                <Button
+                    title="Clear Database"
+                    color={theme.error}
+                    onPress={handleClear}
+                />
+            </SettingsSection>
+            <SectionHeader title="Misc" />
+            <SettingsSection>
+                <Button
+                    title="Categories"
+                    color={theme.primary}
+                />
+            </SettingsSection>
         </ThemedView>
     );
 }
+
+const SectionHeader: FC<{ title: string }> = ({ title }) => {
+    const { theme } = useTheme();
+
+    return (
+        <View style={styles.sectionHeader}>
+            <Text style={[styles.sectionHeaderText, { color: theme.textSecondary }]}>
+                {title}
+            </Text>
+        </View>
+    );
+};
+
+const SettingsSection: FC<PropsWithChildren> = ({ children }) => {
+    return (
+        <ThemedCard style={styles.settingsSection}>
+            {children}
+        </ThemedCard>
+    );
+};
 
 const Divider = () => {
     const { theme } = useTheme()
 
     return (
-        <View style={{
-            height: StyleSheet.hairlineWidth,
-            backgroundColor: theme.border,
-            marginVertical: 8
-        }} />
+        <View
+            style={{
+                height: StyleSheet.hairlineWidth,
+                backgroundColor: theme.border,
+                marginHorizontal: 16
+            }}
+        />
     )
 };
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        paddingHorizontal: 16,
+        paddingTop: 20,
     },
-    section: {
-        paddingHorizontal: 16
+    sectionHeader: {
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        marginBottom: 4,
     },
-    dataActionsContainer: {
-        flexDirection: 'row',
-        gap: 8,
+    sectionHeaderText: {
+        fontSize: 13,
+        fontWeight: '600',
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
     },
-    dataAction: {
-        marginHorizontal: 4,
-    },
-    deleteButton: {
-        marginBottom: 16,
+    settingsSection: {
+        borderRadius: 10,
+        overflow: 'hidden',
+        marginBottom: 24,
         borderWidth: StyleSheet.hairlineWidth,
-        backgroundColor: 'transparent',
+    },
+    settingsButton: {
+        paddingVertical: 12,
     },
 });
