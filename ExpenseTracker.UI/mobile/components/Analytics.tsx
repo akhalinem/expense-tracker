@@ -16,8 +16,6 @@ export const Analytics: FC<{ transactions: Transaction[] }> = ({ transactions })
 
     const topCategoriesOfCurrentMonth = getTopCategoriesChartData(currentMonthsTransactions, 5)
 
-    console.log("topCategoriesOfCurrentMonth:", topCategoriesOfCurrentMonth);
-
     return (
         <ThemedView as={ScrollView} style={styles.container}>
             <ThemedCard>
@@ -42,17 +40,23 @@ const getTopCategoriesChartData = (transactions: Transaction[], top: number = tr
             const category = transaction.categoryName!;
             const amount = transaction.amount ?? 0;
 
-            if (acc[category] === undefined) acc[category] = 0;
-            else acc[category] += amount;
+            if (acc[category] === undefined) {
+                acc[category] = {
+                    amount: 0,
+                    color: transaction.categoryColor || PRESET_CATEGORY_COLORS[0]
+                };
+            } else {
+                acc[category].amount += amount;
+            }
 
             return acc;
-        }, {} as Record<string, number>);
+        }, {} as Record<string, { color: string; amount: number }>);
 
     const pieChartData: TopCategoryChartItem[] = Object.entries(expensesByCategory)
-        .map(([category, amount], index) => ({
+        .map(([category, { amount, color }], index) => ({
             category,
             amount,
-            color: PRESET_CATEGORY_COLORS[index % PRESET_CATEGORY_COLORS.length],
+            color
         }))
         .sort((a, b) => b.amount - a.amount)
         .slice(0, top)
