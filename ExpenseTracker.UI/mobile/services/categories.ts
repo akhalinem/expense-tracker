@@ -1,7 +1,7 @@
 import { count, desc, eq } from 'drizzle-orm';
 import { Category, CategoryWithTransactionCount, CreateCategoryDto, UpdateCategoryDto } from '~/types';
 import { DEFAULT_CATEGORY_COLOR } from '~/constants';
-import { categoriesTable, transactionsTable } from '~/db/schema';
+import { categoriesTable, transactionCategoriesTable, transactionsTable } from '~/db/schema';
 import { db } from '~/services/db';
 
 const getCategories = async (): Promise<Category[]> => {
@@ -16,12 +16,12 @@ const getCategoriesWithTransactionCount = async (): Promise<CategoryWithTransact
             id: categoriesTable.id,
             name: categoriesTable.name,
             color: categoriesTable.color,
-            transactionCount: count(transactionsTable.id),
+            transactionCount: count(transactionCategoriesTable.id),
         })
         .from(categoriesTable)
         .leftJoin(
-            transactionsTable,
-            eq(categoriesTable.id, transactionsTable.categoryId)
+            transactionCategoriesTable,
+            eq(categoriesTable.id, transactionCategoriesTable.categoryId)
         )
         .groupBy(categoriesTable.id, categoriesTable.name)
         .orderBy(({ transactionCount }) => desc(transactionCount))

@@ -33,5 +33,5 @@ export const mapTransactionToExpenseExcelDto = (transaction: Transaction): Expen
     amount: transaction.amount,
     description: transaction.description,
     date: transaction.date,
-    category: transaction.categoryName ?? ''
+    categories: transaction.categories.map(c => c.name).join(', '),
 });

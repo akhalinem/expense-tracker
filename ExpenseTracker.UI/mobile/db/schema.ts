@@ -17,7 +17,6 @@ export const transactionsTable = sqliteTable('transactions', {
     amount: real().notNull(),
     date: text().notNull(),
     description: text(),
-    categoryId: int().references(() => categoriesTable.id),
 });
 
 export const transactionCategoriesTable = sqliteTable('transaction_categories', {

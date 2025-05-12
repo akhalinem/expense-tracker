@@ -126,8 +126,8 @@ const TransactionItem: FC<{ transaction: Transaction, }> = ({ transaction, }) =>
 
     const handleEdit = (transaction: Transaction) => {
         if (transaction.type === TransactionTypeEnum.EXPENSE) {
-            if (!transaction.categoryId || !transaction.categoryName) {
-                console.error('Category ID or name is missing');
+            if (!transaction.categories || !transaction.categories.length) {
+                console.error('Categories are missing');
                 return;
             }
 
@@ -136,8 +136,7 @@ const TransactionItem: FC<{ transaction: Transaction, }> = ({ transaction, }) =>
                 data: {
                     id: transaction.id,
                     amount: transaction.amount,
-                    categoryId: transaction.categoryId,
-                    categoryName: transaction.categoryName,
+                    categories: transaction.categories,
                     date: transaction.date,
                     description: transaction.description
                 }
@@ -209,13 +208,31 @@ const TransactionItem: FC<{ transaction: Transaction, }> = ({ transaction, }) =>
                             </View>
 
                             <View style={styles.transactionBottom}>
-                                {transaction.categoryName && (
-                                    <View style={[styles.categoryContainer, { backgroundColor: transaction.categoryColor ?? DEFAULT_CATEGORY_COLOR }]}>
-                                        <ThemedText style={[styles.category, { color: theme.text }]}>
-                                            {transaction.categoryName}
-                                        </ThemedText>
+                                {transaction.categories && transaction.categories.length > 0 ? (
+                                    <View style={styles.categoriesContainer}>
+                                        {transaction.categories.slice(0, 2).map((category, index) => (
+                                            <View
+                                                key={category.id}
+                                                style={[
+                                                    styles.categoryContainer,
+                                                    { backgroundColor: category.color ?? DEFAULT_CATEGORY_COLOR },
+                                                    index > 0 && { marginLeft: 4 }
+                                                ]}
+                                            >
+                                                <ThemedText style={[styles.category, { color: theme.text }]}>
+                                                    {category.name}
+                                                </ThemedText>
+                                            </View>
+                                        ))}
+                                        {transaction.categories.length > 2 && (
+                                            <View style={styles.moreCategoriesContainer}>
+                                                <ThemedText style={styles.moreCategoriesText}>
+                                                    +{transaction.categories.length - 2}
+                                                </ThemedText>
+                                            </View>
+                                        )}
                                     </View>
-                                )}
+                                ) : null}
                                 <ThemedText style={[styles.time, { color: theme.textSecondary }]}>
                                     {dayjs(transaction.date).format("HH:mm")}
                                 </ThemedText>
@@ -378,6 +395,12 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
     },
+    categoriesContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flexWrap: 'nowrap',
+        flex: 1,
+    },
     categoryContainer: {
         paddingHorizontal: 10,
         paddingVertical: 4,
@@ -385,6 +408,15 @@ const styles = StyleSheet.create({
     },
     category: {
         fontSize: 12,
+    },
+    moreCategoriesContainer: {
+        marginLeft: 4,
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+    },
+    moreCategoriesText: {
+        fontSize: 10,
+        opacity: 0.7,
     },
     time: {
         fontSize: 12,

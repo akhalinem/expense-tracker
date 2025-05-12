@@ -1,6 +1,6 @@
 import { FC } from 'react';
 import { StyleSheet, ScrollView, Dimensions } from 'react-native';
-import { Transaction } from '~/types';
+import { Category, Transaction } from '~/types';
 import { PRESET_CATEGORY_COLORS } from '~/constants';
 import ThemedView from '~/components/themed/ThemedView';
 import ThemedText from '~/components/themed/ThemedText';
@@ -34,29 +34,38 @@ const { width } = Dimensions.get('window');
 
 const getTopCategoriesChartData = (transactions: Transaction[], top: number = transactions.length): TopCategoryChartItem[] => {
     const expenses = transactions.filter(transaction => transaction.type === 'expense');
-    const expensesByCategory = expenses
-        .filter(({ categoryName }) => !!categoryName)
-        .reduce((acc, transaction) => {
-            const category = transaction.categoryName!;
-            const amount = transaction.amount ?? 0;
 
-            if (acc[category] === undefined) {
-                acc[category] = {
-                    amount: 0,
-                    color: transaction.categoryColor || PRESET_CATEGORY_COLORS[0]
-                };
-            } else {
-                acc[category].amount += amount;
+    const categorizedExpensesMap = new Map<number, Transaction[]>();
+    const allCategoriesMapById = new Map<number, Category>();
+
+    expenses.forEach(transaction => {
+        const categories = transaction.categories || [];
+        categories.forEach(category => {
+            if (!allCategoriesMapById.has(category.id)) {
+                allCategoriesMapById.set(category.id, category)
             }
 
-            return acc;
-        }, {} as Record<string, { color: string; amount: number }>);
+            if (!categorizedExpensesMap.has(category.id)) {
+                categorizedExpensesMap.set(category.id, []);
+            }
+            categorizedExpensesMap.get(category.id)!.push(transaction);
+        });
+    });
 
-    const pieChartData: TopCategoryChartItem[] = Object.entries(expensesByCategory)
-        .map(([category, { amount, color }], index) => ({
-            category,
+    const categoryTotals = Array.from(categorizedExpensesMap.entries()).map(([categoryId, transactions]) => {
+        const totalAmount = transactions.reduce((sum, transaction) => sum + transaction.amount, 0);
+        const category = allCategoriesMapById.get(categoryId);
+        return {
+            category: category || { id: categoryId, name: 'Unknown', color: PRESET_CATEGORY_COLORS[0] },
+            amount: totalAmount
+        };
+    });
+
+    const pieChartData: TopCategoryChartItem[] = categoryTotals
+        .map(({ category, amount }) => ({
+            category: category.name,
             amount,
-            color
+            color: category.color || PRESET_CATEGORY_COLORS[0]
         }))
         .sort((a, b) => b.amount - a.amount)
         .slice(0, top)

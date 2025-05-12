@@ -26,15 +26,16 @@ export default function ExpenseForm({ data, onClose }: ExpenseFormProps) {
         defaultValues: {
             amount: data?.amount ?? null,
             description: data?.description ?? '',
-            categoryId: data?.categoryId ?? null,
+            categoryIds: data?.categories.map(category => category.id) ?? [],
             date: data?.date ? dayjs(data.date).toDate() : new Date()
         },
     });
 
     const categoriesToggle = useCategoriesToggle({
-        defaultSelected: data?.categoryId ? [data.categoryId] : [],
-        onChanged: ([selectedCategoryId]) => {
-            setValue('categoryId', selectedCategoryId);
+        multiple: true,
+        defaultSelected: data?.categories ? data.categories.map(category => category.id) : [],
+        onChanged: (selectedCategoryId) => {
+            setValue('categoryIds', selectedCategoryId);
         }
     });
 
@@ -61,14 +62,14 @@ export default function ExpenseForm({ data, onClose }: ExpenseFormProps) {
                     id: data.id,
                     amount: formValues.amount ?? 0,
                     description: formValues.description,
-                    categoryId: +formValues.categoryId!,
+                    categoryIds: formValues.categoryIds,
                     date: formValues.date,
                 });
             } else {
                 await addExpenseMutation.mutateAsync({
                     amount: formValues.amount ?? 0,
                     description: formValues.description,
-                    categoryId: +formValues.categoryId!,
+                    categoryIds: formValues.categoryIds,
                     date: formValues.date,
                 });
             }
@@ -154,8 +155,8 @@ export default function ExpenseForm({ data, onClose }: ExpenseFormProps) {
                 <View style={styles.field}>
                     <ThemedText style={[styles.section, styles.label]}>Category</ThemedText>
                     <CategoryPicker categoriesToggle={categoriesToggle} />
-                    {errors.categoryId && (
-                        <ThemedText style={styles.errorText}>{errors.categoryId.message}</ThemedText>
+                    {errors.categoryIds && (
+                        <ThemedText style={styles.errorText}>{errors.categoryIds.message}</ThemedText>
                     )}
                 </View>
             </View>

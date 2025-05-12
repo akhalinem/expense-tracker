@@ -4,7 +4,7 @@ import * as Sharing from 'expo-sharing';
 import * as DocumentPicker from 'expo-document-picker';
 import * as XLSX from 'xlsx';
 import dayjs from 'dayjs';
-import { CreateIncomeDto, ExpenseExcelDto, CreateCategoryDto, CreateExpenseDto, ImportResult, IncomeExcelDto, TransactionTypeEnum, CategoryExcelDto } from '~/types';
+import { CreateIncomeDto, ExpenseExcelDto, CreateCategoryDto, CreateExpenseDto, ImportResult, IncomeExcelDto, TransactionTypeEnum, CategoryExcelDto, Category } from '~/types';
 import { DEFAULT_CATEGORY_COLOR } from '~/constants';
 import { mapCategoryToCategoryExcelDto, mapTransactionToExpenseExcelDto, mapTransactionToIncomeExcelDto, } from '~/utils';
 import { transactionsTable, categoriesTable } from '~/db/schema';
@@ -149,22 +149,34 @@ export const importData = async (): Promise<ImportResult | null> => {
 
             // Get all categories for mapping
             const categories = await categoriesService.getCategories();
+            const categoriesMapByName = categories.reduce((acc, category) => {
+                acc[category.name] = category;
+                return acc;
+            }, {} as Record<string, Category>);
 
             await Promise.all(expenses.map(async (expense) => {
                 try {
                     if (!expense.amount) throw new Error('Amount is required');
                     if (!expense.description) throw new Error('Description is required');
-                    if (!expense.category) throw new Error('Category is required');
+                    if (!expense.categories) throw new Error('Categories are required');
                     if (!expense.date) throw new Error('Date is required');
 
-                    // Find category by name
-                    const category = categories.find(c => c.name === expense.category);
-                    if (!category) throw new Error(`Category "${expense.category}" not found`);
+                    // Find categories by name
+                    const transactionCategories = expense.categories
+                        .split(',')
+                        .map(name => name.trim())
+                        .map(name => categoriesMapByName[name])
+                        .filter(Boolean)
+                        .map(expenseCategory => categoriesMapByName[expenseCategory.name]);
+                    
+                    if (transactionCategories.length === 0) {
+                        throw new Error(`Categories not found`);
+                    }
 
                     const createExpense: CreateExpenseDto = {
                         amount: Number(expense.amount),
                         description: expense.description,
-                        categoryId: category.id,
+                        categoryIds: transactionCategories.map(c => c.id),
                         date: dayjs(expense.date).toDate()
                     };
 

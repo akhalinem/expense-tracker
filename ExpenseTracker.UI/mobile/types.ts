@@ -11,7 +11,7 @@ export type IncomeFormData = z.infer<typeof IncomeFormSchema>;
 export const ExpenseFormSchema = z.object({
     amount: z.coerce.number().nullable(),
     description: z.string(),
-    categoryId: z.number().nullable(),
+    categoryIds: z.number().array(),
     date: z.date(),
 });
 
@@ -32,16 +32,14 @@ export type TransactionType = {
 export type Transaction = {
     id: number;
     type: TransactionTypeEnum;
-    categoryId: number | null;
-    categoryName: string | null;
-    categoryColor: string | null;
+    categories: Category[];
     amount: number;
     description: string;
     date: string;
 };
 
 export type ExpenseExcelDto = {
-    category: string;
+    categories: string;
     amount: number;
     description: string;
     date: string;
@@ -64,8 +62,7 @@ export type Expense = {
     id: number;
     amount: number;
     description: string;
-    categoryId: number;
-    categoryName: string;
+    categories: Category[];
     date: string;
 }
 
@@ -74,6 +71,8 @@ export type Category = {
     name: string;
     color: string;
 }
+
+// export type CategoryWithoutColor = Omit<Category, 'color'>;
 
 export type CategoryWithTransactionCount = {
     id: number;
@@ -85,7 +84,7 @@ export type CategoryWithTransactionCount = {
 export type CreateExpenseDto = {
     amount: number;
     description: string;
-    categoryId: number;
+    categoryIds: number[];
     date: Date;
 }
 
@@ -93,7 +92,7 @@ export type UpdateExpenseDto = {
     id: number;
     amount: number;
     description: string;
-    categoryId: number;
+    categoryIds: number[];
     date: Date;
 }
 

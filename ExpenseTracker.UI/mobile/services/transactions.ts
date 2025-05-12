@@ -2,7 +2,7 @@ import { desc, eq } from "drizzle-orm";
 import dayjs from "dayjs";
 import { CreateIncomeDto, CreateExpenseDto, UpdateExpenseDto, Transaction, TransactionTypeEnum, TransactionTypeEnumSchema, UpdateIncomeDto } from "~/types";
 import { DATE_FORMAT_TO_SAVE_IN_DB, DEFAULT_CATEGORY_COLOR } from "~/constants";
-import { categoriesTable, transactionsTable, transactionTypesTable } from "~/db/schema";
+import { categoriesTable, transactionsTable, transactionTypesTable, transactionCategoriesTable } from "~/db/schema";
 import { db } from "~/services/db";
 
 const createTransactionType = async (name: string): Promise<void> => {
@@ -22,31 +22,64 @@ const createTransactionType = async (name: string): Promise<void> => {
     }
 };
 
-
-
 const getTransactions = async (): Promise<Transaction[]> => {
-    const transactions = await db
-        .select({
-            id: transactionsTable.id,
-            amount: transactionsTable.amount,
-            description: transactionsTable.description,
-            categoryId: transactionsTable.categoryId,
-            categoryName: categoriesTable.name,
-            categoryColor: categoriesTable.color,
-            date: transactionsTable.date,
-            type: transactionTypesTable.name,
-        })
-        .from(transactionsTable)
-        .innerJoin(transactionTypesTable, eq(transactionsTable.typeId, transactionTypesTable.id))
-        .leftJoin(categoriesTable, eq(transactionsTable.categoryId, categoriesTable.id))
-        .orderBy(desc(transactionsTable.date));
+    try {
+        const transactionsWithCategories = await db
+            .select({
+                id: transactionsTable.id,
+                amount: transactionsTable.amount,
+                description: transactionsTable.description,
+                categoryId: categoriesTable.id,
+                categoryName: categoriesTable.name,
+                categoryColor: categoriesTable.color,
+                date: transactionsTable.date,
+                type: transactionTypesTable.name,
+            })
+            .from(transactionsTable)
+            .innerJoin(transactionTypesTable, eq(transactionsTable.typeId, transactionTypesTable.id))
+            .leftJoin(transactionCategoriesTable, eq(transactionsTable.id, transactionCategoriesTable.transactionId))
+            .leftJoin(categoriesTable, eq(transactionCategoriesTable.categoryId, categoriesTable.id))
+            .orderBy(desc(transactionsTable.date));
 
-    return transactions.map((transaction): Transaction => ({
-        ...transaction,
-        categoryColor: transaction.categoryColor ?? DEFAULT_CATEGORY_COLOR,
-        type: TransactionTypeEnumSchema.parse(transaction.type),
-        description: transaction.description ?? '',
-    }));
+        // Group transactions by ID and aggregate categories
+        const transactionMap = new Map<number, Transaction>();
+        
+        transactionsWithCategories.forEach(row => {
+            if (!transactionMap.has(row.id)) {
+                transactionMap.set(row.id, {
+                    id: row.id,
+                    amount: row.amount,
+                    description: row.description || '',
+                    date: row.date,
+                    type: TransactionTypeEnumSchema.parse(row.type),
+                    categories: []
+                });
+            }
+            
+            const transaction = transactionMap.get(row.id)!;
+            
+            // Add category if it exists and isn't already in the categories array
+            if (row.categoryId) {
+                const category = {
+                    id: row.categoryId,
+                    name: row.categoryName!,
+                    color: row.categoryColor || DEFAULT_CATEGORY_COLOR
+                };
+                
+                if (!transaction.categories?.some(c => c.id === category.id)) {
+                    if (!transaction.categories) {
+                        transaction.categories = [];
+                    }
+                    transaction.categories.push(category);
+                }
+            }
+        });
+
+        return Array.from(transactionMap.values());
+    } catch (error) {
+        console.error("Error fetching transactions:", error);
+        throw new Error("Failed to fetch transactions");
+    }
 }
 
 const deleteTransaction = async (transactionId: number): Promise<void> => {
@@ -54,11 +87,21 @@ const deleteTransaction = async (transactionId: number): Promise<void> => {
         throw new Error("Database not initialized");
     }
 
-    const result = await db.delete(transactionsTable).where(eq(transactionsTable.id, transactionId));
+    await db.transaction(async (tx) => {
+        // Delete category associations first
+        await tx.delete(transactionCategoriesTable).where(
+            eq(transactionCategoriesTable.transactionId, transactionId)
+        );
 
-    if (result.changes === 0) {
-        throw new Error("Failed to delete expense");
-    }
+        // Then delete the transaction
+        const result = await tx.delete(transactionsTable).where(
+            eq(transactionsTable.id, transactionId)
+        );
+
+        if (result.changes === 0) {
+            throw new Error("Failed to delete transaction");
+        }
+    });
 };
 
 const createExpense = async (dto: CreateExpenseDto): Promise<void> => {
@@ -75,17 +118,32 @@ const createExpense = async (dto: CreateExpenseDto): Promise<void> => {
         throw new Error("Expense transaction type not found");
     }
 
-    const result = await db.insert(transactionsTable).values({
-        typeId: expenseTransactionType.id,
-        categoryId: dto.categoryId,
-        amount: dto.amount,
-        date: dayjs(dto.date).format(DATE_FORMAT_TO_SAVE_IN_DB),
-        description: dto.description,
-    });
+    // Start a transaction to ensure all operations succeed or fail together
+    await db.transaction(async (tx) => {
+        // Insert the transaction first
+        const result = await tx.insert(transactionsTable).values({
+            typeId: expenseTransactionType.id,
+            amount: dto.amount,
+            date: dayjs(dto.date).format(DATE_FORMAT_TO_SAVE_IN_DB),
+            description: dto.description,
+        });
 
-    if (result.changes === 0) {
-        throw new Error("Failed to create expense");
-    }
+        if (result.changes === 0 || !result.lastInsertRowId) {
+            throw new Error("Failed to create expense");
+        }
+
+        const transactionId = Number(result.lastInsertRowId);
+        
+        // Insert category associations if categories are provided
+        if (dto.categoryIds && dto.categoryIds.length > 0) {
+            const categoryAssociations = dto.categoryIds.map(categoryId => ({
+                transactionId,
+                categoryId
+            }));
+            
+            await tx.insert(transactionCategoriesTable).values(categoryAssociations);
+        }
+    });
 };
 
 const updateExpense = async (dto: UpdateExpenseDto): Promise<void> => {
@@ -93,19 +151,37 @@ const updateExpense = async (dto: UpdateExpenseDto): Promise<void> => {
         throw new Error("Database not initialized");
     }
 
-    const result = await db
-        .update(transactionsTable)
-        .set({
-            categoryId: dto.categoryId,
-            amount: dto.amount,
-            description: dto.description,
-            date: dayjs(dto.date).format(DATE_FORMAT_TO_SAVE_IN_DB)
-        })
-        .where(eq(transactionsTable.id, dto.id));
+    await db.transaction(async (tx) => {
+        // Update transaction details
+        const result = await tx
+            .update(transactionsTable)
+            .set({
+                amount: dto.amount,
+                description: dto.description,
+                date: dayjs(dto.date).format(DATE_FORMAT_TO_SAVE_IN_DB)
+                // Remove categoryId from here
+            })
+            .where(eq(transactionsTable.id, dto.id));
 
-    if (result.changes === 0) {
-        throw new Error("Failed to update expense");
-    }
+        if (result.changes === 0) {
+            throw new Error("Failed to update expense");
+        }
+
+        // Delete all existing category associations
+        await tx.delete(transactionCategoriesTable).where(
+            eq(transactionCategoriesTable.transactionId, dto.id)
+        );
+
+        // Insert new category associations
+        if (dto.categoryIds && dto.categoryIds.length > 0) {
+            const categoryAssociations = dto.categoryIds.map(categoryId => ({
+                transactionId: dto.id,
+                categoryId
+            }));
+            
+            await tx.insert(transactionCategoriesTable).values(categoryAssociations);
+        }
+    });
 };
 
 const createIncome = async (dto: CreateIncomeDto): Promise<void> => {
@@ -122,7 +198,6 @@ const createIncome = async (dto: CreateIncomeDto): Promise<void> => {
         typeId: incomeTransactionType.id,
         date: dayjs(dto.date).format(DATE_FORMAT_TO_SAVE_IN_DB),
         description: dto.description,
-        categoryId: null,
         amount: dto.amount,
     });
 
@@ -137,7 +212,6 @@ const updateIncome = async (dto: UpdateIncomeDto): Promise<void> => {
         .set({
             date: dayjs(dto.date).format(DATE_FORMAT_TO_SAVE_IN_DB),
             description: dto.description,
-            categoryId: null,
             amount: dto.amount,
         })
         .where(eq(transactionsTable.id, dto.id));
