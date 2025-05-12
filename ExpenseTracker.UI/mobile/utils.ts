@@ -19,7 +19,8 @@ export function displayDate(date: string) {
 }
 
 export const mapCategoryToCategoryExcelDto = (category: Category): CategoryExcelDto => ({
-    name: category.name
+    name: category.name,
+    color: category.color,
 })
 
 export const mapExpenseToExpenseExcelDto = (expense: Expense): ExpenseExcelDto => ({

@@ -4,7 +4,7 @@ import * as Sharing from 'expo-sharing';
 import * as DocumentPicker from 'expo-document-picker';
 import * as XLSX from 'xlsx';
 import dayjs from 'dayjs';
-import { CreateIncomeDto, ExpenseExcelDto, CreateCategoryDto, CreateExpenseDto, ImportResult, IncomeExcelDto, TransactionTypeEnum } from '~/types';
+import { CreateIncomeDto, ExpenseExcelDto, CreateCategoryDto, CreateExpenseDto, ImportResult, IncomeExcelDto, TransactionTypeEnum, CategoryExcelDto } from '~/types';
 import { DEFAULT_CATEGORY_COLOR } from '~/constants';
 import { mapCategoryToCategoryExcelDto, mapTransactionToExpenseExcelDto, mapTransactionToIncomeExcelDto, } from '~/utils';
 import { transactionsTable, categoriesTable } from '~/db/schema';
@@ -122,7 +122,7 @@ export const importData = async (): Promise<ImportResult | null> => {
         // Import categories if the sheet exists
         if (workbook.SheetNames.includes('Categories')) {
             const categoriesSheet = workbook.Sheets['Categories'];
-            const categories = XLSX.utils.sheet_to_json<{ name: string }>(categoriesSheet);
+            const categories = XLSX.utils.sheet_to_json<CategoryExcelDto>(categoriesSheet);
 
             await Promise.all(categories.map(async (category) => {
                 try {
@@ -130,7 +130,7 @@ export const importData = async (): Promise<ImportResult | null> => {
 
                     const createCategory: CreateCategoryDto = {
                         name: category.name,
-                        color: DEFAULT_CATEGORY_COLOR
+                        color: category.color ?? DEFAULT_CATEGORY_COLOR
                     };
                     await categoriesService.createCategory(createCategory);
                     importResult.categories.added++;

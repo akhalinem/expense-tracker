@@ -123,6 +123,7 @@ export type UpdateCategoryDto = {
 
 export type CategoryExcelDto = {
     name: string;
+    color?: string;
 }
 
 export type ImportResult = {
