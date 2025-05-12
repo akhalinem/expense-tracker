@@ -1,10 +1,10 @@
 -- Custom SQL migration file, put your code below! --
 
--- add color column to categories table and set default value to #000000
+-- add color column to categories table and set default value to #FFFFFF1A
 ALTER TABLE categories
-ADD COLUMN color TEXT DEFAULT '#000000';
+ADD COLUMN color TEXT DEFAULT '#FFFFFF1A';
 
 -- update existing categories to have a default color
 UPDATE categories
-SET color = '#000000'
+SET color = '#FFFFFF1A'
 WHERE color IS NULL;
