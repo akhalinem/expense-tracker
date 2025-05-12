@@ -1,9 +1,10 @@
 import { FC } from 'react';
 import { StyleSheet, ScrollView, Dimensions } from 'react-native';
 import { Transaction } from '~/types';
-import ThemedView from './themed/ThemedView';
-import ThemedText from './themed/ThemedText';
-import ThemedCard from './themed/ThemedCard';
+import { PRESET_CATEGORY_COLORS } from '~/constants';
+import ThemedView from '~/components/themed/ThemedView';
+import ThemedText from '~/components/themed/ThemedText';
+import ThemedCard from '~/components/themed/ThemedCard';
 import { TopCategoriesChart, TopCategoryChartItem } from './charts/TopCategoriesChart';
 
 export const Analytics: FC<{ transactions: Transaction[] }> = ({ transactions }) => {
@@ -33,13 +34,6 @@ export const Analytics: FC<{ transactions: Transaction[] }> = ({ transactions })
 
 const { width } = Dimensions.get('window');
 
-const categoryColors = [
-    '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40',
-    '#4CAF50', '#E91E63', '#2196F3', '#FFC107', '#9C27B0', '#00BCD4',
-    '#8BC34A', '#F44336', '#3F51B5', '#CDDC39', '#673AB7', '#009688',
-    '#795548', '#607D8B', '#FF5722', '#03A9F4'
-];
-
 const getTopCategoriesChartData = (transactions: Transaction[], top: number = transactions.length): TopCategoryChartItem[] => {
     const expenses = transactions.filter(transaction => transaction.type === 'expense');
     const expensesByCategory = expenses
@@ -58,7 +52,7 @@ const getTopCategoriesChartData = (transactions: Transaction[], top: number = tr
         .map(([category, amount], index) => ({
             category,
             amount,
-            color: categoryColors[index % categoryColors.length],
+            color: PRESET_CATEGORY_COLORS[index % PRESET_CATEGORY_COLORS.length],
         }))
         .sort((a, b) => b.amount - a.amount)
         .slice(0, top)
