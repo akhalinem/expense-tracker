@@ -24,7 +24,7 @@ export default function EditCategory() {
 
     const updateCategoryMutation = useMutation({
         mutationFn: ({ id, name }: { id: number; name: string }) =>
-            categoriesService.updateCategory(id, { name }),
+            categoriesService.updateCategory({ id, name }),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["categoriesWithTransactionsCount"] });
             router.back();

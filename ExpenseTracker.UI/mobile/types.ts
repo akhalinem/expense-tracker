@@ -71,11 +71,10 @@ export type Expense = {
 export type Category = {
     id: number;
     name: string;
+    color: string;
 }
 
-export type CategoryWithTransactionCount = {
-    id: number;
-    name: string;
+export type CategoryWithTransactionCount = Category & {
     transactionCount: number;
 }
 
@@ -109,6 +108,13 @@ export type UpdateIncomeDto = {
 
 export type CreateCategoryDto = {
     name: string;
+    color?: string;
+}
+
+export type UpdateCategoryDto = {
+    id: number;
+    name: string;
+    color?: string;
 }
 
 export type CategoryExcelDto = {

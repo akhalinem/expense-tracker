@@ -5,6 +5,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import * as XLSX from 'xlsx';
 import dayjs from 'dayjs';
 import { CreateIncomeDto, ExpenseExcelDto, CreateCategoryDto, CreateExpenseDto, ImportResult, IncomeExcelDto, TransactionTypeEnum } from '~/types';
+import { DEFAULT_CATEGORY_COLOR } from '~/constants';
 import { mapCategoryToCategoryExcelDto, mapTransactionToExpenseExcelDto, mapTransactionToIncomeExcelDto, } from '~/utils';
 import { transactionsTable, categoriesTable } from '~/db/schema';
 import { db } from '~/services/db';
@@ -128,7 +129,8 @@ export const importData = async (): Promise<ImportResult | null> => {
                     if (!category.name) throw new Error('Category name is required');
 
                     const createCategory: CreateCategoryDto = {
-                        name: category.name
+                        name: category.name,
+                        color: DEFAULT_CATEGORY_COLOR
                     };
                     await categoriesService.createCategory(createCategory);
                     importResult.categories.added++;
