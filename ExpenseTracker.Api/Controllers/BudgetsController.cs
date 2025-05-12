@@ -15,6 +15,14 @@ public class BudgetsController : ControllerBase
     }
 
     [HttpGet]
+    public async Task<IActionResult> GetBudgets()
+    {
+        var result = await _budgetRepository.ListAsync();
+
+        return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
+    }
+
+    [HttpGet]
     [Route("current")]
     public async Task<IActionResult> GetCurrentBudget()
     {

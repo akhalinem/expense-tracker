@@ -8,5 +8,5 @@ public interface IBudgetRepository
     Task<Result<Budget?>> GetAsync(int month, int year);
     Task<Result<IEnumerable<Budget>>> GetHistoryAsync();
     Task<Result<bool>> DeleteAsync(int month, int year);
-    Task<Result<IEnumerable<Budget>>> ListAsync(int? month, int? year = null);
+    Task<Result<IEnumerable<Budget>>> ListAsync(int? month = null, int? year = null);
 }

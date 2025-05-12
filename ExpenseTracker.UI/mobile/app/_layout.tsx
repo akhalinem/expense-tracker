@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react';
-import { useColorScheme } from 'react-native';
+import { Text, useColorScheme, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { Drawer } from 'expo-router/drawer';
+import { Stack } from 'expo-router';
+import { useDrizzleStudio } from 'expo-drizzle-studio-plugin';
+import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator'
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { displayMonth } from '~/utils';
+import { db, expoSqliteDb } from '~/services/db';
+import migrations from '~/drizzle/migrations';
 import { theme, ThemeContext } from '~/theme';
-import { PeriodContext, PeriodProvider } from '~/contexts/PeriodContext';
-import CustomDrawerContent from '~/components/DrawerContent';
 
 const queryClient = new QueryClient({
     defaultOptions: {
@@ -19,6 +20,8 @@ const queryClient = new QueryClient({
 });
 
 export default function RootLayout() {
+    const migration = useMigrations(db, migrations);
+
     const systemColorScheme = useColorScheme();
     const [isDark, setIsDark] = useState(systemColorScheme === 'dark');
 
@@ -34,47 +37,71 @@ export default function RootLayout() {
         toggleTheme,
     };
 
+    useDrizzleStudio(expoSqliteDb);
+
+    if (migration.error) {
+        return (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <Text>Migration error: {migration.error.message}</Text>
+            </View>
+        );
+    }
+
+    if (!migration.success) {
+        return (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <Text>Migration is in progress...</Text>
+            </View>
+        );
+    }
+
     return (
         <QueryClientProvider client={queryClient}>
             <ThemeContext.Provider value={themeValue}>
                 <SafeAreaProvider>
                     <GestureHandlerRootView style={{ flex: 1 }}>
                         <BottomSheetModalProvider>
-                            <PeriodProvider>
-                                <PeriodContext.Consumer>
-                                    {({ selectedPeriod: { month, year } }) =>
-                                        <Drawer
-                                            drawerContent={(props) => <CustomDrawerContent {...props} />}
-                                            screenOptions={{
-                                                swipeEdgeWidth: 100,
-                                                drawerStyle: {
-                                                    maxWidth: 300,
-                                                    width: '45%'
-                                                }
-                                            }}
-                                        >
-                                            <Drawer.Screen
-                                                name="index"
-                                                options={{
-                                                    title: `Expenses for ${displayMonth(month, year)}`,
-                                                    lazy: false,
-                                                    headerStyle: {
-                                                        backgroundColor: themeValue.theme.background,
-                                                    },
-                                                    headerTitleStyle: {
-                                                        color: themeValue.theme.text
-                                                    },
-                                                    headerTintColor: themeValue.theme.primary
-                                                }}
-                                            />
-                                        </Drawer>
-                                    }
-                                </PeriodContext.Consumer>
-                            </PeriodProvider>
+                            <Stack>
+                                <Stack.Screen
+                                    name="(tabs)"
+                                    options={{
+                                        headerShown: false
+                                    }}
+                                />
+                                <Stack.Screen
+                                    name="categories/index"
+                                    options={{
+                                        headerTintColor: themeValue.theme.text,
+                                        headerStyle: {
+                                            backgroundColor: themeValue.theme.background,
+                                        }
+                                    }}
+                                />
+                                <Stack.Screen
+                                    name="categories/new"
+                                    options={{
+                                        presentation: 'modal',
+                                        headerTintColor: themeValue.theme.text,
+                                        headerStyle: {
+                                            backgroundColor: themeValue.theme.background,
+                                        },
+                                    }}
+                                />
+                                <Stack.Screen
+                                    name="categories/edit"
+                                    options={{
+                                        presentation: 'modal',
+                                        headerTintColor: themeValue.theme.text,
+                                        headerStyle: {
+                                            backgroundColor: themeValue.theme.background,
+                                        },
+                                    }}
+                                />
+                            </Stack>
                         </BottomSheetModalProvider>
                     </GestureHandlerRootView>
                 </SafeAreaProvider>
-            </ThemeContext.Provider>
-        </QueryClientProvider>
+            </ThemeContext.Provider >
+        </QueryClientProvider >
     );
 }

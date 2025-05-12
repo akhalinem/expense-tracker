@@ -2,7 +2,7 @@ import { TextInput, TextInputProps, StyleSheet } from 'react-native';
 import { useState, ComponentType } from 'react';
 import { useTheme } from '~/theme';
 
-interface ThemedTextInputProps<C extends ComponentType<any>> extends TextInputProps {
+type ThemedTextInputProps<C extends ComponentType<any>> = TextInputProps & {
     error?: boolean;
     as?: C;
 }
@@ -24,7 +24,7 @@ export default function ThemedTextInput<C extends ComponentType<any> = typeof Te
                 {
                     color: theme.text,
                     backgroundColor: theme.surface,
-                    borderColor: error ? theme.error : isFocused ? theme.borderFocused : theme.border,
+                    borderColor: error ? theme.error : isFocused ? theme.primary : theme.border,
                 },
                 style,
             ]}

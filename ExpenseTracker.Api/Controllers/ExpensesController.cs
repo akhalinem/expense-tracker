@@ -23,7 +23,7 @@ public class ExpensesController : ControllerBase
             .Split(',', StringSplitOptions.RemoveEmptyEntries)
             .Select(Guid.Parse)
             .ToList();
-        var result = await _expenseService.List(month ?? DateTime.Now.Month, year ?? DateTime.Now.Year, parsedCategoryIds);
+        var result = await _expenseService.List(month, year, parsedCategoryIds);
 
         return result.IsSuccess
             ? Ok(

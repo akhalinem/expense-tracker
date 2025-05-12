@@ -8,7 +8,7 @@ type CategoryPickerProps = {
 }
 
 export default function CategoryPicker({ categoriesToggle }: CategoryPickerProps) {
-    const { categories, toggle, selected } = categoriesToggle
+    const { categories, selected, toggle } = categoriesToggle
 
     return (
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>

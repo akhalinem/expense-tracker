@@ -1,3 +1,5 @@
+import { ExpenseExcelDto, Category, CategoryExcelDto, IncomeExcelDto, Transaction, } from "./types";
+
 export function displayCurrency(amount: number) {
     return amount.toLocaleString(
         process.env.EXPO_PUBLIC_LOCALE,
@@ -7,32 +9,29 @@ export function displayCurrency(amount: number) {
         })
 }
 
-export function displayMonth(month: number, year?: number) {
-    const currentYear = new Date().getFullYear();
-
-    year ??= currentYear;
-
-    if (year === currentYear) {
-        return new Date(year, month - 1).toLocaleString(
-            process.env.EXPO_PUBLIC_LOCALE,
-            {
-                month: 'long'
-            });
-    }
-
-    return new Date(year, month - 1).toLocaleString(
-        process.env.EXPO_PUBLIC_LOCALE,
-        {
-            month: 'long',
-            year: 'numeric'
-        });
-}
-
 export function displayDate(date: string) {
     return new Date(date).toLocaleString(
         process.env.EXPO_PUBLIC_LOCALE,
         {
-            dateStyle: 'long',
+            dateStyle: 'full',
         }
     )
 }
+
+export const mapCategoryToCategoryExcelDto = (category: Category): CategoryExcelDto => ({
+    name: category.name,
+    color: category.color,
+})
+
+export const mapTransactionToIncomeExcelDto = (transaction: Transaction): IncomeExcelDto => ({
+    amount: transaction.amount,
+    description: transaction.description,
+    date: transaction.date,
+});
+
+export const mapTransactionToExpenseExcelDto = (transaction: Transaction): ExpenseExcelDto => ({
+    amount: transaction.amount,
+    description: transaction.description,
+    date: transaction.date,
+    categories: transaction.categories.map(c => c.name).join(', '),
+});
