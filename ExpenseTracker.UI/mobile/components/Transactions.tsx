@@ -211,7 +211,7 @@ const TransactionItem: FC<{ transaction: Transaction, }> = ({ transaction, }) =>
                             <View style={styles.transactionBottom}>
                                 {transaction.categoryName && (
                                     <View style={[styles.categoryContainer, { backgroundColor: transaction.categoryColor ?? DEFAULT_CATEGORY_COLOR }]}>
-                                        <ThemedText style={[styles.category, { color: theme.textSecondary }]}>
+                                        <ThemedText style={[styles.category, { color: theme.text }]}>
                                             {transaction.categoryName}
                                         </ThemedText>
                                     </View>
@@ -385,7 +385,6 @@ const styles = StyleSheet.create({
     },
     category: {
         fontSize: 12,
-        color: '#A0A0A0',
     },
     time: {
         fontSize: 12,

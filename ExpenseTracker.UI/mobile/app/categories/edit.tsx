@@ -1,32 +1,49 @@
 import { useState, useEffect } from "react";
-import { StyleSheet, TextInput, TouchableOpacity } from "react-native";
+import { StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Stack, useRouter, useLocalSearchParams } from "expo-router";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { categoriesService } from "~/services/categories";
 import { useTheme } from "~/theme";
 import ThemedText from "~/components/themed/ThemedText";
 import ThemedView from "~/components/themed/ThemedView";
+import ColorPicker from "~/components/ColorPicker";
+import { DEFAULT_CATEGORY_COLOR } from "~/constants";
 
 export default function EditCategory() {
-    const router = useRouter();
-    const params = useLocalSearchParams<{ id: string; name: string }>();
-    const queryClient = useQueryClient();
     const { theme } = useTheme();
+    const router = useRouter();
+    const params = useLocalSearchParams<{ id: string; name: string; color: string }>();
+    const queryClient = useQueryClient();
     const [categoryName, setCategoryName] = useState("");
+    const [categoryColor, setCategoryColor] = useState(DEFAULT_CATEGORY_COLOR);
 
-    // Initialize with params
+    // Fetch the full category data to get the color
+    const categoryQuery = useQuery({
+        queryKey: ['category', params.id],
+        queryFn: () => categoriesService.getCategoryById(Number(params.id)),
+        enabled: !!params.id,
+    });
+
     useEffect(() => {
         if (params.name) {
             setCategoryName(params.name);
         }
-    }, [params.name]);
+
+        setCategoryColor(params.color || DEFAULT_CATEGORY_COLOR);
+
+        // When we have the category data, set the color
+        if (categoryQuery.data) {
+            setCategoryColor(categoryQuery.data.color || DEFAULT_CATEGORY_COLOR);
+        }
+    }, [params.id, categoryQuery.data]);
 
     const updateCategoryMutation = useMutation({
-        mutationFn: ({ id, name }: { id: number; name: string }) =>
-            categoriesService.updateCategory({ id, name }),
+        mutationFn: ({ id, name, color }: { id: number; name: string; color: string }) =>
+            categoriesService.updateCategory({ id, name, color }),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["categoriesWithTransactionsCount"] });
+            queryClient.invalidateQueries({ queryKey: ["transactions"] });
             router.back();
         }
     });
@@ -39,9 +56,21 @@ export default function EditCategory() {
         if (!categoryName.trim() || !params.id) return;
         updateCategoryMutation.mutate({
             id: Number(params.id),
-            name: categoryName.trim()
+            name: categoryName.trim(),
+            color: categoryColor
         });
     };
+
+    if (categoryQuery.isLoading) {
+        return (
+            <ThemedView style={styles.container}>
+                <Stack.Screen options={{ title: "Edit Category" }} />
+                <SafeAreaView style={styles.content}>
+                    <ThemedText>Loading category details...</ThemedText>
+                </SafeAreaView>
+            </ThemedView>
+        );
+    }
 
     return (
         <ThemedView style={styles.container}>
@@ -78,6 +107,22 @@ export default function EditCategory() {
                     onChangeText={setCategoryName}
                     autoFocus
                 />
+
+                <ThemedText style={styles.label}>Color</ThemedText>
+                <View style={styles.colorPreviewRow}>
+                    <View
+                        style={[
+                            styles.colorPreview,
+                            { backgroundColor: categoryColor }
+                        ]}
+                    />
+                    <ThemedText style={styles.colorHex}>{categoryColor}</ThemedText>
+                </View>
+
+                <ColorPicker
+                    selectedColor={categoryColor}
+                    onColorSelected={setCategoryColor}
+                />
             </SafeAreaView>
         </ThemedView>
     );
@@ -95,13 +140,30 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '600',
         marginBottom: 8,
+        marginTop: 16,
     },
     input: {
         height: 50,
         borderWidth: 1,
         borderRadius: 8,
         padding: 10,
-        marginBottom: 20,
         fontSize: 16,
+    },
+    colorPreviewRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 8,
+    },
+    colorPreview: {
+        width: 24,
+        height: 24,
+        borderRadius: 12,
+        marginRight: 12,
+        borderWidth: 1,
+        borderColor: 'rgba(0,0,0,0.1)',
+    },
+    colorHex: {
+        fontSize: 14,
+        opacity: 0.7,
     },
 });

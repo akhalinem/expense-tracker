@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { StyleSheet, TextInput, TouchableOpacity } from "react-native";
+import { StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Stack, useRouter } from "expo-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -7,15 +7,19 @@ import { categoriesService } from "~/services/categories";
 import { useTheme } from "~/theme";
 import ThemedText from "~/components/themed/ThemedText";
 import ThemedView from "~/components/themed/ThemedView";
+import ColorPicker from "~/components/ColorPicker";
+import { DEFAULT_CATEGORY_COLOR } from "~/constants";
 
 export default function NewCategory() {
+    const { theme } = useTheme();
     const router = useRouter();
     const queryClient = useQueryClient();
-    const { theme } = useTheme();
     const [categoryName, setCategoryName] = useState("");
+    const [categoryColor, setCategoryColor] = useState(DEFAULT_CATEGORY_COLOR);
 
     const createCategoryMutation = useMutation({
-        mutationFn: (name: string) => categoriesService.createCategory({ name }),
+        mutationFn: ({ name, color }: { name: string; color: string }) =>
+            categoriesService.createCategory({ name, color }),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["categoriesWithTransactionsCount"] });
             router.back();
@@ -28,7 +32,10 @@ export default function NewCategory() {
 
     const handleSave = () => {
         if (!categoryName.trim()) return;
-        createCategoryMutation.mutate(categoryName.trim());
+        createCategoryMutation.mutate({
+            name: categoryName.trim(),
+            color: categoryColor
+        });
     };
 
     return (
@@ -66,6 +73,22 @@ export default function NewCategory() {
                     onChangeText={setCategoryName}
                     autoFocus
                 />
+
+                <ThemedText style={styles.label}>Color</ThemedText>
+                <View style={styles.colorPreviewRow}>
+                    <View
+                        style={[
+                            styles.colorPreview,
+                            { backgroundColor: categoryColor }
+                        ]}
+                    />
+                    <ThemedText style={styles.colorHex}>{categoryColor}</ThemedText>
+                </View>
+
+                <ColorPicker
+                    selectedColor={categoryColor}
+                    onColorSelected={setCategoryColor}
+                />
             </SafeAreaView>
         </ThemedView>
     );
@@ -83,13 +106,30 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '600',
         marginBottom: 8,
+        marginTop: 16,
     },
     input: {
         height: 50,
         borderWidth: 1,
         borderRadius: 8,
         padding: 10,
-        marginBottom: 20,
         fontSize: 16,
+    },
+    colorPreviewRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 8,
+    },
+    colorPreview: {
+        width: 24,
+        height: 24,
+        borderRadius: 12,
+        marginRight: 12,
+        borderWidth: 1,
+        borderColor: 'rgba(0,0,0,0.1)',
+    },
+    colorHex: {
+        fontSize: 14,
+        opacity: 0.7,
     },
 });

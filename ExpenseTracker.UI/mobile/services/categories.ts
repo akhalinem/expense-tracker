@@ -32,7 +32,7 @@ const getCategoriesWithTransactionCount = async (): Promise<CategoryWithTransact
 const createCategory = async (dto: CreateCategoryDto): Promise<void> => {
     const result = await db.insert(categoriesTable).values({
         name: dto.name,
-        color: DEFAULT_CATEGORY_COLOR
+        color: dto.color || DEFAULT_CATEGORY_COLOR
     });
 
     if (result.changes === 0) {
@@ -42,7 +42,10 @@ const createCategory = async (dto: CreateCategoryDto): Promise<void> => {
 
 const updateCategory = async (dto: UpdateCategoryDto): Promise<void> => {
     const result = await db.update(categoriesTable)
-        .set({ name: dto.name })
+        .set({ 
+            name: dto.name,
+            color: dto.color || DEFAULT_CATEGORY_COLOR
+        })
         .where(eq(categoriesTable.id, dto.id));
 
     if (result.changes === 0) {
@@ -50,9 +53,22 @@ const updateCategory = async (dto: UpdateCategoryDto): Promise<void> => {
     }
 }
 
+const getCategoryById = async (id: number): Promise<Category> => {
+    const result = await db.query.categories.findFirst({
+        where: eq(categoriesTable.id, id)
+    });
+    
+    if (!result) {
+        throw new Error('Category not found');
+    }
+    
+    return result;
+}
+
 export const categoriesService = {
     getCategories,
     getCategoriesWithTransactionCount,
     createCategory,
-    updateCategory
+    updateCategory,
+    getCategoryById
 };

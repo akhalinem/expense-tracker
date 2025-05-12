@@ -10,6 +10,26 @@ import ThemedText from "~/components/themed/ThemedText";
 import ThemedView from "~/components/themed/ThemedView";
 import ThemedCard from "~/components/themed/ThemedCard";
 
+// Helper function to determine text color based on background color brightness
+const getContrastTextColor = (hexColor: string): string => {
+    // Default to white if no color provided
+    if (!hexColor) return '#FFFFFF';
+
+    // Remove # if present
+    const hex = hexColor.replace('#', '');
+
+    // Handle shorthand hex (e.g., #FFF)
+    const r = parseInt(hex.length === 3 ? hex[0] + hex[0] : hex.substring(0, 2), 16);
+    const g = parseInt(hex.length === 3 ? hex[1] + hex[1] : hex.substring(2, 4), 16);
+    const b = parseInt(hex.length === 3 ? hex[2] + hex[2] : hex.substring(4, 6), 16);
+
+    // Calculate brightness
+    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+
+    // Return black for light backgrounds, white for dark backgrounds
+    return brightness > 125 ? '#000000' : '#FFFFFF';
+};
+
 export default function Categories() {
     const { theme } = useTheme();
     const router = useRouter();
@@ -29,6 +49,7 @@ export default function Categories() {
             params: {
                 id: category.id,
                 name: category.name,
+                color: category.color,
             }
         });
     };
@@ -83,18 +104,30 @@ export default function Categories() {
                         >
                             <View style={styles.categoryContent}>
                                 <View style={styles.categoryHeader}>
-                                    <ThemedText style={styles.categoryName}>{item.name}</ThemedText>
-                                    <ThemedView style={styles.countBadge}>
-                                        <ThemedText style={styles.countText}>
-                                            {item.transactionCount}
-                                        </ThemedText>
-                                    </ThemedView>
+                                    <View style={styles.nameWithColor}>
+                                        <View
+                                            style={[
+                                                styles.colorIndicator,
+                                                { backgroundColor: item.color }
+                                            ]}
+                                        />
+                                        <ThemedText style={styles.categoryName}>{item.name}</ThemedText>
+                                    </View>
                                 </View>
-                                <ThemedText style={styles.categoryInfo}>
-                                    {item.transactionCount === 0
-                                        ? 'No transactions'
-                                        : `${item.transactionCount} transaction${item.transactionCount !== 1 ? 's' : ''}`}
-                                </ThemedText>
+                                <View style={styles.categoryInfoContainer}>
+                                    <View
+                                        style={[
+                                            styles.categoryColorBar,
+                                            { backgroundColor: item.color + '33' } // Adding 20% opacity
+                                        ]}
+                                    >
+                                        <ThemedText style={styles.categoryInfo}>
+                                            {item.transactionCount === 0
+                                                ? 'No transactions'
+                                                : `${item.transactionCount} transaction${item.transactionCount !== 1 ? 's' : ''}`}
+                                        </ThemedText>
+                                    </View>
+                                </View>
                             </View>
                         </ThemedCard>
                     )}
@@ -123,6 +156,7 @@ const styles = StyleSheet.create({
     },
     categoryItem: {
         marginVertical: 4,
+        overflow: 'hidden', // For the borderLeft to look good
     },
     categoryContent: {
         flexDirection: 'column',
@@ -143,17 +177,20 @@ const styles = StyleSheet.create({
         opacity: 0.7,
     },
     countBadge: {
-        backgroundColor: '#007AFF',
         borderRadius: 12,
         paddingHorizontal: 8,
         paddingVertical: 2,
         minWidth: 24,
         alignItems: 'center',
+        // Add a subtle border to ensure visibility on all backgrounds
+        borderWidth: 0.5,
+        borderColor: 'rgba(0,0,0,0.1)',
     },
     countText: {
         color: '#FFFFFF',
         fontSize: 12,
         fontWeight: '600',
+        // Color is set dynamically in the component
     },
     separator: {
         height: 1,
@@ -227,5 +264,24 @@ const styles = StyleSheet.create({
     saveButtonText: {
         color: 'white',
         fontWeight: "600"
-    }
+    },
+    colorIndicator: {
+        width: 16,
+        height: 16,
+        borderRadius: 8,
+        marginRight: 8,
+        borderWidth: 1,
+        borderColor: 'rgba(0,0,0,0.1)',
+    },
+    categoryInfoContainer: {
+        marginTop: 8,
+    },
+    categoryColorBar: {
+        borderRadius: 4,
+        padding: 6,
+    },
+    nameWithColor: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
 });
