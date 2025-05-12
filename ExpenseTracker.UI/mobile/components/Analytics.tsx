@@ -13,7 +13,9 @@ export const Analytics: FC<{ transactions: Transaction[] }> = ({ transactions })
         return transactionDate.getMonth() === currentDate.getMonth() && transactionDate.getFullYear() === currentDate.getFullYear();
     });
 
-    const topCategoriesOfCurrentMonth = getTopCategoriesChartData(currentMonthsTransactions)
+    const topCategoriesOfCurrentMonth = getTopCategoriesChartData(currentMonthsTransactions, 5)
+
+    console.log("topCategoriesOfCurrentMonth:", topCategoriesOfCurrentMonth);
 
     return (
         <ThemedView as={ScrollView} style={styles.container}>

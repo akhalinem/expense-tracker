@@ -69,12 +69,32 @@ export default function RootLayout() {
                                     }}
                                 />
                                 <Stack.Screen
-                                    name="categories"
+                                    name="categories/index"
                                     options={{
                                         headerTintColor: themeValue.theme.text,
                                         headerStyle: {
                                             backgroundColor: themeValue.theme.background,
                                         }
+                                    }}
+                                />
+                                <Stack.Screen
+                                    name="categories/new"
+                                    options={{
+                                        presentation: 'modal',
+                                        headerTintColor: themeValue.theme.text,
+                                        headerStyle: {
+                                            backgroundColor: themeValue.theme.background,
+                                        },
+                                    }}
+                                />
+                                <Stack.Screen
+                                    name="categories/edit"
+                                    options={{
+                                        presentation: 'modal',
+                                        headerTintColor: themeValue.theme.text,
+                                        headerStyle: {
+                                            backgroundColor: themeValue.theme.background,
+                                        },
                                     }}
                                 />
                             </Stack>

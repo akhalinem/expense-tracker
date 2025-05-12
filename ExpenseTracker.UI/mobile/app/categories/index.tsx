@@ -1,26 +1,42 @@
+import { FlatList, StyleSheet, Pressable, View, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useQuery } from "@tanstack/react-query";
-import { Stack } from "expo-router";
+import { Stack, useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { CategoryWithTransactionCount } from "~/types";
 import { categoriesService } from "~/services/categories";
 import { useTheme } from "~/theme";
 import ThemedText from "~/components/themed/ThemedText";
 import ThemedView from "~/components/themed/ThemedView";
-import { FlatList, StyleSheet, Pressable, View } from "react-native";
 import ThemedCard from "~/components/themed/ThemedCard";
 
 export default function Categories() {
     const { theme } = useTheme();
+    const router = useRouter();
+
     const categoriesWithTransactionsCountQuery = useQuery({
         queryKey: ["categoriesWithTransactionsCount"],
         queryFn: () => categoriesService.getCategoriesWithTransactionCount(),
     });
 
+    const handleAddCategory = () => {
+        router.push("/categories/new");
+    };
+
+    const handleEditCategory = (category: CategoryWithTransactionCount) => {
+        router.push({
+            pathname: "/categories/edit",
+            params: {
+                id: category.id,
+                name: category.name,
+            }
+        });
+    };
+
     const categoriesWithTransactionsCount = categoriesWithTransactionsCountQuery.data || [];
     const isLoading = categoriesWithTransactionsCountQuery.isLoading;
     const isError = categoriesWithTransactionsCountQuery.isError;
     const error = categoriesWithTransactionsCountQuery.error;
-
-    console.log("categoriesWithTransactionsCount:", categoriesWithTransactionsCount);
 
     if (isLoading) {
         return (
@@ -63,6 +79,7 @@ export default function Categories() {
                         <ThemedCard
                             as={Pressable}
                             style={styles.categoryItem}
+                            onPress={() => handleEditCategory(item)}
                         >
                             <View style={styles.categoryContent}>
                                 <View style={styles.categoryHeader}>
@@ -84,6 +101,14 @@ export default function Categories() {
                     ItemSeparatorComponent={() => <ThemedView style={styles.separator} />}
                     contentContainerStyle={styles.listContent}
                 />
+
+                {/* Floating Action Button */}
+                <TouchableOpacity
+                    style={[styles.fab, { backgroundColor: theme.primary }]}
+                    onPress={handleAddCategory}
+                >
+                    <Ionicons name="add" size={24} color="white" />
+                </TouchableOpacity>
             </ThemedView>
         </>
     );
@@ -133,5 +158,74 @@ const styles = StyleSheet.create({
     separator: {
         height: 1,
         opacity: 0.2,
+    },
+    fab: {
+        position: 'absolute',
+        right: 20,
+        bottom: 20,
+        width: 56,
+        height: 56,
+        borderRadius: 28,
+        justifyContent: 'center',
+        alignItems: 'center',
+        elevation: 8,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+    },
+    centeredView: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: 'rgba(0, 0, 0, 0.5)'
+    },
+    modalView: {
+        width: '80%',
+        borderRadius: 12,
+        padding: 20,
+        alignItems: "center",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 5
+    },
+    modalTitle: {
+        fontSize: 18,
+        fontWeight: "600",
+        marginBottom: 16
+    },
+    input: {
+        width: '100%',
+        height: 50,
+        borderWidth: 1,
+        borderRadius: 8,
+        padding: 10,
+        marginBottom: 20
+    },
+    modalButtons: {
+        flexDirection: "row",
+        width: '100%',
+        justifyContent: "space-between"
+    },
+    button: {
+        borderRadius: 8,
+        padding: 12,
+        width: '48%',
+        alignItems: 'center'
+    },
+    buttonSave: {
+        elevation: 2
+    },
+    buttonCancel: {
+        backgroundColor: 'transparent'
+    },
+    textStyle: {
+        fontWeight: "500"
+    },
+    saveButtonText: {
+        color: 'white',
+        fontWeight: "600"
     }
 });

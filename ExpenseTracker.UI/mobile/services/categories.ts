@@ -40,8 +40,19 @@ const createCategory = async (category: CreateCategoryDto): Promise<void> => {
     }
 }
 
+const updateCategory = async (id: number, category: CreateCategoryDto): Promise<void> => {
+    const result = await db.update(categoriesTable)
+        .set({ name: category.name })
+        .where(eq(categoriesTable.id, id));
+
+    if (result.changes === 0) {
+        throw new Error('Failed to update category');
+    }
+}
+
 export const categoriesService = {
     getCategories,
     getCategoriesWithTransactionCount,
-    createCategory
+    createCategory,
+    updateCategory
 };
