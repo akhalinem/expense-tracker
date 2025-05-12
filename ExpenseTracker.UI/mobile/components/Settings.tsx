@@ -6,7 +6,13 @@ import { useTheme } from '~/theme';
 import ThemedCard from '~/components/themed/ThemedCard';
 import ThemedView from '~/components/themed/ThemedView';
 
-export default function Settings() {
+export type SettingsSection = 'categories';
+
+export type SettingsProps = {
+    onPress?(section: SettingsSection): void;
+};
+
+export default function Settings(props: SettingsProps) {
     const queryClient = useQueryClient();
     const { theme } = useTheme()
     const clearDbMutation = useMutation({ mutationFn: clearDb })
@@ -63,6 +69,8 @@ export default function Settings() {
         );
     }
 
+    const handlePressCategories = () => props.onPress?.('categories');
+
     return (
         <ThemedView style={styles.container}>
             <SectionHeader title="Data" />
@@ -90,6 +98,7 @@ export default function Settings() {
                 <Button
                     title="Categories"
                     color={theme.primary}
+                    onPress={handlePressCategories}
                 />
             </SettingsSection>
         </ThemedView>

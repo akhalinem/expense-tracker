@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Text, useColorScheme, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { Slot } from 'expo-router';
+import { Stack } from 'expo-router';
 import { useDrizzleStudio } from 'expo-drizzle-studio-plugin';
 import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator'
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
@@ -61,7 +61,23 @@ export default function RootLayout() {
                 <SafeAreaProvider>
                     <GestureHandlerRootView style={{ flex: 1 }}>
                         <BottomSheetModalProvider>
-                            <Slot />
+                            <Stack>
+                                <Stack.Screen
+                                    name="(tabs)"
+                                    options={{
+                                        headerShown: false
+                                    }}
+                                />
+                                <Stack.Screen
+                                    name="categories"
+                                    options={{
+                                        headerTintColor: themeValue.theme.text,
+                                        headerStyle: {
+                                            backgroundColor: themeValue.theme.background,
+                                        }
+                                    }}
+                                />
+                            </Stack>
                         </BottomSheetModalProvider>
                     </GestureHandlerRootView>
                 </SafeAreaProvider>

@@ -73,6 +73,12 @@ export type Category = {
     name: string;
 }
 
+export type CategoryWithTransactionCount = {
+    id: number;
+    name: string;
+    transactionCount: number;
+}
+
 export type CreateExpenseDto = {
     amount: number;
     description: string;

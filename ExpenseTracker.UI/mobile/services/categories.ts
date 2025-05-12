@@ -1,5 +1,6 @@
-import { Category, CreateCategoryDto } from '~/types';
-import { categoriesTable } from '~/db/schema';
+import { count, desc, eq } from 'drizzle-orm';
+import { Category, CategoryWithTransactionCount, CreateCategoryDto } from '~/types';
+import { categoriesTable, transactionsTable } from '~/db/schema';
 import { db } from '~/services/db';
 
 const getCategories = async (): Promise<Category[]> => {
@@ -7,8 +8,26 @@ const getCategories = async (): Promise<Category[]> => {
 
     return result.map((category => ({
         id: category.id,
-        name: category.name
+        name: category.name,
     })));
+}
+
+const getCategoriesWithTransactionCount = async (): Promise<CategoryWithTransactionCount[]> => {
+    const result = await db
+        .select({
+            id: categoriesTable.id,
+            name: categoriesTable.name,
+            transactionCount: count(transactionsTable.id),
+        })
+        .from(categoriesTable)
+        .leftJoin(
+            transactionsTable,
+            eq(categoriesTable.id, transactionsTable.categoryId)
+        )
+        .groupBy(categoriesTable.id, categoriesTable.name)
+        .orderBy(({ transactionCount }) => desc(transactionCount))
+
+    return result;
 }
 
 const createCategory = async (category: CreateCategoryDto): Promise<void> => {
@@ -23,5 +42,6 @@ const createCategory = async (category: CreateCategoryDto): Promise<void> => {
 
 export const categoriesService = {
     getCategories,
+    getCategoriesWithTransactionCount,
     createCategory
 };
