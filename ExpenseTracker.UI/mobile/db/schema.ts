@@ -20,8 +20,15 @@ export const transactionsTable = sqliteTable('transactions', {
     categoryId: int().references(() => categoriesTable.id),
 });
 
+export const transactionCategoriesTable = sqliteTable('transaction_categories', {
+    id: int().primaryKey({ autoIncrement: true }),
+    transactionId: int().notNull().references(() => transactionsTable.id),
+    categoryId: int().notNull().references(() => categoriesTable.id),
+});
+
 export const schema = {
     categories: categoriesTable,
     transactionTypes: transactionTypesTable,
     transactions: transactionsTable,
+    transactionCategories: transactionCategoriesTable
 };
