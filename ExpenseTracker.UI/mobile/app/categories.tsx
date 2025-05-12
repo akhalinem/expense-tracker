@@ -55,7 +55,7 @@ export default function Categories() {
                 }}
             />
 
-            <ThemedView as={SafeAreaView} style={styles.container}>
+            <ThemedView style={styles.container}>
                 <FlatList
                     data={categoriesWithTransactionsCount}
                     keyExtractor={(item) => item.id.toString()}
