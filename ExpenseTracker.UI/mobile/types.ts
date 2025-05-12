@@ -34,6 +34,7 @@ export type Transaction = {
     type: TransactionTypeEnum;
     categoryId: number | null;
     categoryName: string | null;
+    categoryColor: string | null;
     amount: number;
     description: string;
     date: string;

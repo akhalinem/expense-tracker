@@ -7,6 +7,7 @@ import { FlashList, ListRenderItemInfo } from "@shopify/flash-list";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import dayjs from "dayjs";
 import { Transaction, TransactionTypeEnum } from "~/types";
+import { DEFAULT_CATEGORY_COLOR } from "~/constants";
 import { displayCurrency, displayDate } from "~/utils";
 import { transactionsService } from "~/services/transactions";
 import { Theme, useTheme } from "~/theme";
@@ -209,7 +210,7 @@ const TransactionItem: FC<{ transaction: Transaction, }> = ({ transaction, }) =>
 
                             <View style={styles.transactionBottom}>
                                 {transaction.categoryName && (
-                                    <View style={[styles.categoryContainer, { backgroundColor: theme.categoryBg }]}>
+                                    <View style={[styles.categoryContainer, { backgroundColor: transaction.categoryColor ?? DEFAULT_CATEGORY_COLOR }]}>
                                         <ThemedText style={[styles.category, { color: theme.textSecondary }]}>
                                             {transaction.categoryName}
                                         </ThemedText>

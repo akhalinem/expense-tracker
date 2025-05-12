@@ -1,7 +1,7 @@
 import { desc, eq } from "drizzle-orm";
 import dayjs from "dayjs";
 import { CreateIncomeDto, CreateExpenseDto, UpdateExpenseDto, Transaction, TransactionTypeEnum, TransactionTypeEnumSchema, UpdateIncomeDto } from "~/types";
-import { DATE_FORMAT_TO_SAVE_IN_DB } from "~/constants";
+import { DATE_FORMAT_TO_SAVE_IN_DB, DEFAULT_CATEGORY_COLOR } from "~/constants";
 import { categoriesTable, transactionsTable, transactionTypesTable } from "~/db/schema";
 import { db } from "~/services/db";
 
@@ -32,6 +32,7 @@ const getTransactions = async (): Promise<Transaction[]> => {
             description: transactionsTable.description,
             categoryId: transactionsTable.categoryId,
             categoryName: categoriesTable.name,
+            categoryColor: categoriesTable.color,
             date: transactionsTable.date,
             type: transactionTypesTable.name,
         })
@@ -42,6 +43,7 @@ const getTransactions = async (): Promise<Transaction[]> => {
 
     return transactions.map((transaction): Transaction => ({
         ...transaction,
+        categoryColor: transaction.categoryColor ?? DEFAULT_CATEGORY_COLOR,
         type: TransactionTypeEnumSchema.parse(transaction.type),
         description: transaction.description ?? '',
     }));
