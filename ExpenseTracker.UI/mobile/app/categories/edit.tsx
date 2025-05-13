@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
+import { StyleSheet, TextInput, TouchableOpacity, View, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Stack, useRouter, useLocalSearchParams } from "expo-router";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
@@ -48,6 +48,20 @@ export default function EditCategory() {
         }
     });
 
+    const deleteCategoryMutation = useMutation({
+        mutationFn: (id: number) => categoriesService.deleteCategory(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["categoriesWithTransactionsCount"] });
+            router.back();
+        },
+        onError: (error) => {
+            Alert.alert(
+                "Delete Failed",
+                error.message || "This category has linked transactions and cannot be deleted. Unlink the transactions first."
+            );
+        }
+    });
+
     const handleCancel = () => {
         router.back();
     };
@@ -59,6 +73,25 @@ export default function EditCategory() {
             name: categoryName.trim(),
             color: categoryColor
         });
+    };
+
+    const handleDelete = () => {
+        if (!params.id) return;
+
+        Alert.alert(
+            "Delete Category",
+            "Are you sure you want to delete this category? This action cannot be undone.",
+            [
+                { text: "Cancel", style: "cancel" },
+                {
+                    text: "Delete",
+                    style: "destructive",
+                    onPress: () => {
+                        deleteCategoryMutation.mutate(Number(params.id));
+                    }
+                }
+            ]
+        );
     };
 
     if (categoryQuery.isLoading) {
@@ -123,6 +156,22 @@ export default function EditCategory() {
                     selectedColor={categoryColor}
                     onColorSelected={setCategoryColor}
                 />
+
+                {/* Delete button at the bottom */}
+                <View style={styles.deleteButtonContainer}>
+                    <ThemedText style={styles.warningText}>
+                        Note: Categories with linked transactions cannot be deleted.
+                    </ThemedText>
+                    <TouchableOpacity
+                        style={styles.deleteButton}
+                        onPress={handleDelete}
+                        disabled={deleteCategoryMutation.isPending}
+                    >
+                        <ThemedText style={styles.deleteButtonText}>
+                            {deleteCategoryMutation.isPending ? 'Deleting...' : 'Delete Category'}
+                        </ThemedText>
+                    </TouchableOpacity>
+                </View>
             </SafeAreaView>
         </ThemedView>
     );
@@ -165,5 +214,28 @@ const styles = StyleSheet.create({
     colorHex: {
         fontSize: 14,
         opacity: 0.7,
+    },
+    deleteButtonContainer: {
+        marginTop: 'auto',
+        paddingVertical: 20,
+    },
+    warningText: {
+        fontSize: 12,
+        textAlign: 'center',
+        marginBottom: 10,
+        fontStyle: 'italic',
+        opacity: 0.7,
+    },
+    deleteButton: {
+        backgroundColor: '#ff3b30',
+        borderRadius: 8,
+        padding: 15,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    deleteButtonText: {
+        color: 'white',
+        fontWeight: '600',
+        fontSize: 16,
     },
 });

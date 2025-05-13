@@ -65,10 +65,31 @@ const getCategoryById = async (id: number): Promise<Category> => {
     return result;
 }
 
+const deleteCategory = async (id: number): Promise<void> => {
+    // we don't want to let the user delete a category that has transactions, so let's throw an error if it does
+    const linkedTransaction = await db.query.transactionCategories
+        .findFirst({
+            where: eq(transactionCategoriesTable.categoryId, id)
+        });
+
+    if (linkedTransaction) {
+        throw new Error('This category has linked transactions and cannot be deleted. Unlink the transactions first.');
+    }
+
+    const result = await db.delete(categoriesTable)
+        .where(eq(categoriesTable.id, id));
+
+    if (result.changes === 0) {
+        throw new Error('Failed to delete category');
+    }
+
+}
+
 export const categoriesService = {
     getCategories,
     getCategoriesWithTransactionCount,
     createCategory,
     updateCategory,
-    getCategoryById
+    getCategoryById,
+    deleteCategory
 };
