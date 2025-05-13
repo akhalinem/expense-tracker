@@ -21,30 +21,24 @@ export default function CategoryList({ categories, onCategoryPress }: CategoryLi
                     onPress={() => onCategoryPress(item)}
                 >
                     <View style={styles.categoryContent}>
-                        <View style={styles.categoryHeader}>
-                            <View style={styles.nameWithColor}>
-                                <View style={styles.colorIndicatorContainer}>
-                                    {item.transactionCount > 0 && (
-                                        <View
-                                            style={[
-                                                styles.countBadge,
-                                                { backgroundColor: item.color }
-                                            ]}
-                                        >
-                                            <ThemedText
-                                                style={[
-                                                    styles.countText,
-                                                    { color: getContrastTextColor(item.color) }
-                                                ]}
-                                            >
-                                                {displayCount(item.transactionCount)}
-                                            </ThemedText>
-                                        </View>
-                                    )}
-                                </View>
-                                <ThemedText style={styles.categoryName}>{item.name}</ThemedText>
+                        <View style={styles.colorIndicatorContainer}>
+                            <View
+                                style={[
+                                    styles.countBadge,
+                                    { backgroundColor: item.color }
+                                ]}
+                            >
+                                <ThemedText
+                                    style={[
+                                        styles.countText,
+                                        { color: getContrastTextColor(item.color) }
+                                    ]}
+                                >
+                                    {displayCount(item.transactionCount)}
+                                </ThemedText>
                             </View>
                         </View>
+                        <ThemedText style={styles.categoryName}>{item.name}</ThemedText>
                     </View>
                 </ThemedCard>
             )}
@@ -92,12 +86,7 @@ const styles = StyleSheet.create({
         overflow: 'hidden',
     },
     categoryContent: {
-        flexDirection: 'column',
-    },
-    categoryHeader: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
     },
     categoryName: {
         fontSize: 16,
@@ -118,10 +107,6 @@ const styles = StyleSheet.create({
     separator: {
         height: 1,
         opacity: 0.2,
-    },
-    nameWithColor: {
-        flexDirection: 'row',
-        alignItems: 'center',
     },
     colorIndicatorContainer: {
         position: 'relative',
