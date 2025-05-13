@@ -126,11 +126,6 @@ const TransactionItem: FC<{ transaction: Transaction, }> = ({ transaction, }) =>
 
     const handleEdit = (transaction: Transaction) => {
         if (transaction.type === TransactionTypeEnum.EXPENSE) {
-            if (!transaction.categories || !transaction.categories.length) {
-                console.error('Categories are missing');
-                return;
-            }
-
             sheet.open({
                 type: TransactionTypeEnum.EXPENSE,
                 data: {
