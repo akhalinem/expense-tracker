@@ -40,7 +40,7 @@ export const SaveTransaction: FC<{
 const Header: FC<{ type: TransactionTypeEnum, isEditing?: boolean }> = ({ type, isEditing }) => {
     return (
         <View style={{ paddingHorizontal: 16 }}>
-            <TextHeader type={type} isEditing={isEditing} />
+            <HeaderTitle type={type} isEditing={isEditing} />
             {!isEditing && <SegmentedControlHeader type={type} />}
         </View>
     )
@@ -61,7 +61,7 @@ const Divider = () => {
     )
 }
 
-const TextHeader: FC<{ type: TransactionTypeEnum, isEditing?: boolean }> = ({ type, isEditing }) => {
+const HeaderTitle: FC<{ type: TransactionTypeEnum, isEditing?: boolean }> = ({ type, isEditing }) => {
     const { theme } = useTheme();
 
     const action = isEditing ? 'Edit' : 'Add';
@@ -105,7 +105,7 @@ const SegmentedControlHeader: FC<{ type: TransactionTypeEnum }> = ({ type }) => 
 
     return (
         <SegmentedControl
-            style={{ height: 40 }}
+            style={{ height: 40, marginTop: 12 }}
             fontStyle={{ fontSize: 16, color: theme.text }}
             activeFontStyle={{ fontSize: 16, color: theme.text }}
             tabStyle={{ backgroundColor: theme.background }}
