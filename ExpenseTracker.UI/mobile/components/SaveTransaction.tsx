@@ -7,6 +7,7 @@ import ThemedText from "~/components/themed/ThemedText";
 import { useTheme } from "~/theme";
 import ExpenseForm from "~/components/ExpenseForm";
 import IncomeForm from "~/components/IncomeForm";
+import ThemedView from "./themed/ThemedView";
 
 export const SaveTransaction: FC<{
     type: TransactionTypeEnum,
@@ -16,7 +17,7 @@ export const SaveTransaction: FC<{
     const { type, transaction, onClose } = props;
 
     return (
-        <View style={styles.container}>
+        <ThemedView style={styles.container}>
             <Header type={type} isEditing={!!transaction} />
 
             <Divider />
@@ -33,7 +34,7 @@ export const SaveTransaction: FC<{
                     onClose={onClose}
                 />
             )}
-        </View>
+        </ThemedView>
     );
 }
 
@@ -119,5 +120,8 @@ const SegmentedControlHeader: FC<{ type: TransactionTypeEnum }> = ({ type }) => 
 }
 
 const styles = StyleSheet.create({
-    container: { paddingVertical: 16 }
+    container: {
+        flex: 1,
+        paddingVertical: 16
+    }
 });
