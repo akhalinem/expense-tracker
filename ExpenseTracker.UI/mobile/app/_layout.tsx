@@ -5,7 +5,6 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Stack } from 'expo-router';
 import { useDrizzleStudio } from 'expo-drizzle-studio-plugin';
 import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator'
-import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { db, expoSqliteDb } from '~/services/db';
 import migrations from '~/drizzle/migrations';
@@ -60,45 +59,45 @@ export default function RootLayout() {
             <ThemeContext.Provider value={themeValue}>
                 <SafeAreaProvider>
                     <GestureHandlerRootView style={{ flex: 1 }}>
-                        <BottomSheetModalProvider>
-                            <Stack>
-                                <Stack.Screen
-                                    name="(tabs)"
-                                    options={{
-                                        headerShown: false
-                                    }}
-                                />
-                                <Stack.Screen
-                                    name="categories/index"
-                                    options={{
-                                        headerTintColor: themeValue.theme.text,
-                                        headerStyle: {
-                                            backgroundColor: themeValue.theme.background,
-                                        }
-                                    }}
-                                />
-                                <Stack.Screen
-                                    name="categories/new"
-                                    options={{
-                                        presentation: 'modal',
-                                        headerTintColor: themeValue.theme.text,
-                                        headerStyle: {
-                                            backgroundColor: themeValue.theme.background,
-                                        },
-                                    }}
-                                />
-                                <Stack.Screen
-                                    name="categories/edit"
-                                    options={{
-                                        presentation: 'modal',
-                                        headerTintColor: themeValue.theme.text,
-                                        headerStyle: {
-                                            backgroundColor: themeValue.theme.background,
-                                        },
-                                    }}
-                                />
-                            </Stack>
-                        </BottomSheetModalProvider>
+                        <Stack>
+                            <Stack.Screen
+                                name="(tabs)"
+                                options={{
+                                    headerShown: false
+                                }}
+                            />
+                            <Stack.Screen
+                                name="categories/index"
+                                options={{
+                                    headerTintColor: themeValue.theme.text,
+                                    headerStyle: {
+                                        backgroundColor: themeValue.theme.background,
+                                    }
+                                }}
+                            />
+                            <Stack.Screen
+                                name="categories/new"
+                                options={{
+                                    presentation: 'modal',
+                                    headerTintColor: themeValue.theme.text,
+                                    headerStyle: {
+                                        backgroundColor: themeValue.theme.background,
+                                    },
+                                }}
+                            />
+                            <Stack.Screen
+                                name="categories/edit"
+                                options={{
+                                    presentation: 'modal',
+                                    headerTintColor: themeValue.theme.text,
+                                    headerStyle: {
+                                        backgroundColor: themeValue.theme.background,
+                                    },
+                                }}
+                            />
+                            <Stack.Screen name="new-transaction" options={{ headerShown: false, presentation: 'modal' }} />
+                            <Stack.Screen name="edit-transaction" options={{ headerShown: false, presentation: 'modal' }} />
+                        </Stack>
                     </GestureHandlerRootView>
                 </SafeAreaProvider>
             </ThemeContext.Provider >

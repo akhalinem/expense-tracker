@@ -221,6 +221,48 @@ const updateIncome = async (dto: UpdateIncomeDto): Promise<void> => {
     }
 }
 
+const getTransactionById = async (transactionId: number): Promise<Transaction | null> => {
+    const transaction = db
+        .select({
+            id: transactionsTable.id,
+            amount: transactionsTable.amount,
+            description: transactionsTable.description,
+            date: transactionsTable.date,
+            type: transactionTypesTable.name,
+            categories: transactionCategoriesTable.categoryId,
+        })
+        .from(transactionsTable)
+        .innerJoin(transactionTypesTable, eq(transactionsTable.typeId, transactionTypesTable.id))
+        .leftJoin(transactionCategoriesTable, eq(transactionsTable.id, transactionCategoriesTable.transactionId))
+        .where(eq(transactionsTable.id, transactionId))
+        .get();
+
+    if (!transaction) {
+        return null;
+    }
+
+    const categories = await db
+        .select({
+            id: categoriesTable.id,
+            name: categoriesTable.name,
+            color: categoriesTable.color,
+        })
+        .from(categoriesTable)
+        .innerJoin(transactionCategoriesTable, eq(categoriesTable.id, transactionCategoriesTable.categoryId))
+        .where(eq(transactionCategoriesTable.transactionId, transactionId));
+
+        return {
+            ...transaction,
+            type: TransactionTypeEnumSchema.parse(transaction.type),
+            description: transaction.description || '',
+            categories: categories.map(category => ({
+                id: category.id,
+                name: category.name,
+                color: category.color || DEFAULT_CATEGORY_COLOR,
+            })),
+        };  
+};
+
 export const transactionsService = {
     createTransactionType,
     getTransactions,
@@ -229,4 +271,5 @@ export const transactionsService = {
     deleteTransaction,
     createIncome,
     updateIncome,
+    getTransactionById,
 };

@@ -3,7 +3,6 @@ import { useForm, Controller } from 'react-hook-form';
 import { NumericFormat, useNumericFormat } from 'react-number-format';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { ExpenseFormData, ExpenseFormSchema, Expense } from '~/types';
@@ -92,7 +91,6 @@ export default function ExpenseForm({ data, onClose }: ExpenseFormProps) {
                         name="description"
                         render={({ field: { onChange, value } }) => (
                             <ThemedTextInput
-                                as={BottomSheetTextInput}
                                 placeholder="Enter description"
                                 value={value}
                                 onChangeText={onChange}
@@ -113,7 +111,6 @@ export default function ExpenseForm({ data, onClose }: ExpenseFormProps) {
                                 thousandSeparator=' '
                                 renderText={(formattedValue) => (
                                     <ThemedTextInput
-                                        as={BottomSheetTextInput}
                                         keyboardType="decimal-pad"
                                         placeholder="0.00"
                                         value={formattedValue}

@@ -2,6 +2,7 @@ import { FC, useMemo } from "react";
 import { StyleSheet, View, TouchableOpacity, Alert } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeable";
+import { useRouter } from "expo-router";
 import { Ionicons } from '@expo/vector-icons';
 import { FlashList, ListRenderItemInfo } from "@shopify/flash-list";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -14,15 +15,14 @@ import { Theme, useTheme } from "~/theme";
 import ThemedView from "~/components/themed/ThemedView";
 import ThemedText from "~/components/themed/ThemedText";
 import ThemedButton from "~/components/themed/ThemedButton";
-import { TransactionSheet, useTransactionSheet } from "~/components/SaveTransactionSheet";
 
 export const Transactions: FC<{ transactions: Transaction[] }> = ({ transactions }) => {
     const insets = useSafeAreaInsets()
-    const sheet = useTransactionSheet()
+    const router = useRouter();
 
-    const handleAddNew = () => sheet.open({
-        type: TransactionTypeEnum.EXPENSE,
-        data: null
+    const handleAddNew = () => router.push({
+        pathname: "new-transaction",
+        params: { type: TransactionTypeEnum.EXPENSE }
     });
 
     const { data, stickyHeaderIndices } = useMemo(() => getListData(transactions), [transactions]);
@@ -53,8 +53,6 @@ export const Transactions: FC<{ transactions: Transaction[] }> = ({ transactions
                     onPress={handleAddNew}
                 />
             </View>
-
-            <TransactionSheet sheet={sheet} />
         </>
     );
 };
@@ -96,8 +94,8 @@ const getTransactionIcon = (type: string, theme: Theme): TransactionIcon => {
 // Transaction item component
 const TransactionItem: FC<{ transaction: Transaction, }> = ({ transaction, }) => {
     const { theme } = useTheme();
-    const queryClient = useQueryClient()
-    const sheet = useTransactionSheet()
+    const queryClient = useQueryClient();
+    const router = useRouter();
 
     const deleteMutation = useMutation({
         mutationFn: transactionsService.deleteTransaction,
@@ -126,24 +124,17 @@ const TransactionItem: FC<{ transaction: Transaction, }> = ({ transaction, }) =>
 
     const handleEdit = (transaction: Transaction) => {
         if (transaction.type === TransactionTypeEnum.EXPENSE) {
-            sheet.open({
-                type: TransactionTypeEnum.EXPENSE,
-                data: {
+            router.push({
+                pathname: "edit-transaction",
+                params: {
                     id: transaction.id,
-                    amount: transaction.amount,
-                    categories: transaction.categories,
-                    date: transaction.date,
-                    description: transaction.description
                 }
             });
         } else if (transaction.type === TransactionTypeEnum.INCOME) {
-            sheet.open({
-                type: TransactionTypeEnum.INCOME,
-                data: {
+            router.push({
+                pathname: "edit-transaction",
+                params: {
                     id: transaction.id,
-                    amount: transaction.amount,
-                    date: transaction.date,
-                    description: transaction.description
                 }
             });
         }
@@ -175,70 +166,66 @@ const TransactionItem: FC<{ transaction: Transaction, }> = ({ transaction, }) =>
     const amountColor = isIncome ? theme.success : theme.error;
 
     return (
-        <>
-            <View style={[styles.transactionItemContainer, { borderTopColor: theme.border }]}>
-                <ReanimatedSwipeable
-                    renderRightActions={() => renderRightActions(transaction)}
-                    rightThreshold={80}
-                >
-                    <View style={[styles.transactionItemContent, { backgroundColor: theme.background, }]}>
-                        <View style={styles.iconContainer}>
-                            <View style={[styles.icon, { backgroundColor: icon.backgroundColor }]}>
-                                <Ionicons name={icon.name} size={24} color={icon.color} />
-                            </View>
-                        </View>
-
-                        <View style={styles.detailsContainer}>
-                            <View style={styles.transactionTop}>
-                                <ThemedText
-                                    numberOfLines={1}
-                                    ellipsizeMode="tail"
-                                    style={styles.merchant}>
-                                    {transaction.description}
-                                </ThemedText>
-                                <ThemedText
-                                    style={[styles.amount, { color: amountColor }]}>
-                                    {displayCurrency(transaction.amount)}
-                                </ThemedText>
-                            </View>
-
-                            <View style={styles.transactionBottom}>
-                                {transaction.categories && transaction.categories.length > 0 ? (
-                                    <View style={styles.categoriesContainer}>
-                                        {transaction.categories.slice(0, 2).map((category, index) => (
-                                            <View
-                                                key={category.id}
-                                                style={[
-                                                    styles.categoryContainer,
-                                                    { backgroundColor: category.color ?? DEFAULT_CATEGORY_COLOR },
-                                                    index > 0 && { marginLeft: 4 }
-                                                ]}
-                                            >
-                                                <ThemedText style={[styles.category, { color: theme.text }]}>
-                                                    {category.name}
-                                                </ThemedText>
-                                            </View>
-                                        ))}
-                                        {transaction.categories.length > 2 && (
-                                            <View style={styles.moreCategoriesContainer}>
-                                                <ThemedText style={styles.moreCategoriesText}>
-                                                    +{transaction.categories.length - 2}
-                                                </ThemedText>
-                                            </View>
-                                        )}
-                                    </View>
-                                ) : null}
-                                <ThemedText style={[styles.time, { color: theme.textSecondary }]}>
-                                    {dayjs(transaction.date).format("HH:mm")}
-                                </ThemedText>
-                            </View>
+        <View style={[styles.transactionItemContainer, { borderTopColor: theme.border }]}>
+            <ReanimatedSwipeable
+                renderRightActions={() => renderRightActions(transaction)}
+                rightThreshold={80}
+            >
+                <View style={[styles.transactionItemContent, { backgroundColor: theme.background, }]}>
+                    <View style={styles.iconContainer}>
+                        <View style={[styles.icon, { backgroundColor: icon.backgroundColor }]}>
+                            <Ionicons name={icon.name} size={24} color={icon.color} />
                         </View>
                     </View>
-                </ReanimatedSwipeable>
-            </View>
 
-            <TransactionSheet sheet={sheet} />
-        </>
+                    <View style={styles.detailsContainer}>
+                        <View style={styles.transactionTop}>
+                            <ThemedText
+                                numberOfLines={1}
+                                ellipsizeMode="tail"
+                                style={styles.merchant}>
+                                {transaction.description}
+                            </ThemedText>
+                            <ThemedText
+                                style={[styles.amount, { color: amountColor }]}>
+                                {displayCurrency(transaction.amount)}
+                            </ThemedText>
+                        </View>
+
+                        <View style={styles.transactionBottom}>
+                            {transaction.categories && transaction.categories.length > 0 ? (
+                                <View style={styles.categoriesContainer}>
+                                    {transaction.categories.slice(0, 2).map((category, index) => (
+                                        <View
+                                            key={category.id}
+                                            style={[
+                                                styles.categoryContainer,
+                                                { backgroundColor: category.color ?? DEFAULT_CATEGORY_COLOR },
+                                                index > 0 && { marginLeft: 4 }
+                                            ]}
+                                        >
+                                            <ThemedText style={[styles.category, { color: theme.text }]}>
+                                                {category.name}
+                                            </ThemedText>
+                                        </View>
+                                    ))}
+                                    {transaction.categories.length > 2 && (
+                                        <View style={styles.moreCategoriesContainer}>
+                                            <ThemedText style={styles.moreCategoriesText}>
+                                                +{transaction.categories.length - 2}
+                                            </ThemedText>
+                                        </View>
+                                    )}
+                                </View>
+                            ) : null}
+                            <ThemedText style={[styles.time, { color: theme.textSecondary }]}>
+                                {dayjs(transaction.date).format("HH:mm")}
+                            </ThemedText>
+                        </View>
+                    </View>
+                </View>
+            </ReanimatedSwipeable>
+        </View>
     );
 };
 
