@@ -137,11 +137,6 @@ export default function IncomeForm({ data, onClose }: IncomeFormProps) {
 
             <View style={[styles.section, styles.footer]}>
                 <ThemedButton
-                    title="Cancel"
-                    onPress={onClose}
-                    variant="secondary"
-                />
-                <ThemedButton
                     title='Save'
                     onPress={onSubmit}
                     loading={isSubmitting}

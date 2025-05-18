@@ -160,11 +160,6 @@ export default function ExpenseForm({ data, onClose }: ExpenseFormProps) {
 
             <View style={[styles.section, styles.footer]}>
                 <ThemedButton
-                    title="Cancel"
-                    onPress={onClose}
-                    variant="secondary"
-                />
-                <ThemedButton
                     title='Save'
                     onPress={onSubmit}
                     loading={isSubmitting}
