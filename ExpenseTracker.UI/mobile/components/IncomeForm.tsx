@@ -83,6 +83,7 @@ export default function IncomeForm({ data, onClose }: IncomeFormProps) {
                                     <ThemedTextInput
                                         keyboardType="decimal-pad"
                                         placeholder="0.00"
+                                        autoFocus
                                         value={formattedValue}
                                         onChangeText={(value) => {
                                             const extractedValue = numericFormat.removeFormatting?.(value);

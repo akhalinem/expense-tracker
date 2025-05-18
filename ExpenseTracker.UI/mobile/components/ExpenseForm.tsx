@@ -96,6 +96,7 @@ export default function ExpenseForm({ data, onClose }: ExpenseFormProps) {
                                     <ThemedTextInput
                                         keyboardType="decimal-pad"
                                         placeholder="0.00"
+                                        autoFocus
                                         value={formattedValue}
                                         onChangeText={(value) => {
                                             const extractedValue = numericFormat.removeFormatting?.(value);
