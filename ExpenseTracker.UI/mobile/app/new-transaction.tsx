@@ -4,12 +4,12 @@ import { TransactionTypeEnum } from "~/types";
 import { SaveTransaction } from "~/components/SaveTransaction";
 
 export default function NewTransactionScreen() {
-    const params = useLocalSearchParams<{ type: TransactionTypeEnum }>();
     const router = useRouter();
+    const { type = TransactionTypeEnum.EXPENSE } = useLocalSearchParams<{ type?: TransactionTypeEnum }>();
 
     return (
         <SaveTransaction
-            type={params.type}
+            type={type}
             onClose={() => router.back()}
         />
     );

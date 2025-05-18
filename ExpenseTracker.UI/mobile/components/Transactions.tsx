@@ -1,4 +1,4 @@
-import { FC, useMemo } from "react";
+import { FC, useEffect, useLayoutEffect, useMemo } from "react";
 import { StyleSheet, View, TouchableOpacity, Alert } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeable";
@@ -164,6 +164,10 @@ const TransactionItem: FC<{ transaction: Transaction, }> = ({ transaction, }) =>
     const isIncome = transaction.type === "income";
     // Colors based on transaction type
     const amountColor = isIncome ? theme.success : theme.error;
+
+    useLayoutEffect(() => {
+        router.push("new-transaction")
+    }, [])
 
     return (
         <View style={[styles.transactionItemContainer, { borderTopColor: theme.border }]}>
