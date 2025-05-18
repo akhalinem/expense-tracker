@@ -5,7 +5,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
-import { ExpenseFormData, ExpenseFormSchema, Expense } from '~/types';
+import { ExpenseFormData, ExpenseFormSchema, Expense, CreateExpenseDto, UpdateExpenseDto } from '~/types';
 import { transactionsService } from '~/services/transactions';
 import { useCategoriesToggle } from '~/hooks/useCategoriesToggle';
 import ThemedText from '~/components/themed/ThemedText';
@@ -20,21 +20,16 @@ type ExpenseFormProps = {
 
 export default function ExpenseForm({ data, onClose }: ExpenseFormProps) {
     const queryClient = useQueryClient();
-    const { control, setValue, handleSubmit, formState: { errors, isSubmitting } } = useForm<ExpenseFormData>({
+    const form = useForm<ExpenseFormData>({
         resolver: zodResolver(ExpenseFormSchema),
-        defaultValues: {
-            amount: data?.amount ?? null,
-            description: data?.description ?? '',
-            categoryIds: data?.categories.map(category => category.id) ?? [],
-            date: data?.date ? dayjs(data.date).toDate() : new Date()
-        },
+        defaultValues: getDefaultFormValues(data),
     });
 
     const categoriesToggle = useCategoriesToggle({
         multiple: true,
         defaultSelected: data?.categories ? data.categories.map(category => category.id) : [],
         onChanged: (selectedCategoryId) => {
-            setValue('categoryIds', selectedCategoryId);
+            form.setValue('categoryIds', selectedCategoryId);
         }
     });
 
@@ -42,7 +37,6 @@ export default function ExpenseForm({ data, onClose }: ExpenseFormProps) {
         mutationFn: transactionsService.createExpense,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['transactions'] });
-            onClose();
         },
     });
 
@@ -54,22 +48,16 @@ export default function ExpenseForm({ data, onClose }: ExpenseFormProps) {
         },
     });
 
-    const onSubmit = handleSubmit(async (formValues) => {
+    const onSubmit = form.handleSubmit(async (formValues) => {
         try {
             if (data) {
                 await updateExpenseMutation.mutateAsync({
                     id: data.id,
-                    amount: formValues.amount ?? 0,
-                    description: formValues.description,
-                    categoryIds: formValues.categoryIds,
-                    date: formValues.date,
+                    ...mapFormValuesToExpense(formValues),
                 });
             } else {
                 await addExpenseMutation.mutateAsync({
-                    amount: formValues.amount ?? 0,
-                    description: formValues.description,
-                    categoryIds: formValues.categoryIds,
-                    date: formValues.date,
+                    ...mapFormValuesToExpense(formValues),
                 });
             }
         } catch (e) {
@@ -85,7 +73,7 @@ export default function ExpenseForm({ data, onClose }: ExpenseFormProps) {
                 <View style={[styles.section, styles.field]}>
                     <ThemedText style={styles.label}>Amount</ThemedText>
                     <Controller
-                        control={control}
+                        control={form.control}
                         name="amount"
                         render={({ field }) => (
                             <NumericFormat
@@ -104,19 +92,19 @@ export default function ExpenseForm({ data, onClose }: ExpenseFormProps) {
 
                                             field.onChange(parsedValue);
                                         }}
-                                        error={!!errors.amount} />
+                                        error={!!form.formState.errors.amount} />
                                 )} />
                         )}
                     />
-                    {errors.amount && (
-                        <ThemedText style={styles.errorText}>{errors.amount.message}</ThemedText>
+                    {form.formState.errors.amount && (
+                        <ThemedText style={styles.errorText}>{form.formState.errors.amount.message}</ThemedText>
                     )}
                 </View>
 
                 <View style={[styles.section, styles.field]}>
                     <ThemedText style={styles.label}>Description</ThemedText>
                     <Controller
-                        control={control}
+                        control={form.control}
                         name="description"
                         render={({ field: { onChange, value } }) => (
                             <ThemedTextInput
@@ -131,7 +119,7 @@ export default function ExpenseForm({ data, onClose }: ExpenseFormProps) {
                 <View style={[styles.section, styles.field, {}]}>
                     <ThemedText style={[styles.label]}>Date:</ThemedText>
                     <Controller
-                        control={control}
+                        control={form.control}
                         name="date"
                         render={({ field: { onChange, value } }) => (
                             <DateTimePicker
@@ -151,8 +139,8 @@ export default function ExpenseForm({ data, onClose }: ExpenseFormProps) {
                 <View style={styles.field}>
                     <ThemedText style={[styles.section, styles.label]}>Category</ThemedText>
                     <CategoryPicker categoriesToggle={categoriesToggle} />
-                    {errors.categoryIds && (
-                        <ThemedText style={styles.errorText}>{errors.categoryIds.message}</ThemedText>
+                    {form.formState.errors.categoryIds && (
+                        <ThemedText style={styles.errorText}>{form.formState.errors.categoryIds.message}</ThemedText>
                     )}
                 </View>
             </View>
@@ -161,7 +149,7 @@ export default function ExpenseForm({ data, onClose }: ExpenseFormProps) {
                 <ThemedButton
                     title='Save'
                     onPress={onSubmit}
-                    loading={isSubmitting}
+                    loading={form.formState.isSubmitting}
                 />
             </View>
         </View>
@@ -199,3 +187,21 @@ const styles = StyleSheet.create({
         marginTop: 4,
     },
 });
+
+const getDefaultFormValues = (data?: Expense | null) => {
+    return {
+        amount: data?.amount ?? null,
+        description: data?.description ?? '',
+        categoryIds: data?.categories.map(category => category.id) ?? [],
+        date: data?.date ? dayjs(data.date).toDate() : new Date()
+    }
+};
+
+const mapFormValuesToExpense = (formValues: ExpenseFormData): CreateExpenseDto | UpdateExpenseDto => {
+    return {
+        amount: formValues.amount ?? 0,
+        description: formValues.description,
+        categoryIds: formValues.categoryIds,
+        date: formValues.date,
+    }
+}
