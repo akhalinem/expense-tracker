@@ -70,21 +70,6 @@ export default function IncomeForm({ data, onClose }: IncomeFormProps) {
         <View style={styles.form}>
             <View style={styles.content}>
                 <View style={[styles.section, styles.field]}>
-                    <ThemedText style={styles.label}>Description</ThemedText>
-                    <Controller
-                        control={control}
-                        name="description"
-                        render={({ field: { onChange, value } }) => (
-                            <ThemedTextInput
-                                placeholder="Enter description"
-                                value={value}
-                                onChangeText={onChange}
-                            />
-                        )}
-                    />
-                </View>
-
-                <View style={[styles.section, styles.field]}>
                     <ThemedText style={styles.label}>Amount</ThemedText>
                     <Controller
                         control={control}
@@ -112,6 +97,21 @@ export default function IncomeForm({ data, onClose }: IncomeFormProps) {
                     {errors.amount && (
                         <ThemedText style={styles.errorText}>{errors.amount.message}</ThemedText>
                     )}
+                </View>
+
+                <View style={[styles.section, styles.field]}>
+                    <ThemedText style={styles.label}>Description</ThemedText>
+                    <Controller
+                        control={control}
+                        name="description"
+                        render={({ field: { onChange, value } }) => (
+                            <ThemedTextInput
+                                placeholder="Enter description"
+                                value={value}
+                                onChangeText={onChange}
+                            />
+                        )}
+                    />
                 </View>
 
                 <View style={[styles.section, styles.field, {}]}>
