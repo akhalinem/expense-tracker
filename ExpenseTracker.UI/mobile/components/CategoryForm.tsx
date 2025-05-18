@@ -40,6 +40,7 @@ export default function CategoryForm({
             categoriesService.createCategory({ name, color }),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["categoriesWithTransactionsCount"] });
+            queryClient.invalidateQueries({ queryKey: ["categories"] });
             onSuccess();
         }
     });
@@ -50,6 +51,7 @@ export default function CategoryForm({
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["categoriesWithTransactionsCount"] });
             queryClient.invalidateQueries({ queryKey: ["transactions"] });
+            queryClient.invalidateQueries({ queryKey: ["categories"] },);
             onSuccess();
         }
     });
@@ -58,6 +60,7 @@ export default function CategoryForm({
         mutationFn: (id: number) => categoriesService.deleteCategory(id),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["categoriesWithTransactionsCount"] });
+            queryClient.invalidateQueries({ queryKey: ["categories"] });
             onSuccess();
         },
         onError: (error) => {
