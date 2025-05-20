@@ -8,7 +8,6 @@ export default function RootLayout() {
     return (
         <Tabs
             initialRouteName='transactions'
-
             screenOptions={{
                 tabBarActiveTintColor: theme.primary,
                 tabBarInactiveTintColor: theme.textSecondary,

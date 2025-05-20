@@ -20,10 +20,12 @@ export const Transactions: FC<{ transactions: Transaction[] }> = ({ transactions
     const insets = useSafeAreaInsets()
     const router = useRouter();
 
-    const handleAddNew = () => router.push({
-        pathname: "new-transaction",
-        params: { type: TransactionTypeEnum.EXPENSE }
-    });
+    const handleAddNew = () => {
+        router.push({
+            pathname: "new-transaction",
+            params: { type: TransactionTypeEnum.EXPENSE }
+        });
+    }
 
     const { data, stickyHeaderIndices } = useMemo(() => getListData(transactions), [transactions]);
 
@@ -164,10 +166,6 @@ const TransactionItem: FC<{ transaction: Transaction, }> = ({ transaction, }) =>
     const isIncome = transaction.type === "income";
     // Colors based on transaction type
     const amountColor = isIncome ? theme.success : theme.error;
-
-    useLayoutEffect(() => {
-        router.push("new-transaction")
-    }, [])
 
     return (
         <View style={[styles.transactionItemContainer, { borderTopColor: theme.border }]}>
