@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { Category } from '~/types';
+import { CategoryWithTransactionCount } from '~/types';
 import { categoriesService } from '~/services/categories';
 
 export type UseCategoriesToggleProps = {
@@ -11,7 +11,7 @@ export type UseCategoriesToggleProps = {
 
 export type UserCategoriesToggleReturn = {
     multiple: boolean;
-    categories: Category[];
+    categories: CategoryWithTransactionCount[];
     selected: Set<number>;
     toggle: (categoryId: number) => void;
     refetch: () => void;
@@ -24,10 +24,11 @@ export const useCategoriesToggle = ({ multiple = false, defaultSelected, onChang
         () => new Set(defaultSelected ?? [])
     );
 
-    const categoriesQuery = useQuery({
-        queryKey: ['categories'],
-        queryFn: categoriesService.getCategories,
-        placeholderData: keepPreviousData
+    const categoriesWithTransactionsCountQuery = useQuery({
+        queryKey: ['categoriesWithTransactionsCount'],
+        queryFn: categoriesService.getCategoriesWithTransactionCount,
+        placeholderData: keepPreviousData,
+        select: (data) => [...data].sort((a, b) => b.transactionCount - a.transactionCount)
     });
 
     const toggle = (categoryId: number) => {
@@ -51,11 +52,11 @@ export const useCategoriesToggle = ({ multiple = false, defaultSelected, onChang
 
     return {
         multiple,
-        categories: categoriesQuery.data ?? [],
+        categories: categoriesWithTransactionsCountQuery.data ?? [],
         selected: selectedCategories,
         toggle,
-        refetch: categoriesQuery.refetch,
-        isLoading: categoriesQuery.isFetching,
-        isError: categoriesQuery.isError
+        refetch: categoriesWithTransactionsCountQuery.refetch,
+        isLoading: categoriesWithTransactionsCountQuery.isFetching,
+        isError: categoriesWithTransactionsCountQuery.isError
     };
 };
