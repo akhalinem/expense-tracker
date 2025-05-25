@@ -78,7 +78,7 @@ export default function ExpenseForm({ data, onClose }: ExpenseFormProps) {
                         name="amount"
                         render={({ field }) => (
                             <NumericFormat
-                                value={field.value}
+                                value={field.value ?? ''}
                                 displayType='text'
                                 thousandSeparator=' '
                                 renderText={(formattedValue) => (
