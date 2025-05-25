@@ -11,13 +11,11 @@ type CategoryPickerModalProps = {
 }
 
 export default function CategoryPickerModal({ categoriesToggle }: CategoryPickerModalProps) {
-    const { categories: allCategories, selected, toggle } = categoriesToggle;
+    const { categories, selected, toggle } = categoriesToggle;
     const { theme } = useTheme();
-    const categories = allCategories
 
     const [visible, setVisible] = useState(false);
 
-    // Selected category names to display in the selector
     const selectedCategoryNames = categories
         .filter(cat => selected.has(cat.id))
         .map(cat => cat.name)
