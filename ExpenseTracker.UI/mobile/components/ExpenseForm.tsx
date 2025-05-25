@@ -10,7 +10,7 @@ import { transactionsService } from '~/services/transactions';
 import { useCategoriesToggle } from '~/hooks/useCategoriesToggle';
 import ThemedText from '~/components/themed/ThemedText';
 import ThemedButton from '~/components/themed/ThemedButton';
-import CategoryPicker from '~/components/CategoryPicker';
+import CategoryPickerModal from './CategoryPickerModal';
 import ThemedTextInput from '~/components/themed/ThemedTextInput';
 
 type ExpenseFormProps = {
@@ -138,7 +138,7 @@ export default function ExpenseForm({ data, onClose }: ExpenseFormProps) {
 
                 <View style={styles.field}>
                     <ThemedText style={[styles.section, styles.label]}>Category</ThemedText>
-                    <CategoryPicker categoriesToggle={categoriesToggle} />
+                    <CategoryPickerModal categoriesToggle={categoriesToggle} />
                     {form.formState.errors.categoryIds && (
                         <ThemedText style={styles.errorText}>{form.formState.errors.categoryIds.message}</ThemedText>
                     )}
