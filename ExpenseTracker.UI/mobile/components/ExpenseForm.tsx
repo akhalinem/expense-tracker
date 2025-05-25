@@ -10,8 +10,8 @@ import { transactionsService } from '~/services/transactions';
 import { useCategoriesToggle } from '~/hooks/useCategoriesToggle';
 import ThemedText from '~/components/themed/ThemedText';
 import ThemedButton from '~/components/themed/ThemedButton';
-import CategoryPickerModal from './CategoryPickerModal';
 import ThemedTextInput from '~/components/themed/ThemedTextInput';
+import CategoryPickerModal from '~/components/CategoryPickerModal';
 
 type ExpenseFormProps = {
     data?: Expense | null;
