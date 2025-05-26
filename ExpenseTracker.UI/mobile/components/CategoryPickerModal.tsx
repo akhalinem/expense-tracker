@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { FC, useState } from 'react';
 import { StyleSheet, Modal, TouchableOpacity, KeyboardAvoidingView, FlatList } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '~/theme';
@@ -10,10 +10,10 @@ type CategoryPickerModalProps = {
     categoriesToggle: UserCategoriesToggleReturn;
 }
 
-export default function CategoryPickerModal({ categoriesToggle }: CategoryPickerModalProps) {
+export const CategoryPickerModal: FC<CategoryPickerModalProps> = ({ categoriesToggle }: CategoryPickerModalProps) => {
     const { categories, selected, toggle } = categoriesToggle;
-    const { theme } = useTheme();
 
+    const { theme } = useTheme();
     const [visible, setVisible] = useState(false);
 
     const selectedCategoryNames = categories

@@ -14,6 +14,7 @@ export type UserCategoriesToggleReturn = {
     categories: CategoryWithTransactionCount[];
     selected: Set<number>;
     toggle: (categoryId: number) => void;
+    setCategories: (ids: number[]) => void;
     refetch: () => void;
     isLoading: boolean;
     isError: boolean;
@@ -46,6 +47,10 @@ export const useCategoriesToggle = ({ multiple = false, defaultSelected, onChang
         });
     };
 
+    const setCategories = (ids: number[]) => {
+        setSelectedCategories(new Set(ids));
+    };
+
     useEffect(() => {
         onChanged?.(Array.from(selectedCategories));
     }, [selectedCategories]);
@@ -55,6 +60,7 @@ export const useCategoriesToggle = ({ multiple = false, defaultSelected, onChang
         categories: categoriesWithTransactionsCountQuery.data ?? [],
         selected: selectedCategories,
         toggle,
+        setCategories,
         refetch: categoriesWithTransactionsCountQuery.refetch,
         isLoading: categoriesWithTransactionsCountQuery.isFetching,
         isError: categoriesWithTransactionsCountQuery.isError

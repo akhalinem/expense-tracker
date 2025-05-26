@@ -8,10 +8,12 @@ import dayjs from 'dayjs';
 import { ExpenseFormData, ExpenseFormSchema, Expense, CreateExpenseDto, UpdateExpenseDto } from '~/types';
 import { transactionsService } from '~/services/transactions';
 import { useCategoriesToggle } from '~/hooks/useCategoriesToggle';
+import { useExpenseSuggestions } from '~/hooks/useExpenseSuggestions';
 import ThemedText from '~/components/themed/ThemedText';
 import ThemedButton from '~/components/themed/ThemedButton';
 import ThemedTextInput from '~/components/themed/ThemedTextInput';
-import CategoryPickerModal from '~/components/CategoryPickerModal';
+import { CategoryPickerModal } from '~/components/CategoryPickerModal';
+import { ExpenseSuggestionList } from '~/components/ExpenseSuggestionList';
 
 type ExpenseFormProps = {
     data?: Expense | null;
@@ -32,6 +34,36 @@ export default function ExpenseForm({ data, onClose }: ExpenseFormProps) {
             form.setValue('categoryIds', selectedCategoryId);
         }
     });
+
+    // Use our custom hook for suggestions
+    const {
+        suggestions,
+        isSearching,
+        showSuggestions,
+        setShowSuggestions,
+        updateSearchTerm
+    } = useExpenseSuggestions();
+
+    // Search triggering functions - called directly from user input handlers
+    const triggerSearch = () => {
+        const desc = form.getValues('description');
+        const searchText = desc.trim();
+        updateSearchTerm(searchText);
+    };
+
+    // Handle applying a suggestion
+    const applySuggestion = (suggestion: Expense) => {
+        form.setValue('amount', suggestion.amount);
+        form.setValue('description', suggestion.description || '');
+
+        if (suggestion.categories && suggestion.categories.length > 0) {
+            const categoryIds = suggestion.categories.map(c => c.id);
+            form.setValue('categoryIds', categoryIds);
+            categoriesToggle.setCategories(categoryIds);
+        }
+
+        setShowSuggestions(false);
+    };
 
     const addExpenseMutation = useMutation({
         mutationFn: transactionsService.createExpense,
@@ -72,6 +104,26 @@ export default function ExpenseForm({ data, onClose }: ExpenseFormProps) {
         <View style={styles.form}>
             <View style={styles.content}>
                 <View style={[styles.section, styles.field]}>
+                    <ThemedText style={styles.label}>Description</ThemedText>
+                    <Controller
+                        control={form.control}
+                        name="description"
+                        render={({ field: { onChange, value } }) => (
+                            <ThemedTextInput
+                                placeholder="Enter description"
+                                value={value}
+                                onChangeText={text => {
+                                    onChange(text);
+
+                                    // Trigger search on user input
+                                    triggerSearch();
+                                }}
+                            />
+                        )}
+                    />
+                </View>
+
+                <View style={[styles.section, styles.field]}>
                     <ThemedText style={styles.label}>Amount</ThemedText>
                     <Controller
                         control={form.control}
@@ -102,20 +154,17 @@ export default function ExpenseForm({ data, onClose }: ExpenseFormProps) {
                     )}
                 </View>
 
-                <View style={[styles.section, styles.field]}>
-                    <ThemedText style={styles.label}>Description</ThemedText>
-                    <Controller
-                        control={form.control}
-                        name="description"
-                        render={({ field: { onChange, value } }) => (
-                            <ThemedTextInput
-                                placeholder="Enter description"
-                                value={value}
-                                onChangeText={onChange}
-                            />
-                        )}
-                    />
-                </View>
+                {/* Suggestions component */}
+                {showSuggestions && (
+                    <View style={[styles.section, styles.suggestionsWrapper]}>
+                        <ExpenseSuggestionList
+                            suggestions={suggestions}
+                            isLoading={isSearching}
+                            onSelect={applySuggestion}
+                            onDismiss={() => setShowSuggestions(false)}
+                        />
+                    </View>
+                )}
 
                 <View style={[styles.section, styles.field, {}]}>
                     <ThemedText style={[styles.label]}>Date:</ThemedText>
@@ -186,6 +235,9 @@ const styles = StyleSheet.create({
         color: 'red',
         fontSize: 12,
         marginTop: 4,
+    },
+    suggestionsWrapper: {
+        marginVertical: 8,
     },
 });
 
