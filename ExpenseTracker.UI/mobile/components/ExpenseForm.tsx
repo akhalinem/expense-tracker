@@ -23,7 +23,7 @@ type ExpenseFormProps = {
 export default function ExpenseForm({ data, onClose }: ExpenseFormProps) {
     const queryClient = useQueryClient();
     const form = useForm<ExpenseFormData>({
-        resolver: zodResolver(ExpenseFormSchema),
+        resolver: zodResolver(formValidation),
         defaultValues: getDefaultFormValues(data),
     });
 
@@ -241,7 +241,17 @@ const styles = StyleSheet.create({
     },
 });
 
-const getDefaultFormValues = (data?: Expense | null) => {
+const formValidation = ExpenseFormSchema.superRefine((data, ctx) => {
+    if (!data.amount) {
+        ctx.addIssue({
+            code: 'custom',
+            path: ['amount'],
+            message: 'Amount is required',
+        });
+    }
+});
+
+const getDefaultFormValues = (data?: Expense | null): ExpenseFormData => {
     return {
         amount: data?.amount ?? null,
         description: data?.description ?? '',
