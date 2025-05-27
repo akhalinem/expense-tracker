@@ -1,5 +1,5 @@
 import { FC, useState } from 'react';
-import { StyleSheet, Modal, TouchableOpacity, KeyboardAvoidingView, FlatList } from 'react-native';
+import { StyleSheet, Modal, TouchableOpacity, FlatList } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '~/theme';
 import { UserCategoriesToggleReturn } from '~/hooks/useCategoriesToggle';
@@ -54,7 +54,7 @@ export const CategoryPickerModal: FC<CategoryPickerModalProps> = ({ categoriesTo
                 visible={visible}
                 onRequestClose={() => setVisible(false)}
             >
-                <ThemedView as={KeyboardAvoidingView} style={styles.modalContainer} behavior='padding'>
+                <ThemedView style={styles.modalContainer}>
                     <ThemedView style={styles.modalContent}>
                         <ThemedView style={[styles.modalHeader, { borderBottomColor: theme.border }]}>
                             <ThemedText style={styles.modalTitle}>Select Categories</ThemedText>
