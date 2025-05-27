@@ -3,11 +3,12 @@ import { StyleSheet, View } from "react-native";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { useRouter } from "expo-router";
 import { Transaction, TransactionTypeEnum } from "~/types";
-import ThemedText from "~/components/themed/ThemedText";
 import { useTheme } from "~/theme";
+import ThemedText from "~/components/themed/ThemedText";
+import ThemedView from "~/components/themed/ThemedView";
 import ExpenseForm from "~/components/ExpenseForm";
 import IncomeForm from "~/components/IncomeForm";
-import ThemedView from "./themed/ThemedView";
+import { KeyboardDismissing } from "~/components/KeyboardDismissing";
 
 export const SaveTransaction: FC<{
     type: TransactionTypeEnum,
@@ -22,18 +23,20 @@ export const SaveTransaction: FC<{
 
             <Divider />
 
-            {type === TransactionTypeEnum.EXPENSE && (
-                <ExpenseForm
-                    data={transaction}
-                    onClose={onClose}
-                />
-            )}
-            {type === TransactionTypeEnum.INCOME && (
-                <IncomeForm
-                    data={transaction}
-                    onClose={onClose}
-                />
-            )}
+            <KeyboardDismissing>
+                {type === TransactionTypeEnum.EXPENSE && (
+                    <ExpenseForm
+                        data={transaction}
+                        onClose={onClose}
+                    />
+                )}
+                {type === TransactionTypeEnum.INCOME && (
+                    <IncomeForm
+                        data={transaction}
+                        onClose={onClose}
+                    />
+                )}
+            </KeyboardDismissing>
         </ThemedView>
     );
 }

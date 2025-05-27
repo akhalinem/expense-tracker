@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import { StyleSheet, TextInput, TouchableOpacity, View, Alert } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { DEFAULT_CATEGORY_COLOR } from "~/constants";
 import { categoriesService } from "~/services/categories";
 import { useTheme } from "~/theme";
 import ThemedText from "~/components/themed/ThemedText";
 import ColorPicker from "~/components/ColorPicker";
-import { DEFAULT_CATEGORY_COLOR } from "~/constants";
+import { KeyboardDismissing } from "~/components/KeyboardDismissing";
 
 type CategoryFormProps = {
     isEdit: boolean;
@@ -109,84 +109,86 @@ export default function CategoryForm({
         deleteCategoryMutation.isPending;
 
     return (
-        <View style={styles.content}>
-            <View style={styles.section}>
-                <ThemedText style={styles.label}>Name</ThemedText>
-                <TextInput
-                    style={[
-                        styles.input,
-                        {
-                            color: theme.text,
-                            borderColor: theme.border,
-                            backgroundColor: theme.surface
-                        }]}
-                    placeholder="Category Name"
-                    placeholderTextColor={theme.text + '80'}
-                    value={categoryName}
-                    onChangeText={setCategoryName}
-                    autoFocus
-                />
-            </View>
-
-            <View style={styles.section}>
-                <ThemedText style={styles.label}>Color</ThemedText>
-                <View style={styles.colorPreviewRow}>
-                    <View
-                        style={[
-                            styles.colorPreview,
-                            { backgroundColor: categoryColor }
-                        ]}
-                    />
-                    <ThemedText style={styles.colorHex}>{categoryColor}</ThemedText>
-                </View>
-            </View>
-
-            <ColorPicker
-                selectedColor={categoryColor}
-                onColorSelected={setCategoryColor}
-            />
-
-            <View style={styles.section}>
-                <View style={styles.actionButtons}>
-                    <TouchableOpacity
-                        style={[styles.button, styles.cancelButton, { borderColor: theme.border }]}
-                        onPress={onCancel}
-                        disabled={isPending}
-                    >
-                        <ThemedText>Cancel</ThemedText>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                        style={[styles.button, styles.saveButton, { backgroundColor: theme.primary }]}
-                        onPress={handleSave}
-                        disabled={isPending || !categoryName.trim()}
-                    >
-                        <ThemedText style={styles.saveButtonText}>
-                            {isPending ? 'Saving...' : 'Save'}
-                        </ThemedText>
-                    </TouchableOpacity>
-                </View>
-            </View>
-
-            {isEdit && (
+        <KeyboardDismissing>
+            <View style={styles.content}>
                 <View style={styles.section}>
-                    <View style={styles.deleteButtonContainer}>
-                        <ThemedText style={styles.warningText}>
-                            Note: Categories with linked transactions cannot be deleted.
-                        </ThemedText>
+                    <ThemedText style={styles.label}>Name</ThemedText>
+                    <TextInput
+                        style={[
+                            styles.input,
+                            {
+                                color: theme.text,
+                                borderColor: theme.border,
+                                backgroundColor: theme.surface
+                            }]}
+                        placeholder="Category Name"
+                        placeholderTextColor={theme.text + '80'}
+                        value={categoryName}
+                        onChangeText={setCategoryName}
+                        autoFocus
+                    />
+                </View>
+
+                <View style={styles.section}>
+                    <ThemedText style={styles.label}>Color</ThemedText>
+                    <View style={styles.colorPreviewRow}>
+                        <View
+                            style={[
+                                styles.colorPreview,
+                                { backgroundColor: categoryColor }
+                            ]}
+                        />
+                        <ThemedText style={styles.colorHex}>{categoryColor}</ThemedText>
+                    </View>
+                </View>
+
+                <ColorPicker
+                    selectedColor={categoryColor}
+                    onColorSelected={setCategoryColor}
+                />
+
+                <View style={styles.section}>
+                    <View style={styles.actionButtons}>
                         <TouchableOpacity
-                            style={styles.deleteButton}
-                            onPress={handleDelete}
-                            disabled={deleteCategoryMutation.isPending}
+                            style={[styles.button, styles.cancelButton, { borderColor: theme.border }]}
+                            onPress={onCancel}
+                            disabled={isPending}
                         >
-                            <ThemedText style={styles.deleteButtonText}>
-                                {deleteCategoryMutation.isPending ? 'Deleting...' : 'Delete Category'}
+                            <ThemedText>Cancel</ThemedText>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            style={[styles.button, styles.saveButton, { backgroundColor: theme.primary }]}
+                            onPress={handleSave}
+                            disabled={isPending || !categoryName.trim()}
+                        >
+                            <ThemedText style={styles.saveButtonText}>
+                                {isPending ? 'Saving...' : 'Save'}
                             </ThemedText>
                         </TouchableOpacity>
                     </View>
                 </View>
-            )}
-        </View>
+
+                {isEdit && (
+                    <View style={styles.section}>
+                        <View style={styles.deleteButtonContainer}>
+                            <ThemedText style={styles.warningText}>
+                                Note: Categories with linked transactions cannot be deleted.
+                            </ThemedText>
+                            <TouchableOpacity
+                                style={styles.deleteButton}
+                                onPress={handleDelete}
+                                disabled={deleteCategoryMutation.isPending}
+                            >
+                                <ThemedText style={styles.deleteButtonText}>
+                                    {deleteCategoryMutation.isPending ? 'Deleting...' : 'Delete Category'}
+                                </ThemedText>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                )}
+            </View>
+        </KeyboardDismissing>
     );
 }
 

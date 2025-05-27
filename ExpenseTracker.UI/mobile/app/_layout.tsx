@@ -9,7 +9,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { db, expoSqliteDb } from '~/services/db';
 import migrations from '~/drizzle/migrations';
 import { theme, ThemeContext } from '~/theme';
-import { KeyboardDismissing } from '~/components/KeyboardDismissing';
 
 const queryClient = new QueryClient({
     defaultOptions: {
@@ -60,68 +59,66 @@ export default function RootLayout() {
             <ThemeContext.Provider value={themeValue}>
                 <SafeAreaProvider>
                     <GestureHandlerRootView style={{ flex: 1 }}>
-                        <KeyboardDismissing>
-                            <Stack>
-                                <Stack.Screen
-                                    name="(tabs)"
-                                    options={{
-                                        headerShown: false
-                                    }}
-                                />
-                                <Stack.Screen
-                                    name="categories/index"
-                                    options={{
-                                        headerTintColor: themeValue.theme.text,
-                                        headerStyle: {
-                                            backgroundColor: themeValue.theme.background,
-                                        }
-                                    }}
-                                />
-                                <Stack.Screen
-                                    name="categories/new"
-                                    options={{
-                                        presentation: 'modal',
-                                        headerTintColor: themeValue.theme.text,
-                                        headerStyle: {
-                                            backgroundColor: themeValue.theme.background,
-                                        },
-                                    }}
-                                />
-                                <Stack.Screen
-                                    name="categories/edit"
-                                    options={{
-                                        presentation: 'modal',
-                                        headerTintColor: themeValue.theme.text,
-                                        headerStyle: {
-                                            backgroundColor: themeValue.theme.background,
-                                        },
-                                    }}
-                                />
-                                <Stack.Screen
-                                    name="new-transaction"
-                                    options={({ route }) => {
-                                        const { presentation } = route.params as { presentation?: 'modal' };
-                                        return {
-                                            headerShown: false,
-                                            presentation,
-                                        }
-                                    }}
-                                />
-                                <Stack.Screen
-                                    name="edit-transaction"
-                                    options={({ route }) => {
-                                        const { presentation } = route.params as { presentation?: 'modal' };
-                                        return {
-                                            headerShown: false,
-                                            presentation,
-                                        }
-                                    }}
-                                />
-                            </Stack>
-                        </KeyboardDismissing>
+                        <Stack>
+                            <Stack.Screen
+                                name="(tabs)"
+                                options={{
+                                    headerShown: false
+                                }}
+                            />
+                            <Stack.Screen
+                                name="categories/index"
+                                options={{
+                                    headerTintColor: themeValue.theme.text,
+                                    headerStyle: {
+                                        backgroundColor: themeValue.theme.background,
+                                    }
+                                }}
+                            />
+                            <Stack.Screen
+                                name="categories/new"
+                                options={{
+                                    presentation: 'modal',
+                                    headerTintColor: themeValue.theme.text,
+                                    headerStyle: {
+                                        backgroundColor: themeValue.theme.background,
+                                    },
+                                }}
+                            />
+                            <Stack.Screen
+                                name="categories/edit"
+                                options={{
+                                    presentation: 'modal',
+                                    headerTintColor: themeValue.theme.text,
+                                    headerStyle: {
+                                        backgroundColor: themeValue.theme.background,
+                                    },
+                                }}
+                            />
+                            <Stack.Screen
+                                name="new-transaction"
+                                options={({ route }) => {
+                                    const { presentation } = route.params as { presentation?: 'modal' };
+                                    return {
+                                        headerShown: false,
+                                        presentation,
+                                    }
+                                }}
+                            />
+                            <Stack.Screen
+                                name="edit-transaction"
+                                options={({ route }) => {
+                                    const { presentation } = route.params as { presentation?: 'modal' };
+                                    return {
+                                        headerShown: false,
+                                        presentation,
+                                    }
+                                }}
+                            />
+                        </Stack>
                     </GestureHandlerRootView>
                 </SafeAreaProvider>
-            </ThemeContext.Provider >
-        </QueryClientProvider >
+            </ThemeContext.Provider>
+        </QueryClientProvider>
     );
 }
