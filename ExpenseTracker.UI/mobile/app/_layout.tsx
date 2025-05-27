@@ -97,8 +97,26 @@ export default function RootLayout() {
                                         },
                                     }}
                                 />
-                                <Stack.Screen name="new-transaction" options={{ headerShown: false, presentation: 'modal' }} />
-                                <Stack.Screen name="edit-transaction" options={{ headerShown: false, presentation: 'modal' }} />
+                                <Stack.Screen
+                                    name="new-transaction"
+                                    options={({ route }) => {
+                                        const { presentation } = route.params as { presentation?: 'modal' };
+                                        return {
+                                            headerShown: false,
+                                            presentation,
+                                        }
+                                    }}
+                                />
+                                <Stack.Screen
+                                    name="edit-transaction"
+                                    options={({ route }) => {
+                                        const { presentation } = route.params as { presentation?: 'modal' };
+                                        return {
+                                            headerShown: false,
+                                            presentation,
+                                        }
+                                    }}
+                                />
                             </Stack>
                         </KeyboardDismissing>
                     </GestureHandlerRootView>

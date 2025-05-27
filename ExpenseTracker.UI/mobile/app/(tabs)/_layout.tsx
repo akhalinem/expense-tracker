@@ -22,7 +22,6 @@ export default function RootLayout() {
                 options={{
                     href: null
                 }}
-                redirect
             />
 
             <Tabs.Screen
