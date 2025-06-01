@@ -21,8 +21,6 @@ export const SaveTransaction: FC<{
         <ThemedView style={styles.container}>
             <Header type={type} isEditing={!!transaction} />
 
-            <Divider />
-
             <KeyboardDismissing>
                 {type === TransactionTypeEnum.EXPENSE && (
                     <ExpenseForm
@@ -43,8 +41,7 @@ export const SaveTransaction: FC<{
 
 const Header: FC<{ type: TransactionTypeEnum, isEditing?: boolean }> = ({ type, isEditing }) => {
     return (
-        <View style={{ paddingHorizontal: 16 }}>
-            <HeaderTitle type={type} isEditing={isEditing} />
+        <View style={{ paddingHorizontal: 16, marginBottom: 24 }}>
             {!isEditing && <SegmentedControlHeader type={type} />}
         </View>
     )
@@ -62,26 +59,6 @@ const Divider = () => {
                 marginVertical: 16,
             }}
         />
-    )
-}
-
-const HeaderTitle: FC<{ type: TransactionTypeEnum, isEditing?: boolean }> = ({ type, isEditing }) => {
-    const { theme } = useTheme();
-
-    const action = isEditing ? 'Edit' : 'Add';
-    const actionType = type === TransactionTypeEnum.EXPENSE ? 'Expense' : 'Income';
-    const actionText = `${action} ${actionType}`;
-
-    return (
-        <ThemedText
-            style={{
-                fontSize: 24,
-                color: theme.text,
-                textAlign: 'center',
-            }}
-        >
-            {actionText}
-        </ThemedText>
     )
 }
 
