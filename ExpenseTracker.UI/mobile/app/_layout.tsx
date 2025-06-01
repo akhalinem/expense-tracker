@@ -100,7 +100,13 @@ export default function RootLayout() {
                                 options={({ route }) => {
                                     const { presentation } = route.params as { presentation?: 'modal' };
                                     return {
-                                        headerShown: false,
+                                        headerShown: presentation !== 'modal',
+                                        headerTintColor: themeValue.theme.text,
+                                        headerBackButtonDisplayMode: 'minimal',
+                                        headerTitle: 'New Transaction',
+                                        headerStyle: {
+                                            backgroundColor: themeValue.theme.background,
+                                        },
                                         presentation,
                                     }
                                 }}
@@ -110,7 +116,13 @@ export default function RootLayout() {
                                 options={({ route }) => {
                                     const { presentation } = route.params as { presentation?: 'modal' };
                                     return {
-                                        headerShown: false,
+                                        headerShown: presentation !== 'modal',
+                                        headerTintColor: themeValue.theme.text,
+                                        headerBackButtonDisplayMode: 'minimal',
+                                        headerTitle: 'Edit Transaction',
+                                        headerStyle: {
+                                            backgroundColor: themeValue.theme.background,
+                                        },
                                         presentation,
                                     }
                                 }}
