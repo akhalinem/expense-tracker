@@ -8,13 +8,7 @@ import ThemedCard from '~/components/themed/ThemedCard';
 import { TopCategoriesChart, TopCategoryChartItem } from './charts/TopCategoriesChart';
 
 export const Analytics: FC<{ transactions: Transaction[] }> = ({ transactions }) => {
-    const currentMonthsTransactions = transactions.filter(transaction => {
-        const transactionDate = new Date(transaction.date);
-        const currentDate = new Date();
-        return transactionDate.getMonth() === currentDate.getMonth() && transactionDate.getFullYear() === currentDate.getFullYear();
-    });
-
-    const topCategoriesOfCurrentMonth = getTopCategoriesChartData(currentMonthsTransactions, 5)
+    const topCategoriesOfCurrentMonth = getTopCategoriesChartData(transactions, 5)
 
     return (
         <ThemedView as={ScrollView} style={styles.container}>
@@ -71,6 +65,16 @@ const getTopCategoriesChartData = (transactions: Transaction[], top: number = tr
         .slice(0, top)
 
     return pieChartData;
+}
+
+const getCurrentMonthTransactions = (transactions: Transaction[]): Transaction[] => {
+    const currentMonthsTransactions = transactions.filter(transaction => {
+        const transactionDate = new Date(transaction.date);
+        const currentDate = new Date();
+        return transactionDate.getMonth() === currentDate.getMonth() && transactionDate.getFullYear() === currentDate.getFullYear();
+    });
+
+    return currentMonthsTransactions;
 }
 
 const styles = StyleSheet.create({
