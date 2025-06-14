@@ -60,6 +60,17 @@ export default function RootLayout() {
       />
 
       <Tabs.Screen
+        name="recordings"
+        options={{
+          title: 'Recordings',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="recording-outline" size={size} color={color} />
+          ),
+          headerShown: false,
+        }}
+      />
+
+      <Tabs.Screen
         name="settings"
         options={{
           title: 'Settings',
