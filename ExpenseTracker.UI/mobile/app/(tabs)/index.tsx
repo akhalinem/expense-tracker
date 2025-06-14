@@ -1,17 +1,17 @@
-import { useEffect } from "react";
-import { Redirect, useRouter, } from "expo-router";
+import { useEffect } from 'react';
+import { Redirect, useRouter } from 'expo-router';
 
 export default () => {
-    const router = useRouter()
+  const router = useRouter();
 
-    useEffect(() => {
-        setTimeout(() => {
-            router.push({
-                pathname: '/new-transaction',
-                params: { presentation: 'modal' }
-            })
-        }, 1)
-    }, [])
+  useEffect(() => {
+    setTimeout(() => {
+      router.push({
+        pathname: '/new-transaction',
+        params: { presentation: 'modal' },
+      });
+    }, 1);
+  }, []);
 
-    return <Redirect href='./transactions' />;
+  return <Redirect href="./transactions" />;
 };

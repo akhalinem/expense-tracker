@@ -111,12 +111,8 @@
           "name": "expenses_categoryId_categories_id_fk",
           "tableFrom": "expenses",
           "tableTo": "categories",
-          "columnsFrom": [
-            "categoryId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["categoryId"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -201,12 +197,8 @@
           "name": "transactions_typeId_transaction_types_id_fk",
           "tableFrom": "transactions",
           "tableTo": "transaction_types",
-          "columnsFrom": [
-            "typeId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["typeId"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -214,12 +206,8 @@
           "name": "transactions_categoryId_categories_id_fk",
           "tableFrom": "transactions",
           "tableTo": "categories",
-          "columnsFrom": [
-            "categoryId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["categoryId"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }

@@ -103,26 +103,18 @@
         "transactions_typeId_transaction_types_id_fk": {
           "name": "transactions_typeId_transaction_types_id_fk",
           "tableFrom": "transactions",
-          "columnsFrom": [
-            "typeId"
-          ],
+          "columnsFrom": ["typeId"],
           "tableTo": "transaction_types",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "no action"
         },
         "transactions_categoryId_categories_id_fk": {
           "name": "transactions_categoryId_categories_id_fk",
           "tableFrom": "transactions",
-          "columnsFrom": [
-            "categoryId"
-          ],
+          "columnsFrom": ["categoryId"],
           "tableTo": "categories",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "no action"
         }

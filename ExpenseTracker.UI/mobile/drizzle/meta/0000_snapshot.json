@@ -111,12 +111,8 @@
           "name": "expenses_categoryId_categories_id_fk",
           "tableFrom": "expenses",
           "tableTo": "categories",
-          "columnsFrom": [
-            "categoryId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["categoryId"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
