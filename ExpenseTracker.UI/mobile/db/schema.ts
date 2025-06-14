@@ -34,9 +34,19 @@ export const transactionCategoriesTable = sqliteTable(
   }
 );
 
+export const voiceRecordingsTable = sqliteTable('voice_recordings', {
+  id: int().primaryKey({ autoIncrement: true }),
+  filePath: text().notNull(),
+  fileName: text().notNull(),
+  duration: real(), // duration in seconds
+  recordedAt: text().notNull(), // ISO date string
+  fileSize: int(), // file size in bytes
+});
+
 export const schema = {
   categories: categoriesTable,
   transactionTypes: transactionTypesTable,
   transactions: transactionsTable,
   transactionCategories: transactionCategoriesTable,
+  voiceRecordings: voiceRecordingsTable,
 };

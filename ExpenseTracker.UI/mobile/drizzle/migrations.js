@@ -6,6 +6,7 @@ import m0003 from './0003_migrate_expenses_into_transactions.sql';
 import m0004 from './0004_drop_expenses_and_budgets_tables.sql';
 import m0005 from './0005_add_category_color.sql';
 import m0006 from './0006_implement_multiple_categories_for_transactions-2.sql';
+import m0007 from './0007_add-voice-recordings-table.sql';
 
 export default {
   journal,
@@ -17,5 +18,6 @@ export default {
     m0004,
     m0005,
     m0006,
+    m0007,
   },
 };

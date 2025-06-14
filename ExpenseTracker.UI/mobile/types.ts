@@ -125,6 +125,22 @@ export type CategoryExcelDto = {
   color?: string;
 };
 
+export type VoiceRecordingDto = {
+  id: number;
+  filePath: string;
+  fileName: string;
+  duration: number | null;
+  recordedAt: string;
+  fileSize: number | null;
+};
+
+export type CreateVoiceRecordingDto = {
+  filePath: string;
+  fileName: string;
+  duration: number | null;
+  fileSize: number | null;
+};
+
 export type ImportResult = {
   categories: {
     added: number;

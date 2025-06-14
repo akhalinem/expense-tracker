@@ -6,10 +6,7 @@ export default () => {
 
   useEffect(() => {
     setTimeout(() => {
-      router.push({
-        pathname: '/new-transaction',
-        params: { presentation: 'modal' },
-      });
+      router.push('/new-transaction');
     }, 1);
   }, []);
 
