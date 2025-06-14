@@ -1,4 +1,4 @@
-import { FC, useEffect, useLayoutEffect, useMemo } from 'react';
+import { FC, useMemo } from 'react';
 import { StyleSheet, View, TouchableOpacity, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ReanimatedSwipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
@@ -14,20 +14,11 @@ import { transactionsService } from '~/services/transactions';
 import { Theme, useTheme } from '~/theme';
 import ThemedView from '~/components/themed/ThemedView';
 import ThemedText from '~/components/themed/ThemedText';
-import ThemedButton from '~/components/themed/ThemedButton';
 
 export const Transactions: FC<{ transactions: Transaction[] }> = ({
   transactions,
 }) => {
   const insets = useSafeAreaInsets();
-  const router = useRouter();
-
-  const handleAddNew = () => {
-    router.push({
-      pathname: 'new-transaction',
-      params: { type: TransactionTypeEnum.EXPENSE },
-    });
-  };
 
   const { data, stickyHeaderIndices } = useMemo(
     () => getListData(transactions),
@@ -50,24 +41,11 @@ export const Transactions: FC<{ transactions: Transaction[] }> = ({
   }
 
   return (
-    <>
-      <FlashList
-        data={data}
-        renderItem={ListItemRenderer}
-        stickyHeaderIndices={stickyHeaderIndices}
-      />
-
-      <View>
-        <ThemedButton
-          style={{
-            paddingVertical: 24,
-            borderRadius: 0,
-          }}
-          title="Add New"
-          onPress={handleAddNew}
-        />
-      </View>
-    </>
+    <FlashList
+      data={data}
+      renderItem={ListItemRenderer}
+      stickyHeaderIndices={stickyHeaderIndices}
+    />
   );
 };
 
