@@ -1,6 +1,7 @@
 import { useTheme } from '~/theme';
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { DualPurposeAddButton } from '~/components/DualPurposeAddButton';
 
 export default function RootLayout() {
   const { theme } = useTheme();
@@ -43,6 +44,13 @@ export default function RootLayout() {
             <Ionicons name="bar-chart-outline" size={size} color={color} />
           ),
           headerShown: false,
+        }}
+      />
+
+      <Tabs.Screen
+        name="plus"
+        options={{
+          tabBarButton: DualPurposeAddButton,
         }}
       />
 
