@@ -14,7 +14,12 @@ export default function RootLayout() {
         tabBarInactiveTintColor: theme.textSecondary,
         tabBarStyle: {
           backgroundColor: theme.background,
-          borderTopColor: theme.border,
+          borderTopColor: 'transparent',
+          shadowColor: theme.shadow,
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.25,
+          shadowRadius: 3.5,
+          elevation: 5,
         },
       }}
     >
