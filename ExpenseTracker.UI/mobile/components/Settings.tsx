@@ -33,6 +33,8 @@ export default function Settings(props: SettingsProps) {
         message += `\nThere were some errors during import.`;
       }
 
+      await queryClient.invalidateQueries();
+
       Alert.alert('Import Successful', message, [
         {
           text: 'OK',
