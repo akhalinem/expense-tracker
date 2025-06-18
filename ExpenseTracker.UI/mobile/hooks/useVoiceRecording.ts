@@ -17,8 +17,8 @@ export function useVoiceRecording() {
   const recorder = useAudioRecorder(RecordingPresets.LOW_QUALITY);
   const recorderState = useAudioRecorderState(recorder);
 
-  const start = (): Promise<string> =>
-    new Promise<string>(async (resolve, reject) => {
+  const start = (): Promise<void> =>
+    new Promise<void>(async (resolve, reject) => {
       try {
         const hasPermission = await requestPermissions();
         if (!hasPermission) {
@@ -37,7 +37,8 @@ export function useVoiceRecording() {
         console.log('Recording started');
 
         // Set 5-second timer to auto-stop recording
-        scheduleAutoStop(5_000);
+        await scheduleAutoStop(5_000);
+        resolve();
       } catch (error) {
         console.error('Failed to start recording:', error);
         reject();
@@ -47,7 +48,7 @@ export function useVoiceRecording() {
   const stop = (): Promise<void> =>
     new Promise<void>(async (resolve, reject) => {
       try {
-        if (!recorderState.isRecording) {
+        if (!recorder.getStatus().isRecording) {
           reject(new Error('Cannot stop recording: not currently recording'));
           return;
         }
