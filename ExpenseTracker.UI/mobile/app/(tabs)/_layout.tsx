@@ -33,7 +33,7 @@ export default function RootLayout() {
       <Tabs.Screen
         name="transactions"
         options={{
-          title: 'Recent Transactions',
+          title: 'Transactions',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="wallet-outline" size={size} color={color} />
           ),
