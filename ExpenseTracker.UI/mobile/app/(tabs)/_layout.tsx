@@ -1,6 +1,7 @@
 import { useTheme } from '~/theme';
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { DualPurposeAddButton } from '~/components/DualPurposeAddButton';
 
 export default function RootLayout() {
   const { theme } = useTheme();
@@ -13,7 +14,12 @@ export default function RootLayout() {
         tabBarInactiveTintColor: theme.textSecondary,
         tabBarStyle: {
           backgroundColor: theme.background,
-          borderTopColor: theme.border,
+          borderTopColor: 'transparent',
+          shadowColor: theme.shadow,
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.25,
+          shadowRadius: 3.5,
+          elevation: 5,
         },
       }}
     >
@@ -27,7 +33,7 @@ export default function RootLayout() {
       <Tabs.Screen
         name="transactions"
         options={{
-          title: 'Recent Transactions',
+          title: 'Transactions',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="wallet-outline" size={size} color={color} />
           ),
@@ -41,6 +47,24 @@ export default function RootLayout() {
           title: 'Analytics',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="bar-chart-outline" size={size} color={color} />
+          ),
+          headerShown: false,
+        }}
+      />
+
+      <Tabs.Screen
+        name="plus"
+        options={{
+          tabBarButton: DualPurposeAddButton,
+        }}
+      />
+
+      <Tabs.Screen
+        name="recordings"
+        options={{
+          title: 'Recordings',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="recording-outline" size={size} color={color} />
           ),
           headerShown: false,
         }}

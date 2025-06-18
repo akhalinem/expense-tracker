@@ -66,6 +66,7 @@ export default function RootLayout() {
                   headerShown: false,
                 }}
               />
+
               <Stack.Screen
                 name="categories/index"
                 options={{
@@ -75,6 +76,7 @@ export default function RootLayout() {
                   },
                 }}
               />
+
               <Stack.Screen
                 name="categories/new"
                 options={{
@@ -85,6 +87,7 @@ export default function RootLayout() {
                   },
                 }}
               />
+
               <Stack.Screen
                 name="categories/edit"
                 options={{
@@ -95,40 +98,29 @@ export default function RootLayout() {
                   },
                 }}
               />
+
               <Stack.Screen
                 name="new-transaction"
-                options={({ route }) => {
-                  const { presentation } = route.params as {
-                    presentation?: 'modal';
-                  };
-                  return {
-                    headerShown: presentation !== 'modal',
-                    headerTintColor: themeValue.theme.text,
-                    headerBackButtonDisplayMode: 'minimal',
-                    headerTitle: 'New Transaction',
-                    headerStyle: {
-                      backgroundColor: themeValue.theme.background,
-                    },
-                    presentation,
-                  };
+                options={{
+                  headerTintColor: themeValue.theme.text,
+                  headerBackButtonDisplayMode: 'minimal',
+                  headerTitle: 'New Transaction',
+                  headerStyle: {
+                    backgroundColor: themeValue.theme.background,
+                  },
+                  presentation: 'modal',
                 }}
               />
               <Stack.Screen
                 name="edit-transaction"
-                options={({ route }) => {
-                  const { presentation } = route.params as {
-                    presentation?: 'modal';
-                  };
-                  return {
-                    headerShown: presentation !== 'modal',
-                    headerTintColor: themeValue.theme.text,
-                    headerBackButtonDisplayMode: 'minimal',
-                    headerTitle: 'Edit Transaction',
-                    headerStyle: {
-                      backgroundColor: themeValue.theme.background,
-                    },
-                    presentation,
-                  };
+                options={{
+                  headerTintColor: themeValue.theme.text,
+                  headerBackButtonDisplayMode: 'minimal',
+                  headerTitle: 'Edit Transaction',
+                  headerStyle: {
+                    backgroundColor: themeValue.theme.background,
+                  },
+                  presentation: 'modal',
                 }}
               />
             </Stack>
