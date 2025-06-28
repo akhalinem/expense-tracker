@@ -1,6 +1,6 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Canvas, Path, Group, vec } from '@shopify/react-native-skia';
+import { PieChart } from 'react-native-gifted-charts';
 import ThemedText from '../themed/ThemedText';
 
 export type TopCategoryChartItem = {
@@ -11,78 +11,32 @@ export type TopCategoryChartItem = {
 
 export type TopCategoriesChartProps = {
   data: TopCategoryChartItem[];
-  width: number;
-  height: number;
 };
 
-export const TopCategoriesChart = ({
+export const TopCategoriesChart: React.FC<TopCategoriesChartProps> = ({
   data,
-  width,
-  height,
-}: TopCategoriesChartProps) => {
-  const radius = Math.min(width, height) / 2 - 20; // 20 for padding
-  const center = vec(width / 2, height / 2);
-
-  // Calculate total amount
-  const total = useMemo(
-    () => data.reduce((sum, item) => sum + item.amount, 0),
-    [data]
-  );
-
-  // Calculate pie segments
-  const paths = useMemo(() => {
-    const segments: any[] = [];
-    let startAngle = 0;
-
-    data.forEach((item) => {
-      const sweepAngle = (item.amount / total) * 2 * Math.PI;
-
-      const x1 = center.x + radius * Math.cos(startAngle);
-      const y1 = center.y + radius * Math.sin(startAngle);
-
-      const x2 = center.x + radius * Math.cos(startAngle + sweepAngle);
-      const y2 = center.y + radius * Math.sin(startAngle + sweepAngle);
-
-      // Create the arc path
-      const path = `
-                M ${center.x} ${center.y}
-                L ${x1} ${y1}
-                A ${radius} ${radius} 0 ${sweepAngle > Math.PI ? 1 : 0} 1 ${x2} ${y2}
-                Z
-            `;
-
-      segments.push({
-        path,
-        color: item.color,
-        category: item.category,
-        amount: item.amount,
-        percentage: Math.round((item.amount / total) * 100),
-      });
-
-      startAngle += sweepAngle;
-    });
-
-    return segments;
-  }, [data, center, radius, total]);
-
+}) => {
   return (
-    <View style={styles.container}>
-      <Canvas style={{ width, height }}>
-        <Group>
-          {paths.map(({ path, color }, index) => (
-            <Path key={index} path={path} color={color} />
-          ))}
-        </Group>
-      </Canvas>
+    <View
+      style={{
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <PieChart
+        data={data.map((item) => ({
+          value: item.amount,
+          color: item.color,
+        }))}
+        paddingVertical={24}
+        paddingHorizontal={24}
+      />
 
-      {/* Legend */}
       <View style={styles.legend}>
-        {paths.map(({ color, category, percentage }, index) => (
+        {data.map((item, index) => (
           <View key={index} style={styles.legendItem}>
-            <View style={[styles.colorBox, { backgroundColor: color }]} />
-            <ThemedText>
-              {category}: {percentage}%
-            </ThemedText>
+            <View style={[styles.colorBox, { backgroundColor: item.color }]} />
+            <ThemedText>{item.category}</ThemedText>
           </View>
         ))}
       </View>
@@ -96,16 +50,16 @@ const styles = StyleSheet.create({
   },
   legend: {
     marginTop: 12,
+    gap: 8,
   },
   legendItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginRight: 16,
-    marginBottom: 8,
   },
   colorBox: {
     width: 12,
     height: 12,
     marginRight: 4,
+    borderRadius: '50%',
   },
 });

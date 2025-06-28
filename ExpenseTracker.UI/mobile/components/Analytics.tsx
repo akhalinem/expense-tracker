@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import { StyleSheet, ScrollView, Dimensions } from 'react-native';
+import { StyleSheet, ScrollView } from 'react-native';
 import { Category, Transaction } from '~/types';
 import { PRESET_CATEGORY_COLORS } from '~/constants';
 import ThemedView from '~/components/themed/ThemedView';
@@ -21,18 +21,14 @@ export const Analytics: FC<{ transactions: Transaction[] }> = ({
   return (
     <ThemedView as={ScrollView} style={styles.container}>
       <ThemedCard>
-        <ThemedText style={styles.cardTitle}>Top 5 Categories</ThemedText>
-        <TopCategoriesChart
-          data={topCategoriesOfCurrentMonth}
-          width={width - 40}
-          height={250}
-        />
+        <ThemedText style={styles.cardTitle}>
+          Top 5 Categories of All Time
+        </ThemedText>
+        <TopCategoriesChart data={topCategoriesOfCurrentMonth} />
       </ThemedCard>
     </ThemedView>
   );
 };
-
-const { width } = Dimensions.get('window');
 
 const getTopCategoriesChartData = (
   transactions: Transaction[],
