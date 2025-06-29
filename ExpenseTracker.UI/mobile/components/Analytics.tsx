@@ -11,6 +11,7 @@ import {
 } from './charts/TopCategoriesChart';
 import { MonthlySpendingTrendChart } from './charts/MonthlySpendingTrendChart';
 import { CategorySpendingTrendsChart } from './charts/CategorySpendingTrendsChart';
+import { MonthOverMonthChart } from './charts/MonthOverMonthChart';
 
 export const Analytics: FC<{ transactions: Transaction[] }> = ({
   transactions,
@@ -23,6 +24,10 @@ export const Analytics: FC<{ transactions: Transaction[] }> = ({
     <ThemedView as={ScrollView} style={styles.container}>
       <CardSection title="Monthly Spending Trend">
         <MonthlySpendingTrendChart expenses={expenses} monthsToShow={6} />
+      </CardSection>
+
+      <CardSection title="Month-over-Month Comparison">
+        <MonthOverMonthChart expenses={expenses} monthsToShow={5} />
       </CardSection>
 
       <CardSection title="Category Spending Trends">
