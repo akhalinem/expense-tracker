@@ -9,27 +9,41 @@ import {
   TopCategoriesChart,
   TopCategoryChartItem,
 } from './charts/TopCategoriesChart';
+import { MonthlySpendingTrendChart } from './charts/MonthlySpendingTrendChart';
+import { CategorySpendingTrendsChart } from './charts/CategorySpendingTrendsChart';
 
 export const Analytics: FC<{ transactions: Transaction[] }> = ({
   transactions,
 }) => {
+  const expenses = transactions.filter(
+    (transaction) => transaction.type === 'expense'
+  );
+
   return (
     <ThemedView as={ScrollView} style={styles.container}>
+      <CardSection title="Monthly Spending Trend">
+        <MonthlySpendingTrendChart expenses={expenses} monthsToShow={6} />
+      </CardSection>
+
+      <CardSection title="Category Spending Trends">
+        <CategorySpendingTrendsChart
+          expenses={expenses}
+          monthsToShow={6}
+          topCategoriesCount={5}
+        />
+      </CardSection>
+
       <CardSection title="Top 5 Categories of All Time">
-        <TopCategoriesChart data={getTopCategoriesChartData(transactions, 5)} />
+        <TopCategoriesChart data={getTopCategoriesChartData(expenses, 5)} />
       </CardSection>
     </ThemedView>
   );
 };
 
 const getTopCategoriesChartData = (
-  transactions: Transaction[],
-  top: number = transactions.length
+  expenses: Transaction[],
+  top: number = expenses.length
 ): TopCategoryChartItem[] => {
-  const expenses = transactions.filter(
-    (transaction) => transaction.type === 'expense'
-  );
-
   const categorizedExpensesMap = new Map<number, Transaction[]>();
   const allCategoriesMapById = new Map<number, Category>();
 
@@ -82,7 +96,7 @@ const CardSection: FC<{
   children: React.ReactNode;
 }> = ({ title, children }) => {
   return (
-    <ThemedCard>
+    <ThemedCard style={{ marginBottom: 16 }}>
       <ThemedText style={styles.cardTitle}>{title}</ThemedText>
       {children}
     </ThemedCard>
