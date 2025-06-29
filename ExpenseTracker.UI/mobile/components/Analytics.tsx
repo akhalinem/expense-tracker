@@ -13,19 +13,11 @@ import {
 export const Analytics: FC<{ transactions: Transaction[] }> = ({
   transactions,
 }) => {
-  const topCategoriesOfCurrentMonth = getTopCategoriesChartData(
-    transactions,
-    5
-  );
-
   return (
     <ThemedView as={ScrollView} style={styles.container}>
-      <ThemedCard>
-        <ThemedText style={styles.cardTitle}>
-          Top 5 Categories of All Time
-        </ThemedText>
-        <TopCategoriesChart data={topCategoriesOfCurrentMonth} />
-      </ThemedCard>
+      <CardSection title="Top 5 Categories of All Time">
+        <TopCategoriesChart data={getTopCategoriesChartData(transactions, 5)} />
+      </CardSection>
     </ThemedView>
   );
 };
@@ -83,6 +75,18 @@ const getTopCategoriesChartData = (
     .slice(0, top);
 
   return pieChartData;
+};
+
+const CardSection: FC<{
+  title: string;
+  children: React.ReactNode;
+}> = ({ title, children }) => {
+  return (
+    <ThemedCard>
+      <ThemedText style={styles.cardTitle}>{title}</ThemedText>
+      {children}
+    </ThemedCard>
+  );
 };
 
 const getCurrentMonthTransactions = (
