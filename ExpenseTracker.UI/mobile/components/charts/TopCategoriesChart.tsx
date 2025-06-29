@@ -16,6 +16,9 @@ export type TopCategoriesChartProps = {
 export const TopCategoriesChart: React.FC<TopCategoriesChartProps> = ({
   data,
 }) => {
+  // Calculate total amount for percentage calculation
+  const totalAmount = data.reduce((sum, item) => sum + item.amount, 0);
+
   return (
     <View
       style={{
@@ -33,12 +36,22 @@ export const TopCategoriesChart: React.FC<TopCategoriesChartProps> = ({
       />
 
       <View style={styles.legend}>
-        {data.map((item, index) => (
-          <View key={index} style={styles.legendItem}>
-            <View style={[styles.colorBox, { backgroundColor: item.color }]} />
-            <ThemedText>{item.category}</ThemedText>
-          </View>
-        ))}
+        {data.map((item, index) => {
+          const percentage =
+            totalAmount > 0
+              ? ((item.amount / totalAmount) * 100).toFixed(1)
+              : '0.0';
+          return (
+            <View key={index} style={styles.legendItem}>
+              <View
+                style={[styles.colorBox, { backgroundColor: item.color }]}
+              />
+              <ThemedText>
+                {item.category} ({percentage}%)
+              </ThemedText>
+            </View>
+          );
+        })}
       </View>
     </View>
   );
