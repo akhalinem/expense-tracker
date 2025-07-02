@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { BarChart } from 'react-native-gifted-charts';
 import { Transaction } from '~/types';
@@ -28,7 +28,10 @@ export const MonthOverMonthChart: React.FC<MonthOverMonthChartProps> = ({
   monthsToShow = 6,
 }) => {
   const { theme } = useTheme();
-  const chartData = getMonthOverMonthData(expenses, monthsToShow);
+  const chartData = useMemo(
+    () => getMonthOverMonthData(expenses, monthsToShow),
+    [expenses, monthsToShow]
+  );
 
   if (chartData.length === 0) {
     return (
@@ -54,8 +57,8 @@ export const MonthOverMonthChart: React.FC<MonthOverMonthChartProps> = ({
       <BarChart
         data={chartData}
         height={220}
+        width={300}
         barWidth={35}
-        spacing={25}
         barBorderRadius={4}
         hideRules={false}
         rulesColor={theme.textSecondary}

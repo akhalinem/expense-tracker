@@ -1,10 +1,16 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { LineChart } from 'react-native-gifted-charts';
 import { Transaction, Category } from '~/types';
-import { formatLargeNumber } from '~/utils/formatNumbers';
 import { useTheme } from '~/theme';
+import { formatLargeNumber } from '~/utils/formatNumbers';
 import ThemedText from '~/components/themed/ThemedText';
+import {
+  CHART_CONFIG,
+  commonChartStyles,
+  getChartColors,
+  getChartTextStyle,
+} from './chartStyles';
 
 export type CategorySpendingTrendsChartProps = {
   expenses: Transaction[];
@@ -23,16 +29,20 @@ export const CategorySpendingTrendsChart: React.FC<
   CategorySpendingTrendsChartProps
 > = ({ expenses, monthsToShow = 6, topCategoriesCount = 4 }) => {
   const { theme } = useTheme();
-  const chartData = getCategoryTrendsData(
-    expenses,
-    monthsToShow,
-    topCategoriesCount
+  const chartColors = getChartColors(theme);
+  const axisTextStyle = getChartTextStyle(theme, 'axis');
+
+  const chartData = useMemo(
+    () => getCategoryTrendsData(expenses, monthsToShow, topCategoriesCount),
+    [expenses, monthsToShow, topCategoriesCount]
   );
 
   if (chartData.length === 0) {
     return (
-      <View style={styles.emptyContainer}>
-        <ThemedText>No category spending data available</ThemedText>
+      <View style={commonChartStyles.emptyContainer}>
+        <ThemedText style={commonChartStyles.emptyText}>
+          No category spending data available
+        </ThemedText>
       </View>
     );
   }
@@ -47,24 +57,29 @@ export const CategorySpendingTrendsChart: React.FC<
   const quinaryData = chartData[4]?.monthlyData || [];
 
   // Calculate max value across all data with buffer
-  const allValues = chartData.flatMap(({ monthlyData }) =>
-    monthlyData.map((d) => d.value)
+  const allValues = useMemo(
+    () =>
+      chartData.flatMap(({ monthlyData }) => monthlyData.map((d) => d.value)),
+    [chartData]
   );
-  const maxDataValue = Math.max(...allValues, 0);
+  const maxDataValue = useMemo(() => Math.max(...allValues, 0), [allValues]);
   const maxYValue = maxDataValue * 1.2; // Add 20% buffer
 
   return (
-    <View style={styles.container}>
-      <View style={styles.legend}>
+    <View style={commonChartStyles.container}>
+      <View style={commonChartStyles.legendHorizontal}>
         {chartData.slice(0, topCategoriesCount).map((category, index) => (
-          <View key={category.categoryId} style={styles.legendItem}>
+          <View
+            key={category.categoryId}
+            style={commonChartStyles.legendItemHorizontal}
+          >
             <View
               style={[
-                styles.legendColor,
+                commonChartStyles.legendColorSmall,
                 { backgroundColor: category.categoryColor },
               ]}
             />
-            <ThemedText style={styles.legendText} numberOfLines={1}>
+            <ThemedText style={commonChartStyles.legendText} numberOfLines={1}>
               {category.categoryName}
             </ThemedText>
           </View>
@@ -77,41 +92,39 @@ export const CategorySpendingTrendsChart: React.FC<
         data3={tertiaryData.length > 0 ? tertiaryData : undefined}
         data4={quaternaryData.length > 0 ? quaternaryData : undefined}
         data5={quinaryData.length > 0 ? quinaryData : undefined}
-        height={220}
+        height={CHART_CONFIG.HEIGHT}
+        width={CHART_CONFIG.WIDTH}
         spacing={50}
         color={chartData[0]?.categoryColor}
         color2={chartData[1]?.categoryColor}
         color3={chartData[2]?.categoryColor}
         color4={chartData[3]?.categoryColor}
         color5={chartData[4]?.categoryColor}
-        thickness={3}
-        thickness2={3}
-        thickness3={3}
-        thickness4={3}
-        thickness5={3}
+        thickness={CHART_CONFIG.LINE_THICKNESS}
+        thickness2={CHART_CONFIG.LINE_THICKNESS}
+        thickness3={CHART_CONFIG.LINE_THICKNESS}
+        thickness4={CHART_CONFIG.LINE_THICKNESS}
+        thickness5={CHART_CONFIG.LINE_THICKNESS}
         dataPointsColor1={chartData[0]?.categoryColor}
         dataPointsColor2={chartData[1]?.categoryColor}
         dataPointsColor3={chartData[2]?.categoryColor}
         dataPointsColor4={chartData[3]?.categoryColor}
         dataPointsColor5={chartData[4]?.categoryColor}
-        dataPointsHeight={6}
-        dataPointsWidth={6}
-        dataPointsRadius={3}
+        dataPointsHeight={CHART_CONFIG.DATA_POINT_SIZE}
+        dataPointsWidth={CHART_CONFIG.DATA_POINT_SIZE}
+        dataPointsRadius={CHART_CONFIG.DATA_POINT_RADIUS}
         hideRules={false}
-        rulesColor={theme.secondary}
-        yAxisTextStyle={{ fontSize: 12, color: theme.textSecondary }}
-        xAxisLabelTextStyle={{ fontSize: 12, color: theme.textSecondary }}
+        rulesColor={chartColors.grid}
+        yAxisTextStyle={axisTextStyle}
+        xAxisLabelTextStyle={axisTextStyle}
         curved
-        animationDuration={800}
+        animationDuration={CHART_CONFIG.ANIMATION_DURATION}
         isAnimated
         focusEnabled
-        focusedDataPointColor={theme.primary}
+        focusedDataPointColor={chartColors.focus}
         focusedDataPointRadius={5}
         formatYLabel={formatLargeNumber}
         maxValue={maxYValue}
-        onFocus={(item: any, index: number) => {
-          // You can add custom focus handling here if needed
-        }}
       />
     </View>
   );
@@ -195,43 +208,5 @@ const getCategoryTrendsData = (
 };
 
 const styles = StyleSheet.create({
-  container: {
-    alignItems: 'center',
-    paddingVertical: 20,
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 40,
-  },
-  legend: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginBottom: 20,
-    flexWrap: 'wrap',
-    gap: 12,
-  },
-  legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    maxWidth: 120,
-  },
-  legendColor: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    marginRight: 6,
-  },
-  legendText: {
-    fontSize: 12,
-  },
-  yAxisText: {
-    fontSize: 12,
-    color: '#666',
-  },
-  xAxisText: {
-    fontSize: 12,
-    color: '#666',
-    textAlign: 'center',
-  },
+  // Custom styles specific to this chart can go here if needed
 });
