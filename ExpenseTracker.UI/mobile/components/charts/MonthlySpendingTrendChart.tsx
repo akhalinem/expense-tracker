@@ -1,10 +1,17 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { LineChart } from 'react-native-gifted-charts';
 import { Transaction } from '~/types';
-import ThemedText from '../themed/ThemedText';
-import { formatLargeNumber } from '~/utils/formatNumbers';
 import { useTheme } from '~/theme';
+import { formatLargeNumber } from '~/utils/formatNumbers';
+import ThemedText from '~/components/themed/ThemedText';
+import {
+  CHART_CONFIG,
+  CHART_TYPOGRAPHY,
+  commonChartStyles,
+  getChartColors,
+  getChartTextStyle,
+} from './chartStyles';
 
 export type MonthlySpendingTrendChartProps = {
   expenses: Transaction[];
@@ -22,47 +29,68 @@ export const MonthlySpendingTrendChart: React.FC<
   MonthlySpendingTrendChartProps
 > = ({ expenses, monthsToShow = 6 }) => {
   const { theme } = useTheme();
-  const chartData = getMonthlySpendingData(expenses, monthsToShow);
+  const chartColors = getChartColors(theme);
+  const axisTextStyle = getChartTextStyle(theme, 'axis');
+  const focusTextStyle = getChartTextStyle(theme, 'focus');
+
+  const chartData = useMemo(
+    () => getMonthlySpendingData(expenses, monthsToShow),
+    [expenses, monthsToShow]
+  );
 
   if (chartData.length === 0) {
     return (
-      <View style={styles.emptyContainer}>
-        <ThemedText>No spending data available</ThemedText>
+      <View style={commonChartStyles.emptyContainer}>
+        <ThemedText style={commonChartStyles.emptyText}>
+          No spending data available
+        </ThemedText>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={commonChartStyles.container}>
       <LineChart
         data={chartData}
-        height={220}
+        height={CHART_CONFIG.HEIGHT}
+        width={CHART_CONFIG.WIDTH}
         spacing={50}
-        color={theme.primary}
-        thickness={3}
-        dataPointsColor={theme.primary}
-        dataPointsHeight={6}
-        dataPointsWidth={6}
-        dataPointsRadius={3}
+        color={chartColors.primary}
+        thickness={CHART_CONFIG.LINE_THICKNESS}
+        dataPointsColor={chartColors.primary}
+        dataPointsHeight={CHART_CONFIG.DATA_POINT_SIZE}
+        dataPointsWidth={CHART_CONFIG.DATA_POINT_SIZE}
+        dataPointsRadius={CHART_CONFIG.DATA_POINT_RADIUS}
         hideRules={false}
-        rulesColor={theme.textSecondary}
-        yAxisTextStyle={{ fontSize: 12, color: theme.textSecondary }}
-        xAxisLabelTextStyle={{ fontSize: 12, color: theme.textSecondary }}
+        rulesColor={chartColors.grid}
+        yAxisTextStyle={axisTextStyle}
+        xAxisLabelTextStyle={axisTextStyle}
         curved
-        animationDuration={800}
+        animationDuration={CHART_CONFIG.ANIMATION_DURATION}
         isAnimated
         showDataPointOnFocus
         showStripOnFocus
         showTextOnFocus
         textShiftY={-8}
         textShiftX={-5}
-        textColor={theme.primary}
-        textFontSize={12}
+        textColor={chartColors.primary}
+        textFontSize={CHART_TYPOGRAPHY.LABEL}
         focusEnabled
-        focusedDataPointColor={theme.primary}
+        focusedDataPointColor={chartColors.focus}
         focusedDataPointRadius={5}
         formatYLabel={formatLargeNumber}
       />
+
+      <View style={commonChartStyles.insightsContainer}>
+        <ThemedText style={commonChartStyles.insightsTitle}>
+          Trend Insights
+        </ThemedText>
+        {getSpendingInsights(chartData).map((insight, index) => (
+          <ThemedText key={index} style={commonChartStyles.insightText}>
+            • {insight}
+          </ThemedText>
+        ))}
+      </View>
     </View>
   );
 };
@@ -102,23 +130,75 @@ const getMonthlySpendingData = (
   return chartData;
 };
 
+const getSpendingInsights = (data: MonthlySpendingData[]): string[] => {
+  if (data.length === 0) return ['No data available for analysis'];
+
+  const insights: string[] = [];
+
+  // Find highest and lowest spending months
+  const highestMonth = data.reduce((max, current) =>
+    current.total > max.total ? current : max
+  );
+  const lowestMonth = data.reduce((min, current) =>
+    current.total < min.total ? current : min
+  );
+
+  if (highestMonth.total > 0) {
+    insights.push(
+      `Highest spending: ${highestMonth.label} (${formatLargeNumber(highestMonth.total)})`
+    );
+  }
+
+  if (lowestMonth.total > 0) {
+    insights.push(
+      `Lowest spending: ${lowestMonth.label} (${formatLargeNumber(lowestMonth.total)})`
+    );
+  }
+
+  // Calculate average
+  const average = data.reduce((sum, d) => sum + d.total, 0) / data.length;
+  insights.push(`Average monthly spending: ${formatLargeNumber(average)}`);
+
+  // Trend analysis
+  if (data.length >= 3) {
+    const recentAvg = data.slice(-2).reduce((sum, d) => sum + d.total, 0) / 2;
+    const olderAvg = data.slice(0, 2).reduce((sum, d) => sum + d.total, 0) / 2;
+
+    const change = ((recentAvg - olderAvg) / olderAvg) * 100;
+
+    if (Math.abs(change) > 10) {
+      if (change > 0) {
+        insights.push(
+          `Recent months show ${change.toFixed(1)}% increase in spending 📈`
+        );
+      } else {
+        insights.push(
+          `Recent months show ${Math.abs(change).toFixed(1)}% decrease in spending 📉`
+        );
+      }
+    } else {
+      insights.push('Spending remains relatively stable');
+    }
+  }
+
+  // Consistency analysis
+  const variance =
+    data.reduce((sum, d) => sum + Math.pow(d.total - average, 2), 0) /
+    data.length;
+  const standardDeviation = Math.sqrt(variance);
+  const coefficientOfVariation = (standardDeviation / average) * 100;
+
+  if (coefficientOfVariation < 20) {
+    insights.push('Spending pattern is very consistent');
+  } else if (coefficientOfVariation < 40) {
+    insights.push('Spending pattern is moderately consistent');
+  } else {
+    insights.push('Spending pattern is highly variable');
+  }
+
+  return insights;
+};
+
 const styles = StyleSheet.create({
-  container: {
-    alignItems: 'center',
-    paddingVertical: 20,
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 40,
-  },
-  yAxisText: {
-    fontSize: 12,
-    color: '#666',
-  },
-  xAxisText: {
-    fontSize: 12,
-    color: '#666',
-    textAlign: 'center',
-  },
+  // Custom styles specific to this chart can go here if needed
 });
