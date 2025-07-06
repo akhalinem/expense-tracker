@@ -6,12 +6,7 @@ import { PRESET_CATEGORY_COLORS } from '~/constants';
 import { useTheme } from '~/theme';
 import { formatLargeNumber } from '~/utils/formatNumbers';
 import ThemedText from '~/components/themed/ThemedText';
-import {
-  CHART_CONFIG,
-  CHART_TYPOGRAPHY,
-  commonChartStyles,
-  getChartColors,
-} from './chartStyles';
+import { commonChartStyles } from './chartStyles';
 
 export type TopCategoryChartItem = {
   category: string;
@@ -27,7 +22,6 @@ export const TopCategoriesChart: React.FC<TopCategoriesChartProps> = ({
   expenses,
 }) => {
   const { theme } = useTheme();
-  const chartColors = getChartColors(theme);
 
   const chartData = useMemo(
     () => getTopCategoriesChartData(expenses, 5),
@@ -57,19 +51,6 @@ export const TopCategoriesChart: React.FC<TopCategoriesChartProps> = ({
           value: item.amount,
           color: item.color,
         }))}
-        radius={CHART_CONFIG.PIE_RADIUS}
-        donut
-        innerRadius={CHART_CONFIG.PIE_INNER_RADIUS}
-        paddingVertical={CHART_CONFIG.CHART_PADDING}
-        paddingHorizontal={CHART_CONFIG.CHART_PADDING}
-        strokeColor={chartColors.surface}
-        strokeWidth={CHART_CONFIG.PIE_STROKE_WIDTH}
-        showText
-        textColor={chartColors.surface}
-        textSize={CHART_TYPOGRAPHY.SMALL_LABEL}
-        fontWeight={CHART_TYPOGRAPHY.SUBTITLE_WEIGHT}
-        showTextBackground
-        textBackgroundRadius={6}
         innerCircleColor={theme.surface}
         centerLabelComponent={() => (
           <View>
