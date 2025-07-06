@@ -169,11 +169,13 @@ export const commonChartStyles = StyleSheet.create({
     fontSize: CHART_TYPOGRAPHY.SMALL_LABEL,
     opacity: CHART_TYPOGRAPHY.MUTED_OPACITY,
     marginBottom: 2,
+    textAlign: 'center',
   },
   centerValue: {
     fontSize: CHART_TYPOGRAPHY.TITLE,
     fontWeight: CHART_TYPOGRAPHY.TITLE_WEIGHT,
     lineHeight: CHART_TYPOGRAPHY.TITLE_LINE_HEIGHT,
+    textAlign: 'center',
   },
 
   // Chart title styles

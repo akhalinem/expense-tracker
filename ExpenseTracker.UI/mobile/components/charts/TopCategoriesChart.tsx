@@ -70,14 +70,16 @@ export const TopCategoriesChart: React.FC<TopCategoriesChartProps> = ({
         fontWeight={CHART_TYPOGRAPHY.SUBTITLE_WEIGHT}
         showTextBackground
         textBackgroundRadius={6}
+        innerCircleColor={theme.surface}
+        centerLabelComponent={() => (
+          <View>
+            <ThemedText style={commonChartStyles.centerLabel}>Total</ThemedText>
+            <ThemedText style={commonChartStyles.centerValue}>
+              {formatLargeNumber(totalAmount)}
+            </ThemedText>
+          </View>
+        )}
       />
-
-      <View style={commonChartStyles.centerInfo}>
-        <ThemedText style={commonChartStyles.centerLabel}>Total</ThemedText>
-        <ThemedText style={commonChartStyles.centerValue}>
-          {formatLargeNumber(totalAmount)}
-        </ThemedText>
-      </View>
 
       <View style={commonChartStyles.legend}>
         {chartData.map((item, index) => {
