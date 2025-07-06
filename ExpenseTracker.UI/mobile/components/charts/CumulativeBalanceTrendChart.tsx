@@ -21,7 +21,7 @@ type BalancePoint = {
 
 export const CumulativeBalanceTrendChart: React.FC<
   CumulativeBalanceTrendChartProps
-> = ({ transactions, daysToShow = 60 }) => {
+> = ({ transactions, daysToShow = 30 }) => {
   const { theme } = useTheme();
 
   const { chartData, balanceInsights } = useMemo(

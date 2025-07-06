@@ -56,7 +56,7 @@ export const Analytics: FC<{ transactions: Transaction[] }> = ({
         title: 'Balance Trend Over Time',
         description: 'See how your balance changes with each transaction',
         renderer: CumulativeBalanceTrendChart,
-        rendererParams: { transactions, daysToShow: 60 },
+        rendererParams: { transactions, daysToShow: 30 },
       },
       {
         type: AnalyticsItemType.CHART_CARD,
