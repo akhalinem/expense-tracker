@@ -104,7 +104,6 @@ export const commonChartStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: CHART_SPACING.SM,
-    maxWidth: 140,
   },
   legendItemHorizontal: {
     flexDirection: 'row',
