@@ -18,6 +18,7 @@ import { CategoryGrowthRateChart } from './charts/CategoryGrowthRateChart';
 import { ExpenseRecurrencePatternChart } from './charts/ExpenseRecurrencePatternChart';
 import { CumulativeBalanceTrendChart } from './charts/CumulativeBalanceTrendChart';
 import { MonthlyTransactionCountChart } from './charts/MonthlyTransactionCountChart';
+import { CategoryHistoricalAnalysisChart } from './charts/CategoryHistoricalAnalysisChart';
 
 export const Analytics: FC<{ transactions: Transaction[] }> = ({
   transactions,
@@ -128,6 +129,15 @@ export const Analytics: FC<{ transactions: Transaction[] }> = ({
         type: AnalyticsItemType.SECTION_HEADER,
         id: 'analysis-header',
         title: '🔍 Deep Analysis',
+      },
+      {
+        type: AnalyticsItemType.CHART_CARD,
+        id: 'category-historical-analysis',
+        title: 'Category Historical Analysis',
+        description:
+          'View complete spending history for any category across all time periods',
+        renderer: CategoryHistoricalAnalysisChart,
+        rendererParams: { expenses },
       },
       {
         type: AnalyticsItemType.CHART_CARD,
