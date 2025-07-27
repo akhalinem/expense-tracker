@@ -19,6 +19,7 @@ import { ExpenseRecurrencePatternChart } from './charts/ExpenseRecurrencePattern
 import { CumulativeBalanceTrendChart } from './charts/CumulativeBalanceTrendChart';
 import { MonthlyTransactionCountChart } from './charts/MonthlyTransactionCountChart';
 import { CategoryHistoricalAnalysisChart } from './charts/CategoryHistoricalAnalysisChart';
+import { DailyCategoryStackedChart } from './charts/DailyCategoryStackedChart';
 
 export const Analytics: FC<{ transactions: Transaction[] }> = ({
   transactions,
@@ -50,6 +51,15 @@ export const Analytics: FC<{ transactions: Transaction[] }> = ({
         type: AnalyticsItemType.SECTION_HEADER,
         id: 'trend-header',
         title: '📈 Spending Trends',
+      },
+      {
+        type: AnalyticsItemType.CHART_CARD,
+        id: 'daily-category-stacked',
+        title: 'Daily Category Spending with Balance',
+        description:
+          'Monthly view of daily spending by category with running balance line',
+        renderer: DailyCategoryStackedChart,
+        rendererParams: { transactions },
       },
       {
         type: AnalyticsItemType.CHART_CARD,
