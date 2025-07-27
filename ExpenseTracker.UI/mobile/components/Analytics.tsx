@@ -1,10 +1,12 @@
-import { FC, useMemo } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { FC, useMemo, useState } from 'react';
+import { StyleSheet, View, Pressable } from 'react-native';
 import { FlashList, ListRenderItemInfo } from '@shopify/flash-list';
 import { Transaction } from '~/types';
 import ThemedView from '~/components/themed/ThemedView';
 import ThemedText from '~/components/themed/ThemedText';
 import ThemedCard from '~/components/themed/ThemedCard';
+import ChartSelector, { ChartOption } from './ChartSelector';
+import { useTheme } from '~/theme';
 import { TopCategoriesChart } from './charts/TopCategoriesChart';
 import { MonthlySpendingTrendChart } from './charts/MonthlySpendingTrendChart';
 import { CategorySpendingTrendsChart } from './charts/CategorySpendingTrendsChart';
@@ -25,195 +27,376 @@ import { MonthlyCategoryBreakdownChart } from './charts/MonthlyCategoryBreakdown
 export const Analytics: FC<{ transactions: Transaction[] }> = ({
   transactions,
 }) => {
+  const { theme } = useTheme();
+  const [showChartSelector, setShowChartSelector] = useState(false);
+  const [selectedCharts, setSelectedCharts] = useState<string[]>([
+    'monthly-category-breakdown',
+    'daily-category-stacked',
+  ]);
+
   const expenses = useMemo(
     () => transactions.filter((transaction) => transaction.type === 'expense'),
     [transactions]
   );
 
-  const analyticsData: AnalyticsItem[] = useMemo(
+  // Define all available charts with their metadata
+  const allChartOptions: ChartOption[] = useMemo(
     () => [
       // Overview Section
       {
-        type: AnalyticsItemType.SECTION_HEADER,
-        id: 'overview-header',
-        title: '📊 Financial Overview',
+        id: 'top-categories',
+        title: 'Top 5 Spending Categories',
+        description: 'Your biggest spending categories of all time',
+        section: '📊 Financial Overview',
       },
       {
+        id: 'monthly-category-breakdown',
+        title: 'Monthly Category Breakdown',
+        description:
+          'Interactive pie chart showing category spending for any month with toggle controls',
+        section: '📊 Financial Overview',
+      },
+
+      // Trend Analysis Section
+      {
+        id: 'daily-category-stacked',
+        title: 'Daily Category Spending with Balance',
+        description:
+          'Monthly view of daily spending by category with running balance line',
+        section: '📈 Spending Trends',
+      },
+      {
+        id: 'cumulative-balance-trend',
+        title: 'Balance Trend Over Time',
+        description: 'See how your balance changes with each transaction',
+        section: '📈 Spending Trends',
+      },
+      {
+        id: 'monthly-spending-trend',
+        title: 'Monthly Spending Trend',
+        description: 'Track your overall spending trajectory over time',
+        section: '📈 Spending Trends',
+      },
+      {
+        id: 'month-over-month',
+        title: 'Month-over-Month Comparison',
+        description: 'Compare spending changes between recent months',
+        section: '📈 Spending Trends',
+      },
+      {
+        id: 'category-spending-trends',
+        title: 'Category Spending Trends',
+        description: 'See how spending in each category changes over time',
+        section: '📈 Spending Trends',
+      },
+      {
+        id: 'category-growth-rate',
+        title: 'Category Growth Rate',
+        description:
+          'Identify categories with increasing or decreasing spending',
+        section: '📈 Spending Trends',
+      },
+
+      // Behavioral Patterns Section
+      {
+        id: 'daily-spending-pattern',
+        title: 'Daily Spending Pattern',
+        description: 'Discover which days of the week you spend the most',
+        section: '🕐 Spending Patterns',
+      },
+      {
+        id: 'weekly-spending-velocity',
+        title: 'Weekly Spending Velocity',
+        description: 'See how your spending pace varies throughout each month',
+        section: '🕐 Spending Patterns',
+      },
+      {
+        id: 'expense-recurrence-pattern',
+        title: 'Expense Recurrence Pattern',
+        description: 'Calendar heatmap showing spending intensity by date',
+        section: '🕐 Spending Patterns',
+      },
+
+      // Deep Analysis Section
+      {
+        id: 'category-historical-analysis',
+        title: 'Category Historical Analysis',
+        description:
+          'View complete spending history for any category across all time periods',
+        section: '🔍 Deep Analysis',
+      },
+      {
+        id: 'monthly-transaction-count',
+        title: 'Monthly Transaction Count',
+        description: 'Track the volume of transactions per month',
+        section: '🔍 Deep Analysis',
+      },
+      {
+        id: 'category-frequency-analysis',
+        title: 'Category Frequency Analysis',
+        description:
+          'Understanding the relationship between frequency and spending amount',
+        section: '🔍 Deep Analysis',
+      },
+      {
+        id: 'spending-concentration',
+        title: 'Spending Concentration Analysis',
+        description:
+          'Pareto analysis: Which categories consume most of your budget?',
+        section: '🔍 Deep Analysis',
+      },
+
+      // Individual Insights Section
+      {
+        id: 'top-expenses-timeline',
+        title: 'Top Expenses Timeline',
+        description:
+          'Review your largest individual expenses over recent months',
+        section: '💰 Individual Insights',
+      },
+    ],
+    []
+  );
+
+  // Create chart configuration mapping
+  const chartConfigurations = useMemo(() => {
+    const configs: Record<
+      string,
+      {
+        type: AnalyticsItemType;
+        title: string;
+        description: string;
+        renderer: React.ComponentType<any>;
+        rendererParams?: Record<string, any>;
+      }
+    > = {
+      'top-categories': {
         type: AnalyticsItemType.CHART_CARD,
-        id: 'top-categories',
         title: 'Top 5 Spending Categories',
         description: 'Your biggest spending categories of all time',
         renderer: TopCategoriesChart,
         rendererParams: { expenses },
       },
-      {
+      'monthly-category-breakdown': {
         type: AnalyticsItemType.CHART_CARD,
-        id: 'monthly-category-breakdown',
         title: 'Monthly Category Breakdown',
         description:
           'Interactive pie chart showing category spending for any month with toggle controls',
         renderer: MonthlyCategoryBreakdownChart,
         rendererParams: { transactions },
       },
-
-      // Trend Analysis Section
-      {
-        type: AnalyticsItemType.SECTION_HEADER,
-        id: 'trend-header',
-        title: '📈 Spending Trends',
-      },
-      {
+      'daily-category-stacked': {
         type: AnalyticsItemType.CHART_CARD,
-        id: 'daily-category-stacked',
         title: 'Daily Category Spending with Balance',
         description:
           'Monthly view of daily spending by category with running balance line',
         renderer: DailyCategoryStackedChart,
         rendererParams: { transactions },
       },
-      {
+      'cumulative-balance-trend': {
         type: AnalyticsItemType.CHART_CARD,
-        id: 'cumulative-balance-trend',
         title: 'Balance Trend Over Time',
         description: 'See how your balance changes with each transaction',
         renderer: CumulativeBalanceTrendChart,
         rendererParams: { transactions, daysToShow: 30 },
       },
-      {
+      'monthly-spending-trend': {
         type: AnalyticsItemType.CHART_CARD,
-        id: 'monthly-spending-trend',
         title: 'Monthly Spending Trend',
         description: 'Track your overall spending trajectory over time',
         renderer: MonthlySpendingTrendChart,
         rendererParams: { expenses, monthsToShow: 6 },
       },
-      {
+      'month-over-month': {
         type: AnalyticsItemType.CHART_CARD,
-        id: 'month-over-month',
         title: 'Month-over-Month Comparison',
         description: 'Compare spending changes between recent months',
         renderer: MonthOverMonthChart,
         rendererParams: { expenses, monthsToShow: 5 },
       },
-      {
+      'category-spending-trends': {
         type: AnalyticsItemType.CHART_CARD,
-        id: 'category-spending-trends',
         title: 'Category Spending Trends',
         description: 'See how spending in each category changes over time',
         renderer: CategorySpendingTrendsChart,
         rendererParams: { expenses, monthsToShow: 6, topCategoriesCount: 5 },
       },
-      {
+      'category-growth-rate': {
         type: AnalyticsItemType.CHART_CARD,
-        id: 'category-growth-rate',
         title: 'Category Growth Rate',
         description:
           'Identify categories with increasing or decreasing spending',
         renderer: CategoryGrowthRateChart,
         rendererParams: { expenses, topCategoriesCount: 8 },
       },
-
-      // Behavioral Patterns Section
-      {
-        type: AnalyticsItemType.SECTION_HEADER,
-        id: 'patterns-header',
-        title: '🕐 Spending Patterns',
-      },
-      {
+      'daily-spending-pattern': {
         type: AnalyticsItemType.CHART_CARD,
-        id: 'daily-spending-pattern',
         title: 'Daily Spending Pattern',
         description: 'Discover which days of the week you spend the most',
         renderer: DailySpendingPatternChart,
         rendererParams: { expenses },
       },
-      {
+      'weekly-spending-velocity': {
         type: AnalyticsItemType.CHART_CARD,
-        id: 'weekly-spending-velocity',
         title: 'Weekly Spending Velocity',
         description: 'See how your spending pace varies throughout each month',
         renderer: WeeklySpendingVelocityChart,
         rendererParams: { expenses, monthsToShow: 3 },
       },
-      {
+      'expense-recurrence-pattern': {
         type: AnalyticsItemType.CHART_CARD,
-        id: 'expense-recurrence-pattern',
         title: 'Expense Recurrence Pattern',
         description: 'Calendar heatmap showing spending intensity by date',
         renderer: ExpenseRecurrencePatternChart,
         rendererParams: { expenses, monthsToShow: 3 },
       },
-
-      // Deep Analysis Section
-      {
-        type: AnalyticsItemType.SECTION_HEADER,
-        id: 'analysis-header',
-        title: '🔍 Deep Analysis',
-      },
-      {
+      'category-historical-analysis': {
         type: AnalyticsItemType.CHART_CARD,
-        id: 'category-historical-analysis',
         title: 'Category Historical Analysis',
         description:
           'View complete spending history for any category across all time periods',
         renderer: CategoryHistoricalAnalysisChart,
         rendererParams: { expenses },
       },
-      {
+      'monthly-transaction-count': {
         type: AnalyticsItemType.CHART_CARD,
-        id: 'monthly-transaction-count',
         title: 'Monthly Transaction Count',
         description: 'Track the volume of transactions per month',
         renderer: MonthlyTransactionCountChart,
         rendererParams: { transactions, monthsToShow: 6 },
       },
-      {
+      'category-frequency-analysis': {
         type: AnalyticsItemType.CHART_CARD,
-        id: 'category-frequency-analysis',
         title: 'Category Frequency Analysis',
         description:
           'Understanding the relationship between frequency and spending amount',
         renderer: CategoryFrequencyAnalysisChart,
         rendererParams: { expenses, topCategoriesCount: 8 },
       },
-      {
+      'spending-concentration': {
         type: AnalyticsItemType.CHART_CARD,
-        id: 'spending-concentration',
         title: 'Spending Concentration Analysis',
         description:
           'Pareto analysis: Which categories consume most of your budget?',
         renderer: SpendingConcentrationChart,
         rendererParams: { expenses },
       },
-
-      // Individual Insights Section
-      {
-        type: AnalyticsItemType.SECTION_HEADER,
-        id: 'insights-header',
-        title: '💰 Individual Insights',
-      },
-      {
+      'top-expenses-timeline': {
         type: AnalyticsItemType.CHART_CARD,
-        id: 'top-expenses-timeline',
         title: 'Top Expenses Timeline',
         description:
           'Review your largest individual expenses over recent months',
         renderer: TopExpensesTimelineChart,
         rendererParams: { expenses, topCount: 10, periodInDays: 90 },
       },
-    ],
-    [expenses, transactions]
-  );
+    };
+    return configs;
+  }, [expenses, transactions]);
+
+  // Generate analytics data based on selected charts
+  const analyticsData: AnalyticsItem[] = useMemo(() => {
+    const data: AnalyticsItem[] = [];
+
+    // Group selected charts by section
+    const chartsBySection = selectedCharts.reduce(
+      (acc, chartId) => {
+        const chartOption = allChartOptions.find((opt) => opt.id === chartId);
+        if (chartOption) {
+          if (!acc[chartOption.section]) {
+            acc[chartOption.section] = [];
+          }
+          acc[chartOption.section].push(chartId);
+        }
+        return acc;
+      },
+      {} as Record<string, string[]>
+    );
+
+    // Build analytics data with section headers
+    Object.entries(chartsBySection).forEach(([sectionName, chartIds]) => {
+      // Add section header
+      data.push({
+        type: AnalyticsItemType.SECTION_HEADER,
+        id: `${sectionName}-header`,
+        title: sectionName,
+      });
+
+      // Add charts for this section
+      chartIds.forEach((chartId) => {
+        const config = chartConfigurations[chartId];
+        if (config) {
+          data.push({
+            type: config.type,
+            id: chartId,
+            title: config.title,
+            description: config.description,
+            renderer: config.renderer,
+            rendererParams: config.rendererParams,
+          } as AnalyticsItem);
+        }
+      });
+    });
+
+    return data;
+  }, [selectedCharts, allChartOptions, chartConfigurations]);
 
   return (
     <ThemedView style={styles.container}>
-      <FlashList
-        data={analyticsData}
-        renderItem={AnalyticsItemRenderer}
-        keyExtractor={keyExtractor}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ padding: 16 }}
-      />
+      {/* Header with chart selector button */}
+      <View style={styles.header}>
+        <ThemedText style={styles.headerTitle}>Analytics</ThemedText>
+        <Pressable
+          style={[styles.selectorButton, { backgroundColor: theme.primary }]}
+          onPress={() => setShowChartSelector(true)}
+        >
+          <ThemedText style={[styles.selectorButtonText, { color: '#fff' }]}>
+            ⚙️ Select Charts ({selectedCharts.length})
+          </ThemedText>
+        </Pressable>
+      </View>
+
+      {/* Empty state when no charts selected */}
+      {selectedCharts.length === 0 ? (
+        <View style={styles.emptyState}>
+          <ThemedText style={styles.emptyStateTitle}>
+            No Charts Selected
+          </ThemedText>
+          <ThemedText style={styles.emptyStateDescription}>
+            Tap "Select Charts" to choose which analytics you'd like to see
+          </ThemedText>
+          <Pressable
+            style={[
+              styles.selectChartsButton,
+              { backgroundColor: theme.primary },
+            ]}
+            onPress={() => setShowChartSelector(true)}
+          >
+            <ThemedText
+              style={[styles.selectChartsButtonText, { color: '#fff' }]}
+            >
+              Select Charts
+            </ThemedText>
+          </Pressable>
+        </View>
+      ) : (
+        <FlashList
+          data={analyticsData}
+          renderItem={AnalyticsItemRenderer}
+          keyExtractor={keyExtractor}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ padding: 16 }}
+        />
+      )}
+
+      {/* Chart Selector Modal */}
+      {showChartSelector && (
+        <ChartSelector
+          chartOptions={allChartOptions}
+          selectedCharts={selectedCharts}
+          onSelectionChange={setSelectedCharts}
+          onClose={() => setShowChartSelector(false)}
+        />
+      )}
     </ThemedView>
   );
 };
@@ -298,6 +481,54 @@ const getCurrentMonthTransactions = (
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 8,
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+  },
+  selectorButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  selectorButtonText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  emptyState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 32,
+  },
+  emptyStateTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  emptyStateDescription: {
+    fontSize: 16,
+    opacity: 0.7,
+    textAlign: 'center',
+    marginBottom: 24,
+    lineHeight: 22,
+  },
+  selectChartsButton: {
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  selectChartsButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
   },
   cardTitle: {
     fontSize: 16,
