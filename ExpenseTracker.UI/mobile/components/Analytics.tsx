@@ -20,6 +20,7 @@ import { CumulativeBalanceTrendChart } from './charts/CumulativeBalanceTrendChar
 import { MonthlyTransactionCountChart } from './charts/MonthlyTransactionCountChart';
 import { CategoryHistoricalAnalysisChart } from './charts/CategoryHistoricalAnalysisChart';
 import { DailyCategoryStackedChart } from './charts/DailyCategoryStackedChart';
+import { MonthlyCategoryBreakdownChart } from './charts/MonthlyCategoryBreakdownChart';
 
 export const Analytics: FC<{ transactions: Transaction[] }> = ({
   transactions,
@@ -44,6 +45,15 @@ export const Analytics: FC<{ transactions: Transaction[] }> = ({
         description: 'Your biggest spending categories of all time',
         renderer: TopCategoriesChart,
         rendererParams: { expenses },
+      },
+      {
+        type: AnalyticsItemType.CHART_CARD,
+        id: 'monthly-category-breakdown',
+        title: 'Monthly Category Breakdown',
+        description:
+          'Interactive pie chart showing category spending for any month with toggle controls',
+        renderer: MonthlyCategoryBreakdownChart,
+        rendererParams: { transactions },
       },
 
       // Trend Analysis Section
