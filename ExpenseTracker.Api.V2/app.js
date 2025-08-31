@@ -20,6 +20,12 @@ const app = express();
 // Middleware
 app.use(express.json());
 
+// Request logging middleware
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.url} - IP: ${req.ip}`);
+  next();
+});
+
 // Basic request validation middleware
 const validateAuthRequest = (req, res, next) => {
   const { email, password } = req.body;
@@ -48,7 +54,7 @@ app.get('/', (req, res) => {
   res.send("Let's rock!");
 });
 
-app.post('/auth/sign-up', validateAuthRequest, async (req, res) => {
+app.post('/auth/register', validateAuthRequest, async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -89,7 +95,7 @@ app.post('/auth/sign-up', validateAuthRequest, async (req, res) => {
   }
 });
 
-app.post('/auth/sign-in', validateAuthRequest, async (req, res) => {
+app.post('/auth/login', validateAuthRequest, async (req, res) => {
   try {
     const { email, password } = req.body;
 
