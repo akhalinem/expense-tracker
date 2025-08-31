@@ -1,7 +1,12 @@
 import React, { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Canvas, Path, Group, vec } from '@shopify/react-native-skia';
-import ThemedText from '../themed/ThemedText';
+import { PieChart } from 'react-native-gifted-charts';
+import { Category, Transaction } from '~/types';
+import { PRESET_CATEGORY_COLORS } from '~/constants';
+import { useTheme } from '~/theme';
+import { formatLargeNumber } from '~/utils/formatNumbers';
+import ThemedText from '~/components/themed/ThemedText';
+import { commonChartStyles } from './chartStyles';
 
 export type TopCategoryChartItem = {
   category: string;
@@ -10,102 +15,136 @@ export type TopCategoryChartItem = {
 };
 
 export type TopCategoriesChartProps = {
-  data: TopCategoryChartItem[];
-  width: number;
-  height: number;
+  expenses: Transaction[];
 };
 
-export const TopCategoriesChart = ({
-  data,
-  width,
-  height,
-}: TopCategoriesChartProps) => {
-  const radius = Math.min(width, height) / 2 - 20; // 20 for padding
-  const center = vec(width / 2, height / 2);
+export const TopCategoriesChart: React.FC<TopCategoriesChartProps> = ({
+  expenses,
+}) => {
+  const { theme } = useTheme();
 
-  // Calculate total amount
-  const total = useMemo(
-    () => data.reduce((sum, item) => sum + item.amount, 0),
-    [data]
+  const chartData = useMemo(
+    () => getTopCategoriesChartData(expenses, 5),
+    [expenses]
   );
 
-  // Calculate pie segments
-  const paths = useMemo(() => {
-    const segments: any[] = [];
-    let startAngle = 0;
+  // Calculate total amount for percentage calculation
+  const totalAmount = useMemo(
+    () => chartData.reduce((sum, item) => sum + item.amount, 0),
+    [chartData]
+  );
 
-    data.forEach((item) => {
-      const sweepAngle = (item.amount / total) * 2 * Math.PI;
-
-      const x1 = center.x + radius * Math.cos(startAngle);
-      const y1 = center.y + radius * Math.sin(startAngle);
-
-      const x2 = center.x + radius * Math.cos(startAngle + sweepAngle);
-      const y2 = center.y + radius * Math.sin(startAngle + sweepAngle);
-
-      // Create the arc path
-      const path = `
-                M ${center.x} ${center.y}
-                L ${x1} ${y1}
-                A ${radius} ${radius} 0 ${sweepAngle > Math.PI ? 1 : 0} 1 ${x2} ${y2}
-                Z
-            `;
-
-      segments.push({
-        path,
-        color: item.color,
-        category: item.category,
-        amount: item.amount,
-        percentage: Math.round((item.amount / total) * 100),
-      });
-
-      startAngle += sweepAngle;
-    });
-
-    return segments;
-  }, [data, center, radius, total]);
+  if (chartData.length === 0) {
+    return (
+      <View style={commonChartStyles.emptyContainer}>
+        <ThemedText style={commonChartStyles.emptyText}>
+          No category data available
+        </ThemedText>
+      </View>
+    );
+  }
 
   return (
-    <View style={styles.container}>
-      <Canvas style={{ width, height }}>
-        <Group>
-          {paths.map(({ path, color }, index) => (
-            <Path key={index} path={path} color={color} />
-          ))}
-        </Group>
-      </Canvas>
-
-      {/* Legend */}
-      <View style={styles.legend}>
-        {paths.map(({ color, category, percentage }, index) => (
-          <View key={index} style={styles.legendItem}>
-            <View style={[styles.colorBox, { backgroundColor: color }]} />
-            <ThemedText>
-              {category}: {percentage}%
+    <View style={commonChartStyles.container}>
+      <PieChart
+        data={chartData.map((item) => ({
+          value: item.amount,
+          color: item.color,
+        }))}
+        innerCircleColor={theme.surface}
+        centerLabelComponent={() => (
+          <View>
+            <ThemedText style={commonChartStyles.centerLabel}>Total</ThemedText>
+            <ThemedText style={commonChartStyles.centerValue}>
+              {formatLargeNumber(totalAmount)}
             </ThemedText>
           </View>
-        ))}
+        )}
+      />
+
+      <View style={commonChartStyles.legend}>
+        {chartData.map((item, index) => {
+          const percentage =
+            totalAmount > 0
+              ? ((item.amount / totalAmount) * 100).toFixed(1)
+              : '0.0';
+          return (
+            <View key={index} style={commonChartStyles.legendItem}>
+              <View
+                style={[
+                  commonChartStyles.legendColor,
+                  { backgroundColor: item.color },
+                ]}
+              />
+              <View style={styles.legendText}>
+                <ThemedText style={commonChartStyles.legendText}>
+                  {item.category}
+                </ThemedText>
+                <ThemedText style={commonChartStyles.legendTextSecondary}>
+                  {formatLargeNumber(item.amount)} ({percentage}%)
+                </ThemedText>
+              </View>
+            </View>
+          );
+        })}
       </View>
     </View>
   );
 };
 
+const getTopCategoriesChartData = (
+  expenses: Transaction[],
+  top: number = expenses.length
+): TopCategoryChartItem[] => {
+  const categorizedExpensesMap = new Map<number, Transaction[]>();
+  const allCategoriesMapById = new Map<number, Category>();
+
+  expenses.forEach((transaction) => {
+    const categories = transaction.categories || [];
+    categories.forEach((category) => {
+      if (!allCategoriesMapById.has(category.id)) {
+        allCategoriesMapById.set(category.id, category);
+      }
+
+      if (!categorizedExpensesMap.has(category.id)) {
+        categorizedExpensesMap.set(category.id, []);
+      }
+      categorizedExpensesMap.get(category.id)!.push(transaction);
+    });
+  });
+
+  const categoryTotals = Array.from(categorizedExpensesMap.entries()).map(
+    ([categoryId, transactions]) => {
+      const totalAmount = transactions.reduce(
+        (sum, transaction) => sum + transaction.amount,
+        0
+      );
+      const category = allCategoriesMapById.get(categoryId);
+      return {
+        category: category || {
+          id: categoryId,
+          name: 'Unknown',
+          color: PRESET_CATEGORY_COLORS[0],
+        },
+        amount: totalAmount,
+      };
+    }
+  );
+
+  const pieChartData: TopCategoryChartItem[] = categoryTotals
+    .map(({ category, amount }) => ({
+      category: category.name,
+      amount,
+      color: category.color || PRESET_CATEGORY_COLORS[0],
+    }))
+    .sort((a, b) => b.amount - a.amount)
+    .slice(0, top);
+
+  return pieChartData;
+};
+
 const styles = StyleSheet.create({
-  container: {
-    alignItems: 'center',
-  },
-  legend: {
-    marginTop: 12,
-  },
-  legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginRight: 16,
-    marginBottom: 8,
-  },
-  colorBox: {
-    width: 12,
-    height: 12,
-    marginRight: 4,
+  legendText: {
+    flex: 1,
   },
 });
