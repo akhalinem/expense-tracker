@@ -1,5 +1,5 @@
 import { FC, PropsWithChildren } from 'react';
-import { StyleSheet, View, Alert, Text, Button } from 'react-native';
+import { StyleSheet, View, Alert, Text, TouchableOpacity } from 'react-native';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { clearDb, exportData, importData } from '~/services/data-transfer';
 import { useTheme } from '~/theme';
@@ -79,32 +79,41 @@ export default function Settings(props: SettingsProps) {
 
   return (
     <ThemedView style={styles.container}>
-      <SectionHeader title="Data" />
+      <SectionHeader title="Data Management" />
       <SettingsSection>
-        <Button
+        <SettingsRow
+          icon="📥"
           title="Import Data"
-          color={theme.primary}
+          subtitle="Import from JSON file"
           onPress={handleImport}
+          showChevron
         />
         <Divider />
-        <Button
+        <SettingsRow
+          icon="📤"
           title="Export Data"
-          color={theme.primary}
+          subtitle="Save to JSON file"
           onPress={handleExport}
+          showChevron
         />
         <Divider />
-        <Button
+        <SettingsRow
+          icon="🗑️"
           title="Clear Database"
-          color={theme.error}
+          subtitle="Delete all local data"
+          titleColor={theme.error}
           onPress={handleClear}
+          showChevron
         />
       </SettingsSection>
-      <SectionHeader title="Misc" />
+      <SectionHeader title="Categories" />
       <SettingsSection>
-        <Button
-          title="Categories"
-          color={theme.primary}
+        <SettingsRow
+          icon="🏷️"
+          title="Manage Categories"
+          subtitle="Add, edit, or delete categories"
           onPress={handlePressCategories}
+          showChevron
         />
       </SettingsSection>
     </ThemedView>
@@ -141,6 +150,58 @@ const Divider = () => {
   );
 };
 
+// iOS-style Settings Row Component
+type SettingsRowProps = {
+  icon?: string;
+  title: string;
+  subtitle?: string;
+  titleColor?: string;
+  onPress?: () => void;
+  rightElement?: React.ReactNode;
+  showChevron?: boolean;
+};
+
+const SettingsRow: FC<SettingsRowProps> = ({
+  icon,
+  title,
+  subtitle,
+  titleColor,
+  onPress,
+  rightElement,
+  showChevron = false,
+}) => {
+  const { theme } = useTheme();
+
+  return (
+    <TouchableOpacity
+      style={styles.settingsRow}
+      onPress={onPress}
+      disabled={!onPress}
+      activeOpacity={onPress ? 0.7 : 1}
+    >
+      {icon && (
+        <View style={styles.iconContainer}>
+          <Text style={styles.icon}>{icon}</Text>
+        </View>
+      )}
+      <View style={styles.textContainer}>
+        <Text style={[styles.rowTitle, { color: titleColor || theme.text }]}>
+          {title}
+        </Text>
+        {subtitle && (
+          <Text style={[styles.rowSubtitle, { color: theme.textSecondary }]}>
+            {subtitle}
+          </Text>
+        )}
+      </View>
+      {rightElement && <View style={styles.rightElement}>{rightElement}</View>}
+      {showChevron && (
+        <Text style={[styles.chevron, { color: theme.textSecondary }]}>›</Text>
+      )}
+    </TouchableOpacity>
+  );
+};
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -164,7 +225,44 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     borderWidth: StyleSheet.hairlineWidth,
   },
-  settingsButton: {
+  settingsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingVertical: 12,
+    paddingHorizontal: 16,
+    minHeight: 44,
+  },
+  iconContainer: {
+    width: 32,
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  icon: {
+    fontSize: 18,
+  },
+  textContainer: {
+    flex: 1,
+  },
+  rowTitle: {
+    fontSize: 16,
+    fontWeight: '400',
+  },
+  rowSubtitle: {
+    fontSize: 13,
+    marginTop: 2,
+  },
+  rightElement: {
+    marginLeft: 8,
+  },
+  chevron: {
+    fontSize: 18,
+    fontWeight: '300',
+    marginLeft: 8,
+  },
+  syncIndicator: {
+    alignItems: 'center',
+  },
+  syncText: {
+    fontSize: 12,
   },
 });
