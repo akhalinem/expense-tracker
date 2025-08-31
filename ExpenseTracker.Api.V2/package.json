@@ -1,0 +1,12 @@
+{
+  "name": "expense-tracker.api.v2",
+  "version": "1.0.0",
+  "description": "This is a backend for expense tracker mobile app",
+  "license": "ISC",
+  "author": "akhalinem@gmail.com",
+  "type": "commonjs",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
