@@ -6,7 +6,7 @@ const {createClient} = require('@supabase/supabase-js');
 // Environment variables validation
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
-const port = process.env.PORT || 3001;
+const port = process.env.PORT;
 
 if (!supabaseUrl || !supabaseKey) {
   console.error('Missing required environment variables: SUPABASE_URL and/or SUPABASE_KEY');
