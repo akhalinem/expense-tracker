@@ -125,10 +125,8 @@ export default function Settings(props: SettingsProps) {
             <SettingsRow
               icon="📤"
               title="Sync Now"
-              subtitle="Last synced: Just now"
-              onPress={() => {
-                /* TODO: Implement sync */
-              }}
+              subtitle="Manage cloud synchronization"
+              onPress={() => props.onNavigate?.('/sync')}
             />
             <Divider />
             <SettingsRow

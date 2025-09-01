@@ -1,0 +1,300 @@
+{
+  "info": {
+    "name": "Expense Tracker Sync API",
+    "description": "Collection for testing the Expense Tracker sync APIs",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "authToken",
+      "value": "",
+      "type": "string",
+      "description": "JWT token obtained from login"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{authToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/",
+              "host": ["{{baseUrl}}"],
+              "path": [""]
+            },
+            "description": "Simple health check to verify server is running"
+          },
+          "response": []
+        },
+        {
+          "name": "Register User",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"testpassword123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            },
+            "description": "Register a new user account"
+          },
+          "response": []
+        },
+        {
+          "name": "Login User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.session && response.session.access_token) {",
+                  "        pm.collectionVariables.set('authToken', response.session.access_token);",
+                  "        console.log('Auth token saved to collection variable');",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"testpassword123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Login and automatically save JWT token to collection variable"
+          },
+          "response": []
+        }
+      ],
+      "description": "Authentication endpoints for user registration and login"
+    },
+    {
+      "name": "Sync Operations",
+      "item": [
+        {
+          "name": "Get Sync Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/sync/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "sync", "status"]
+            },
+            "description": "Get current sync status and statistics"
+          },
+          "response": []
+        },
+        {
+          "name": "Upload Sample Data",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categories\": [\n    {\n      \"name\": \"Food & Dining\",\n      \"color\": \"#FF6B6B\",\n      \"created_at\": \"2025-09-01T10:00:00.000Z\",\n      \"updated_at\": \"2025-09-01T10:00:00.000Z\"\n    },\n    {\n      \"name\": \"Transportation\",\n      \"color\": \"#4ECDC4\",\n      \"created_at\": \"2025-09-01T10:00:00.000Z\",\n      \"updated_at\": \"2025-09-01T10:00:00.000Z\"\n    },\n    {\n      \"name\": \"Entertainment\",\n      \"color\": \"#45B7D1\",\n      \"created_at\": \"2025-09-01T10:00:00.000Z\",\n      \"updated_at\": \"2025-09-01T10:00:00.000Z\"\n    }\n  ],\n  \"transactions\": [\n    {\n      \"amount\": 25.50,\n      \"description\": \"Lunch at restaurant\",\n      \"date\": \"2025-09-01\",\n      \"type\": \"expense\",\n      \"categories\": [\"Food & Dining\"],\n      \"created_at\": \"2025-09-01T12:00:00.000Z\",\n      \"updated_at\": \"2025-09-01T12:00:00.000Z\"\n    },\n    {\n      \"amount\": 15.75,\n      \"description\": \"Bus fare\",\n      \"date\": \"2025-09-01\",\n      \"type\": \"expense\",\n      \"categories\": [\"Transportation\"],\n      \"created_at\": \"2025-09-01T11:00:00.000Z\",\n      \"updated_at\": \"2025-09-01T11:00:00.000Z\"\n    },\n    {\n      \"amount\": 1000.00,\n      \"description\": \"Salary\",\n      \"date\": \"2025-09-01\",\n      \"type\": \"income\",\n      \"categories\": [],\n      \"created_at\": \"2025-09-01T09:00:00.000Z\",\n      \"updated_at\": \"2025-09-01T09:00:00.000Z\"\n    },\n    {\n      \"amount\": 45.00,\n      \"description\": \"Movie tickets\",\n      \"date\": \"2025-09-01\",\n      \"type\": \"expense\",\n      \"categories\": [\"Entertainment\"],\n      \"created_at\": \"2025-09-01T19:00:00.000Z\",\n      \"updated_at\": \"2025-09-01T19:00:00.000Z\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/sync/upload",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "sync", "upload"]
+            },
+            "description": "Upload sample categories and transactions to the cloud"
+          },
+          "response": []
+        },
+        {
+          "name": "Upload Empty Data",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categories\": [],\n  \"transactions\": []\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/sync/upload",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "sync", "upload"]
+            },
+            "description": "Upload empty data (useful for testing validation)"
+          },
+          "response": []
+        },
+        {
+          "name": "Download Data",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/sync/download",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "sync", "download"]
+            },
+            "description": "Download all user data from the cloud"
+          },
+          "response": []
+        },
+        {
+          "name": "Full Sync with Sample Data",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categories\": [\n    {\n      \"name\": \"Groceries\",\n      \"color\": \"#96CEB4\",\n      \"created_at\": \"2025-09-01T10:00:00.000Z\",\n      \"updated_at\": \"2025-09-01T10:00:00.000Z\"\n    },\n    {\n      \"name\": \"Utilities\",\n      \"color\": \"#FFEAA7\",\n      \"created_at\": \"2025-09-01T10:00:00.000Z\",\n      \"updated_at\": \"2025-09-01T10:00:00.000Z\"\n    }\n  ],\n  \"transactions\": [\n    {\n      \"amount\": 85.30,\n      \"description\": \"Weekly grocery shopping\",\n      \"date\": \"2025-09-01\",\n      \"type\": \"expense\",\n      \"categories\": [\"Groceries\"],\n      \"created_at\": \"2025-09-01T14:00:00.000Z\",\n      \"updated_at\": \"2025-09-01T14:00:00.000Z\"\n    },\n    {\n      \"amount\": 120.00,\n      \"description\": \"Electricity bill\",\n      \"date\": \"2025-09-01\",\n      \"type\": \"expense\",\n      \"categories\": [\"Utilities\"],\n      \"created_at\": \"2025-09-01T16:00:00.000Z\",\n      \"updated_at\": \"2025-09-01T16:00:00.000Z\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/sync/full",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "sync", "full"]
+            },
+            "description": "Perform full sync operation - upload data then download updated cloud data"
+          },
+          "response": []
+        }
+      ],
+      "description": "Sync operations for data synchronization",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{authToken}}",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Error Testing",
+      "item": [
+        {
+          "name": "Unauthorized Request",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "invalid_token",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/sync/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "sync", "status"]
+            },
+            "description": "Test unauthorized access with invalid token"
+          },
+          "response": []
+        },
+        {
+          "name": "Invalid Upload Data",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categories\": \"invalid_data\",\n  \"transactions\": {\n    \"invalid\": \"structure\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/sync/upload",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "sync", "upload"]
+            },
+            "description": "Test validation with invalid data structure"
+          },
+          "response": []
+        }
+      ],
+      "description": "Test error scenarios and validation",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{authToken}}",
+            "type": "string"
+          }
+        ]
+      }
+    }
+  ]
+}

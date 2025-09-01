@@ -153,10 +153,60 @@ const validateResetPassword = [
   handleValidationErrors
 ];
 
+// Sync validation middleware
+const validateSync = (req, res, next) => {
+  const { categories = [], transactions = [] } = req.body;
+  const errors = {};
+
+  // Validate categories structure
+  if (!Array.isArray(categories)) {
+    errors.categories = 'Categories must be an array';
+  } else {
+    categories.forEach((category, index) => {
+      if (!category.name || typeof category.name !== 'string') {
+        errors[`categories[${index}].name`] = 'Category name is required and must be a string';
+      }
+      if (category.color && typeof category.color !== 'string') {
+        errors[`categories[${index}].color`] = 'Category color must be a string';
+      }
+    });
+  }
+
+  // Validate transactions structure
+  if (!Array.isArray(transactions)) {
+    errors.transactions = 'Transactions must be an array';
+  } else {
+    transactions.forEach((transaction, index) => {
+      if (typeof transaction.amount !== 'number') {
+        errors[`transactions[${index}].amount`] = 'Transaction amount is required and must be a number';
+      }
+      if (!transaction.type || !['income', 'expense'].includes(transaction.type)) {
+        errors[`transactions[${index}].type`] = 'Transaction type must be either "income" or "expense"';
+      }
+      if (!transaction.date) {
+        errors[`transactions[${index}].date`] = 'Transaction date is required';
+      }
+      if (transaction.categories && !Array.isArray(transaction.categories)) {
+        errors[`transactions[${index}].categories`] = 'Transaction categories must be an array';
+      }
+    });
+  }
+
+  if (Object.keys(errors).length > 0) {
+    return res.status(400).json({
+      error: 'Invalid sync data format',
+      details: errors
+    });
+  }
+
+  next();
+};
+
 module.exports = {
   validateAuthRequest,
   validateRegister,
   validateLogin,
   validateForgotPassword,
-  validateResetPassword
+  validateResetPassword,
+  validateSync
 };
