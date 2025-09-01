@@ -2,6 +2,7 @@ import { FC, PropsWithChildren } from 'react';
 import { StyleSheet, View, Alert, Text, TouchableOpacity } from 'react-native';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { clearDb, exportData, importData } from '~/services/data-transfer';
+import { useAuth } from '~/context/AuthContext';
 import { useTheme } from '~/theme';
 import ThemedCard from '~/components/themed/ThemedCard';
 import ThemedView from '~/components/themed/ThemedView';
@@ -10,11 +11,13 @@ export type SettingsSection = 'categories';
 
 export type SettingsProps = {
   onPress?(section: SettingsSection): void;
+  onNavigate?(screen: string): void;
 };
 
 export default function Settings(props: SettingsProps) {
   const queryClient = useQueryClient();
   const { theme } = useTheme();
+  const { user, logout } = useAuth();
   const clearDbMutation = useMutation({ mutationFn: clearDb });
 
   const handleImport = async () => {
@@ -79,6 +82,74 @@ export default function Settings(props: SettingsProps) {
 
   return (
     <ThemedView style={styles.container}>
+      <SectionHeader title="Cloud Sync" />
+      <SettingsSection>
+        {!user ? (
+          <>
+            <SettingsRow
+              icon="☁️"
+              title="Sign In"
+              subtitle="Keep your data synced across devices"
+              onPress={() => props.onNavigate?.('auth/login')}
+              showChevron
+            />
+            <Divider />
+            <SettingsRow
+              icon="👤"
+              title="Create Account"
+              subtitle="New to the app?"
+              onPress={() => props.onNavigate?.('auth/register')}
+              showChevron
+            />
+          </>
+        ) : (
+          <>
+            <SettingsRow
+              icon="👤"
+              title={user.email}
+              subtitle="Signed in and syncing"
+              rightElement={
+                <View style={styles.syncIndicator}>
+                  <Text
+                    style={[
+                      styles.syncText,
+                      { color: theme.success || theme.primary },
+                    ]}
+                  >
+                    ●
+                  </Text>
+                </View>
+              }
+            />
+            <Divider />
+            <SettingsRow
+              icon="📤"
+              title="Sync Now"
+              subtitle="Last synced: Just now"
+              onPress={() => {
+                /* TODO: Implement sync */
+              }}
+            />
+            <Divider />
+            <SettingsRow
+              icon="🚪"
+              title="Sign Out"
+              titleColor={theme.error}
+              onPress={() => {
+                Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
+                  { text: 'Cancel', style: 'cancel' },
+                  {
+                    text: 'Sign Out',
+                    style: 'destructive',
+                    onPress: user ? () => logout() : undefined,
+                  },
+                ]);
+              }}
+            />
+          </>
+        )}
+      </SettingsSection>
+
       <SectionHeader title="Data Management" />
       <SettingsSection>
         <SettingsRow

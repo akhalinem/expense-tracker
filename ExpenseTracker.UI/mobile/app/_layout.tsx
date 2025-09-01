@@ -9,6 +9,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { db, expoSqliteDb } from '~/services/db';
 import migrations from '~/drizzle/migrations';
 import { theme, ThemeContext } from '~/theme';
+import { AuthProvider } from '~/context/AuthContext';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -59,71 +60,119 @@ export default function RootLayout() {
       <ThemeContext.Provider value={themeValue}>
         <SafeAreaProvider>
           <GestureHandlerRootView style={{ flex: 1 }}>
-            <Stack>
-              <Stack.Screen
-                name="(tabs)"
-                options={{
-                  headerShown: false,
-                }}
-              />
-
-              <Stack.Screen
-                name="categories/index"
-                options={{
-                  headerTintColor: themeValue.theme.text,
-                  headerStyle: {
-                    backgroundColor: themeValue.theme.background,
-                  },
-                }}
-              />
-
-              <Stack.Screen
-                name="categories/new"
-                options={{
-                  presentation: 'modal',
-                  headerTintColor: themeValue.theme.text,
-                  headerStyle: {
-                    backgroundColor: themeValue.theme.background,
-                  },
-                }}
-              />
-
-              <Stack.Screen
-                name="categories/edit"
-                options={{
-                  presentation: 'modal',
-                  headerTintColor: themeValue.theme.text,
-                  headerStyle: {
-                    backgroundColor: themeValue.theme.background,
-                  },
-                }}
-              />
-
-              <Stack.Screen
-                name="new-transaction"
-                options={{
-                  headerTintColor: themeValue.theme.text,
-                  headerBackButtonDisplayMode: 'minimal',
-                  headerTitle: 'New Transaction',
-                  headerStyle: {
-                    backgroundColor: themeValue.theme.background,
-                  },
-                  presentation: 'modal',
-                }}
-              />
-              <Stack.Screen
-                name="edit-transaction"
-                options={{
-                  headerTintColor: themeValue.theme.text,
-                  headerBackButtonDisplayMode: 'minimal',
-                  headerTitle: 'Edit Transaction',
-                  headerStyle: {
-                    backgroundColor: themeValue.theme.background,
-                  },
-                  presentation: 'modal',
-                }}
-              />
-            </Stack>
+            <AuthProvider>
+              <Stack>
+                <Stack.Screen
+                  name="(tabs)"
+                  options={{
+                    headerShown: false,
+                  }}
+                />
+                <Stack.Screen
+                  name="auth/login"
+                  options={{
+                    headerTitle: 'Sign In',
+                    headerBackTitle: 'Settings',
+                    // headerBackButtonDisplayMode: 'minimal',
+                    headerTintColor: themeValue.theme.text,
+                    headerStyle: {
+                      backgroundColor: themeValue.theme.background,
+                    },
+                    presentation: 'card',
+                  }}
+                />
+                <Stack.Screen
+                  name="auth/register"
+                  options={{
+                    headerTitle: 'Create Account',
+                    headerBackTitle: 'Settings',
+                    // headerBackButtonDisplayMode: 'minimal',
+                    headerTintColor: themeValue.theme.text,
+                    headerStyle: {
+                      backgroundColor: themeValue.theme.background,
+                    },
+                    presentation: 'card',
+                  }}
+                />
+                <Stack.Screen
+                  name="auth/forgot-password"
+                  options={{
+                    headerTitle: 'Reset Password',
+                    headerBackTitle: 'Sign In',
+                    headerTintColor: themeValue.theme.text,
+                    headerStyle: {
+                      backgroundColor: themeValue.theme.background,
+                    },
+                    presentation: 'card',
+                  }}
+                />
+                <Stack.Screen
+                  name="auth/reset-password"
+                  options={{
+                    headerTitle: 'Set New Password',
+                    headerBackTitle: '',
+                    headerTintColor: themeValue.theme.text,
+                    headerStyle: {
+                      backgroundColor: themeValue.theme.background,
+                    },
+                    presentation: 'card',
+                  }}
+                />
+                <Stack.Screen
+                  name="categories/index"
+                  options={{
+                    headerTintColor: themeValue.theme.text,
+                    headerStyle: {
+                      backgroundColor: themeValue.theme.background,
+                    },
+                  }}
+                />
+                <Stack.Screen
+                  name="categories/new"
+                  options={{
+                    presentation: 'modal',
+                    headerTintColor: themeValue.theme.text,
+                    headerStyle: {
+                      backgroundColor: themeValue.theme.background,
+                    },
+                  }}
+                />
+                <Stack.Screen
+                  name="categories/edit"
+                  options={{
+                    presentation: 'modal',
+                    headerTintColor: themeValue.theme.text,
+                    headerStyle: {
+                      backgroundColor: themeValue.theme.background,
+                    },
+                  }}
+                />
+                <Stack.Screen
+                  name="new-transaction"
+                  options={{
+                    headerTintColor: themeValue.theme.text,
+                    headerBackButtonDisplayMode: 'minimal',
+                    headerTitle: 'New Transaction',
+                    headerStyle: {
+                      backgroundColor: themeValue.theme.background,
+                    },
+                    presentation: 'modal',
+                  }}
+                />
+                <Stack.Screen
+                  name="edit-transaction"
+                  options={{
+                    headerTintColor: themeValue.theme.text,
+                    headerBackButtonDisplayMode: 'minimal',
+                    headerTitle: 'Edit Transaction',
+                    headerStyle: {
+                      backgroundColor: themeValue.theme.background,
+                    },
+                    presentation: 'modal',
+                  }}
+                />
+              </Stack>
+            </AuthProvider>
           </GestureHandlerRootView>
         </SafeAreaProvider>
       </ThemeContext.Provider>
