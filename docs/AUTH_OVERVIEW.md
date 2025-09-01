@@ -16,11 +16,13 @@ This app uses a **hybrid authentication system** with Supabase + Node.js backend
 
 ### 🔐 Authentication Features
 
-- ✅ **User Registration** with email confirmation
-- ✅ **User Login** with session management
-- ✅ **Password Reset** via email with deep linking
-- ✅ **Session Persistence** across app restarts
-- ✅ **Local Network Support** (works with IP addresses)
+- ✅ **User Registration** with email confirmation and deep linking
+- ✅ **User Login** with secure session management
+- ✅ **Password Reset** via email with deep linking support
+- ✅ **Session Persistence** across app restarts using AsyncStorage
+- ✅ **Local Network Support** (works with IP addresses and localhost)
+- ✅ **Input Validation** with comprehensive error handling
+- ✅ **CORS Configuration** for cross-origin requests
 
 ## 🚀 Quick Start
 
@@ -46,10 +48,34 @@ npx expo start
 
 ### 3. Supabase Configuration
 
-- Create Supabase project
-- Add redirect URL: `http://YOUR_IP:3000/auth/callback/reset-password`
-- Remove localhost from Site URL
-- Configure email templates
+- Create Supabase project at [supabase.com](https://supabase.com)
+- Configure authentication settings:
+  - **Site URL**: `http://localhost:3000` (or your backend URL)
+  - **Redirect URLs**:
+    - `http://localhost:3000/auth/callback/reset-password`
+    - `http://localhost:3000/auth/callback/confirm-email`
+    - `expense-tracker://auth/reset-password`
+    - `expense-tracker://auth/login`
+- Enable email authentication provider
+- Configure custom email templates (optional)
+- Remove localhost from Site URL for production
+
+### 4. Environment Variables
+
+**Backend (.env)**:
+
+```env
+SUPABASE_URL=your_supabase_project_url
+SUPABASE_KEY=your_supabase_anon_key
+APP_URL=http://localhost:3000
+PORT=3000
+```
+
+**Mobile (.env)**:
+
+```env
+EXPO_PUBLIC_API_URL=http://localhost:3000
+```
 
 ## 📖 Detailed Documentation
 
@@ -63,25 +89,44 @@ For complete documentation including:
 
 See: **[AUTHENTICATION.md](./AUTHENTICATION.md)**
 
-## 🔄 Password Reset Flow Summary
+## 🔄 Authentication Flows Summary
 
-The most complex part of the auth system:
+### Registration Flow
+
+1. **Mobile App** → Submit registration form with validation
+2. **Backend** → Create user account via Supabase
+3. **Supabase** → Send email confirmation link
+4. **Email Link** → Opens backend callback URL
+5. **Backend** → Handles confirmation and redirects to mobile app
+6. **Mobile App** → User can now sign in
+
+### Login Flow
+
+1. **Mobile App** → Submit login credentials
+2. **Backend** → Authenticate with Supabase
+3. **Backend** → Return user data and session tokens
+4. **Mobile App** → Store session in AsyncStorage and navigate to main app
+
+### Password Reset Flow (Most Complex)
 
 1. **Mobile App** → Request reset via API
-2. **Backend** → Tell Supabase to send email
+2. **Backend** → Tell Supabase to send reset email
 3. **Email Link** → Opens backend callback URL
 4. **Backend** → Validates tokens with `supabase.auth.setSession()`
-5. **Backend** → Redirects to mobile app via deep link
-6. **Mobile App** → User sets new password
-7. **Backend** → Updates password in Supabase
-8. **Mobile App** → User logs in → Navigate to main app
+5. **Backend** → Redirects to mobile app via deep link with tokens
+6. **Mobile App** → Validate reset session tokens
+7. **Mobile App** → User sets new password
+8. **Backend** → Updates password in Supabase
+9. **Mobile App** → Navigate to login screen
 
 ## 🛠️ Key Technologies
 
-- **Backend**: Node.js, Express, Supabase JS SDK
-- **Mobile**: React Native, Expo Router, AsyncStorage
-- **Auth Provider**: Supabase Auth
-- **Deep Linking**: Expo Linking with custom scheme
+- **Backend**: Node.js, Express, Supabase JS SDK, Express Validator
+- **Mobile**: React Native, Expo Router, AsyncStorage, React Query
+- **Auth Provider**: Supabase Auth with email confirmation
+- **Deep Linking**: Expo Linking with custom scheme (`expense-tracker://`)
+- **Validation**: Zod (mobile), Express Validator (backend)
+- **Storage**: AsyncStorage (sessions), SQLite (local data)
 
 ## 🐛 Common Issues & Solutions
 
@@ -91,6 +136,33 @@ The most complex part of the auth system:
 | "Initial URL: null" error         | Check deep link scheme in app.json           |
 | Stuck in reset screen after login | Use `router.replace()` not `router.back()`   |
 | "Invalid tokens" error            | Ensure backend validates with `setSession()` |
+| CORS errors                       | Check backend CORS configuration             |
+| "Invalid login credentials"       | User may need to confirm email first         |
+| Session not persisting            | Check AsyncStorage permissions               |
+| Deep links not working            | Verify URL scheme in app.json and Supabase   |
+
+## 🔧 Health Check
+
+The backend provides a health check endpoint to verify configuration:
+
+```bash
+GET http://localhost:3000/auth/health
+```
+
+Returns:
+
+```json
+{
+  "status": "ok",
+  "config": {
+    "supabaseConfigured": true,
+    "appUrlConfigured": true,
+    "supabaseUrl": "configured",
+    "supabaseKey": "configured",
+    "appUrl": "http://localhost:3000"
+  }
+}
+```
 
 ---
 

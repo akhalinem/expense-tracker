@@ -45,52 +45,94 @@ ExpenseTracker.Api.V2/
 #### Supabase Client (`src/config/supabase.js`)
 
 ```javascript
-import { createClient } from "@supabase/supabase-js";
+const { createClient } = require("@supabase/supabase-js");
 
 const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_ANON_KEY;
+const supabaseKey = process.env.SUPABASE_KEY;
 
-export const supabase = createClient(supabaseUrl, supabaseKey, {
+const supabaseClient = createClient(supabaseUrl, supabaseKey, {
   auth: {
     autoRefreshToken: false,
     persistSession: false,
     detectSessionInUrl: false,
   },
 });
+
+module.exports = { supabaseClient };
 ```
 
 #### Express Application (`app.js`)
 
 ```javascript
-import express from "express";
-import cors from "cors";
-import { authRouter } from "./src/routes/auth.js";
-import { errorHandler } from "./src/middleware/errorHandler.js";
+require("dotenv").config();
+
+const express = require("express");
+const cors = require("cors");
+
+// Import modularized components
+const authRoutes = require("./src/routes/auth");
+const { errorHandler } = require("./src/middleware/errorHandler");
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const port = process.env.PORT || 3000;
 
-// Middleware
+// CORS configuration for mobile app
 app.use(
   cors({
-    origin: ["http://localhost:8081", "exp://192.168.1.100:8081"],
+    origin: true, // Allow all origins during development
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
-app.use(express.json());
+
+// Middleware
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true }));
+
+// Request logging middleware
+app.use((req, res, next) => {
+  console.log(
+    `${new Date().toISOString()} - ${req.method} ${req.url} - IP: ${req.ip}`
+  );
+  next();
+});
 
 // Routes
-app.use("/auth", authRouter);
+app.get("/", (req, res) => {
+  res.send("Let's rock!");
+});
 
-// Error handling
+app.use("/auth", authRoutes);
+
+// Error handling middleware (should be last)
 app.use(errorHandler);
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+app.listen(port, () => {
+  console.log(`app listening on port ${port}`);
 });
 ```
 
 ### Authentication Endpoints
+
+#### GET `/auth/health`
+
+Health check endpoint to verify authentication configuration.
+
+**Response**:
+
+```json
+{
+  "status": "ok",
+  "config": {
+    "supabaseConfigured": true,
+    "appUrlConfigured": true,
+    "supabaseUrl": "configured",
+    "supabaseKey": "configured",
+    "appUrl": "http://localhost:3000"
+  }
+}
+```
 
 #### POST `/auth/register`
 
@@ -109,9 +151,13 @@ Registers a new user with email confirmation.
 
 ```json
 {
-  "success": true,
-  "message": "Registration successful. Please check your email for confirmation.",
-  "requiresConfirmation": true
+  "message": "Account created successfully!",
+  "user": {
+    "id": "uuid",
+    "email": "user@example.com",
+    "confirmation_sent_at": "2024-01-01T00:00:00Z"
+  },
+  "session": null
 }
 ```
 
@@ -132,8 +178,7 @@ Authenticates a user and returns session information.
 
 ```json
 {
-  "success": true,
-  "message": "Login successful",
+  "message": "Signed in successfully!",
   "user": {
     "id": "uuid",
     "email": "user@example.com",
@@ -142,7 +187,8 @@ Authenticates a user and returns session information.
   "session": {
     "access_token": "jwt_token",
     "refresh_token": "refresh_token",
-    "expires_at": 1234567890
+    "expires_at": 1234567890,
+    "token_type": "bearer"
   }
 }
 ```
@@ -163,9 +209,24 @@ Initiates password reset flow.
 
 ```json
 {
-  "success": true,
   "message": "Password reset email sent successfully"
 }
+```
+
+#### GET `/auth/callback/confirm-email`
+
+Handles email confirmation callbacks from Supabase.
+
+**Query Parameters**:
+
+- `access_token`: JWT access token
+- `refresh_token`: Refresh token
+- `type`: Should be "signup"
+
+**Response**: HTML page with redirect to mobile app:
+
+```
+expense-tracker://auth/login?email_confirmed=true
 ```
 
 #### GET `/auth/callback/reset-password`
@@ -206,7 +267,6 @@ Authorization: Bearer <access_token>
 
 ```json
 {
-  "success": true,
   "message": "Password updated successfully"
 }
 ```
@@ -228,7 +288,6 @@ Validates reset session tokens.
 
 ```json
 {
-  "success": true,
   "valid": true,
   "user": {
     "id": "uuid",
@@ -242,33 +301,89 @@ Validates reset session tokens.
 #### Validation Middleware (`src/middleware/validation.js`)
 
 ```javascript
-import { body, validationResult } from "express-validator";
+const { body, validationResult } = require("express-validator");
 
-export const validateEmail = [
+const checkValidationErrors = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      error: "Validation failed",
+      details: errors.array().reduce((acc, error) => {
+        acc[error.path] = error.msg;
+        return acc;
+      }, {}),
+    });
+  }
+  next();
+};
+
+const validateRegister = [
   body("email")
     .isEmail()
     .normalizeEmail()
     .withMessage("Please provide a valid email address"),
-  checkValidationErrors,
-];
-
-export const validatePassword = [
   body("password")
     .isLength({ min: 8 })
     .withMessage("Password must be at least 8 characters long"),
   checkValidationErrors,
 ];
+
+const validateLogin = [
+  body("email")
+    .isEmail()
+    .normalizeEmail()
+    .withMessage("Please provide a valid email address"),
+  body("password").notEmpty().withMessage("Password is required"),
+  checkValidationErrors,
+];
+
+module.exports = {
+  validateRegister,
+  validateLogin,
+  validateForgotPassword: [
+    body("email")
+      .isEmail()
+      .normalizeEmail()
+      .withMessage("Please provide a valid email address"),
+    checkValidationErrors,
+  ],
+  validateResetPassword: [
+    body("newPassword")
+      .isLength({ min: 8 })
+      .withMessage("Password must be at least 8 characters long"),
+    checkValidationErrors,
+  ],
+};
 ```
 
 #### Error Handler (`src/middleware/errorHandler.js`)
 
 ```javascript
-export const errorHandler = (err, req, res, next) => {
-  console.error("Error:", err);
+const errorHandler = (err, req, res, next) => {
+  console.error("Authentication error:", err);
 
+  // Handle Supabase auth errors
+  if (err.message && err.message.includes("Invalid login credentials")) {
+    return res.status(401).json({
+      error: "Invalid email or password",
+    });
+  }
+
+  if (err.message && err.message.includes("Email not confirmed")) {
+    return res.status(400).json({
+      error: "Please confirm your email before signing in",
+    });
+  }
+
+  if (err.message && err.message.includes("User already registered")) {
+    return res.status(409).json({
+      error: "An account with this email already exists",
+    });
+  }
+
+  // Handle validation errors
   if (err.type === "validation") {
     return res.status(400).json({
-      success: false,
       error: "Validation failed",
       details: err.errors,
     });
@@ -276,10 +391,11 @@ export const errorHandler = (err, req, res, next) => {
 
   // Default error response
   res.status(500).json({
-    success: false,
     error: "Internal server error",
   });
 };
+
+module.exports = { errorHandler };
 ```
 
 ### Authentication Service (`src/services/authService.js`)
@@ -287,53 +403,116 @@ export const errorHandler = (err, req, res, next) => {
 Handles business logic for authentication operations:
 
 ```javascript
-import { supabase } from "../config/supabase.js";
+const { supabaseClient } = require("../config/supabase");
 
-export class AuthService {
-  async registerUser(email, password) {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: `${process.env.API_URL}/auth/callback/email-confirmation`,
-      },
-    });
+class AuthService {
+  async register(email, password) {
+    try {
+      const { data, error } = await supabaseClient.auth.signUp({
+        email: email.trim(),
+        password: password.trim(),
+        options: {
+          emailRedirectTo: `${process.env.APP_URL}/auth/callback/confirm-email`,
+        },
+      });
 
-    if (error) throw error;
-    return data;
+      if (error) {
+        throw this.createAuthError(error);
+      }
+
+      return this.formatAuthResponse(data, "Account created successfully!");
+    } catch (error) {
+      if (error.name === "AuthError") {
+        throw error;
+      }
+      throw this.createAuthError({ message: "Registration failed" });
+    }
   }
 
-  async loginUser(email, password) {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+  async login(email, password) {
+    try {
+      const { data, error } = await supabaseClient.auth.signInWithPassword({
+        email: email.trim(),
+        password: password.trim(),
+      });
 
-    if (error) throw error;
-    return data;
+      if (error) {
+        throw this.createAuthError(error);
+      }
+
+      return this.formatAuthResponse(data, "Signed in successfully!");
+    } catch (error) {
+      if (error.name === "AuthError") {
+        throw error;
+      }
+      throw this.createAuthError({ message: "Login failed" });
+    }
   }
 
-  async initiatePasswordReset(email) {
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${process.env.API_URL}/auth/callback/reset-password`,
-    });
+  async sendPasswordResetEmail(email, redirectTo) {
+    try {
+      const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+        redirectTo: redirectTo,
+      });
 
-    if (error) throw error;
+      if (error) {
+        throw this.createAuthError(error);
+      }
+
+      return { message: "Password reset email sent successfully" };
+    } catch (error) {
+      if (error.name === "AuthError") {
+        throw error;
+      }
+      throw this.createAuthError({ message: "Failed to send reset email" });
+    }
   }
 
   async updatePassword(accessToken, newPassword) {
-    await supabase.auth.setSession({
-      access_token: accessToken,
-      refresh_token: null,
-    });
+    try {
+      const { error: sessionError } = await supabaseClient.auth.setSession({
+        access_token: accessToken,
+        refresh_token: null,
+      });
 
-    const { error } = await supabase.auth.updateUser({
-      password: newPassword,
-    });
+      if (sessionError) {
+        throw this.createAuthError(sessionError);
+      }
 
-    if (error) throw error;
+      const { error: updateError } = await supabaseClient.auth.updateUser({
+        password: newPassword,
+      });
+
+      if (updateError) {
+        throw this.createAuthError(updateError);
+      }
+
+      return { message: "Password updated successfully" };
+    } catch (error) {
+      if (error.name === "AuthError") {
+        throw error;
+      }
+      throw this.createAuthError({ message: "Password update failed" });
+    }
+  }
+
+  createAuthError(error) {
+    const authError = new Error(error.message || "Authentication error");
+    authError.name = "AuthError";
+    authError.code = error.code;
+    return authError;
+  }
+
+  formatAuthResponse(data, message) {
+    return {
+      message,
+      user: data.user,
+      session: data.session,
+    };
   }
 }
+
+module.exports = new AuthService();
 ```
 
 ## 📱 Mobile Implementation
@@ -455,8 +634,8 @@ app.use(
 ```env
 # Required
 SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_ANON_KEY=your-anon-key
-API_URL=http://localhost:3000
+SUPABASE_KEY=your-supabase-anon-key
+APP_URL=http://localhost:3000
 
 # Optional
 PORT=3000
@@ -475,14 +654,16 @@ EXPO_PUBLIC_ENVIRONMENT=development
 
 ### Supabase Configuration
 
-#### Site URL Configuration
+#### Redirect URLs Configuration
 
 In Supabase Dashboard → Authentication → URL Configuration:
 
 - **Site URL**: `http://localhost:3000` (for local development)
 - **Redirect URLs**:
   - `http://localhost:3000/auth/callback/reset-password`
+  - `http://localhost:3000/auth/callback/confirm-email`
   - `expense-tracker://auth/reset-password`
+  - `expense-tracker://auth/login`
 
 #### Email Templates
 

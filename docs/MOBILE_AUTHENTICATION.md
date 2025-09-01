@@ -41,7 +41,7 @@ Provides specialized hooks for each authentication operation:
 
 ```typescript
 // Login with automatic navigation and error handling
-const { login, error, isLoading, clearError } = useLogin();
+const { login, error, isSubmitting, isLoading, clearError } = useLogin();
 
 // Registration with confirmation handling
 const { register, error, successMessage, isLoading } = useRegister();
@@ -68,7 +68,7 @@ Catches and handles JavaScript errors in authentication flows:
 ```typescript
 <AuthErrorBoundary>
   <LoginForm />
-</AuthErrorBoundary>
+</AuthErrorBoundary>;
 
 // Or as HOC
 export default withAuthErrorBoundary(LoginScreen);
@@ -86,7 +86,7 @@ export default withAuthErrorBoundary(LoginScreen);
 Reusable, accessible form components:
 
 ```typescript
-// Pre-configured email input
+// Pre-configured email input with validation
 <EmailInput
   value={email}
   onChangeText={setEmail}
@@ -95,12 +95,28 @@ Reusable, accessible form components:
   required
 />
 
-// Password input with show/hide toggle
+// Password input with show/hide toggle and strength indicator
 <PasswordInput
   value={password}
   onChangeText={setPassword}
   error={errors.password}
   touched={touched.password}
+  showStrengthIndicator
+  required
+/>
+
+// Submit button with loading state
+<SubmitButton
+  onPress={handleSubmit}
+  isLoading={isLoading}
+  disabled={!isValid}
+  title="Sign In"
+/>
+```
+
+onChangeText={setPassword}
+error={errors.password}
+touched={touched.password}
 />
 
 // Consistent button with loading states
@@ -110,139 +126,37 @@ Reusable, accessible form components:
   disabled={!isFormValid}
   loading={isLoading}
 />
-```
+
+````
 
 **Components Available**:
 
-- `AuthInput` - Base input with error handling
-- `EmailInput` - Email input with validation icon
-- `PasswordInput` - Password input with visibility toggle
-- `AuthButton` - Button with loading states and variants
-- `AuthLink` - Navigation links with proper styling
+- `EmailInput` - Email input with validation and proper styling
+- `PasswordInput` - Password input with visibility toggle and strength indicator
+- `SubmitButton` - Button with loading states and disabled states
+- `AuthErrorBoundary` - Error boundary for authentication flows
+- `LoginForm`, `RegisterForm`, `ForgotPasswordForm` - Complete form components
 
-### Validation System (`utils/validation.ts`)
+### Authentication Context (`context/AuthContext.tsx`)
 
-Centralized validation with real-time feedback:
-
-```typescript
-// Form validation hook
-const { values, errors, touched, setValue, setFieldTouched, isFormValid } =
-  useFormValidation({ email: "", password: "" }, (values) =>
-    validateLoginForm(values.email, values.password)
-  );
-
-// Individual validation functions
-validateEmail(email); // Email format validation
-validatePassword(password); // Password strength validation
-validateLoginForm(email, pwd); // Complete form validation
-```
-
-**Features**:
-
-- Real-time validation as user types
-- Touched state tracking
-- Consistent validation rules
-- TypeScript support
-
-### Authentication Utilities (`utils/auth.ts`)
-
-Comprehensive utility functions organized by category:
-
-#### Session Management
+Provides centralized authentication state management:
 
 ```typescript
-// Store/retrieve user sessions
-await sessionUtils.storeSession(user);
-const user = await sessionUtils.getSession();
-await sessionUtils.clearSession();
-
-// Session validation
-const isValid = await sessionUtils.isSessionValid();
-
-// Remember last email for UX
-await sessionUtils.storeLastEmail(email);
-const lastEmail = await sessionUtils.getLastEmail();
-```
-
-#### Navigation
-
-```typescript
-// Navigation helpers
-navigationUtils.navigateToApp(); // Go to main app
-navigationUtils.navigateToSignIn(); // Go to sign-in
-navigationUtils.navigateToRegister(); // Go to registration
-navigationUtils.resetToRoute("/path"); // Reset navigation stack
-```
-
-#### Deep Linking
-
-```typescript
-// Parse reset password parameters
-const params = deepLinkUtils.parseResetPasswordParams(url);
-const isValid = deepLinkUtils.validateResetPasswordParams(params);
-const error = deepLinkUtils.getResetPasswordError(params);
-```
-
-#### Token Management
-
-```typescript
-// JWT token utilities
-const decoded = tokenUtils.decodeToken(token);
-const isExpired = tokenUtils.isTokenExpired(token);
-const expiration = tokenUtils.getTokenExpiration(token);
-```
-
-#### Error Handling
-
-```typescript
-// User-friendly error messages
-const message = errorUtils.getUserFriendlyError(error);
-const isNetwork = errorUtils.isNetworkError(error);
-const formatted = errorUtils.formatApiError(error);
-```
-
-### Loading State Management (`context/LoadingContext.tsx`)
-
-Global loading state management for better UX:
-
-```typescript
-// Pre-defined loading keys
-const LOADING_KEYS = {
-  LOGIN: "auth.login",
-  REGISTER: "auth.register",
-  FORGOT_PASSWORD: "auth.forgotPassword",
-  RESET_PASSWORD: "auth.resetPassword",
-  // ...
+export type AuthUser = {
+  id: string;
+  email: string;
+  token: string;
 };
 
-// Authentication-specific loading hooks
-const { isLoginLoading, isRegisterLoading, setLoginLoading, isAnyAuthLoading } =
-  useAuthLoading();
-
-// Async operation with loading state
-const { execute, isLoading, error, data } = useAsyncOperation(
-  authOperation,
-  LOADING_KEYS.LOGIN
-);
-```
-
-## 🔐 Authentication Context (`context/AuthContext.tsx`)
-
-Central authentication state management:
-
-```typescript
-interface AuthState {
+export type AuthState = {
   user: AuthUser | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<AuthResult>;
+  login: (email: string, password: string) => Promise<{success: boolean; error?: string}>;
   logout: () => void;
-  register: (email: string, password: string) => Promise<AuthResult>;
-  forgotPassword: (email: string) => Promise<AuthResult>;
-}
-
-// Usage
-const { user, loading, login, logout } = useAuth();
-```
+  register: (email: string, password: string) => Promise<{success: boolean; error?: string; requiresConfirmation?: boolean}>;
+  forgotPassword: (email: string) => Promise<{success: boolean; error?: string; message?: string}>;
+};
+````
 
 **Features**:
 
@@ -276,22 +190,81 @@ api.interceptors.request.use(async (config) => {
 });
 ```
 
-### Authentication Service
+### Authentication Service (`services/auth.ts`)
+
+Service for handling API communication with the Node.js backend:
 
 ```typescript
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface RegisterRequest {
+  email: string;
+  password: string;
+}
+
+export interface AuthResponse {
+  message: string;
+  user: {
+    id: string;
+    email: string;
+    confirmation_sent_at?: string;
+  };
+  session?: {
+    access_token: string;
+    refresh_token: string;
+    expires_at: number;
+    token_type: string;
+  };
+}
+
 export const authService = {
   async login(credentials: LoginRequest): Promise<AuthResponse> {
-    // Login implementation with error handling
+    const response = await api.post<AuthResponse>("/auth/login", credentials);
+    return response.data;
   },
 
   async register(credentials: RegisterRequest): Promise<AuthResponse> {
-    // Registration implementation
+    const response = await api.post<AuthResponse>(
+      "/auth/register",
+      credentials
+    );
+    return response.data;
   },
 
   async forgotPassword(
     request: ForgotPasswordRequest
   ): Promise<ForgotPasswordResponse> {
-    // Password reset implementation
+    const response = await api.post<ForgotPasswordResponse>(
+      "/auth/forgot-password",
+      request
+    );
+    return response.data;
+  },
+
+  async resetPassword(
+    newPassword: string,
+    accessToken: string
+  ): Promise<{ message: string }> {
+    const response = await api.post(
+      "/auth/reset-password",
+      { newPassword },
+      { headers: { Authorization: `Bearer ${accessToken}` } }
+    );
+    return response.data;
+  },
+
+  async validateResetSession(
+    accessToken: string,
+    refreshToken: string
+  ): Promise<{ valid: boolean; user?: any }> {
+    const response = await api.post("/auth/validate-reset-session", {
+      accessToken,
+      refreshToken,
+    });
+    return response.data;
   },
 };
 ```
@@ -307,7 +280,7 @@ Each authentication screen follows the same pattern using the modular components
 const SignInScreen = () => {
   const { login, error, isLoading } = useLogin();
   const { values, errors, setValue, isFormValid } = useFormValidation(
-    { email: '', password: '' },
+    { email: "", password: "" },
     (values) => validateLoginForm(values.email, values.password)
   );
 
@@ -316,12 +289,12 @@ const SignInScreen = () => {
       <SafeAreaView>
         <EmailInput
           value={values.email}
-          onChangeText={(text) => setValue('email', text)}
+          onChangeText={(text) => setValue("email", text)}
           error={errors.email}
         />
         <PasswordInput
           value={values.password}
-          onChangeText={(text) => setValue('password', text)}
+          onChangeText={(text) => setValue("password", text)}
           error={errors.password}
         />
         <AuthButton
@@ -336,32 +309,40 @@ const SignInScreen = () => {
 };
 ```
 
-## 🔗 Deep Linking Integration
+### Deep Linking Integration
 
-### Password Reset Flow
+The mobile app handles authentication-related deep links from the backend:
 
-The mobile app handles password reset deep links from the backend:
+#### Email Confirmation
 
-1. **Link Format**: `expense-tracker://auth/reset-password?access_token=...&refresh_token=...`
-2. **Parameter Parsing**: Uses `deepLinkUtils.parseResetPasswordParams()`
-3. **Validation**: Validates tokens before showing reset form
-4. **Error Handling**: Shows user-friendly errors for invalid/expired links
+- **Link Format**: `expense-tracker://auth/login?email_confirmed=true`
+- **Handling**: Shows success message and navigates to login
+
+#### Password Reset
+
+- **Link Format**: `expense-tracker://auth/reset-password?access_token=...&refresh_token=...`
+- **Handling**: Validates tokens and shows password reset form
 
 ```typescript
-// In reset password screen
+// Deep link configuration in app.json
+{
+  "expo": {
+    "scheme": "expense-tracker",
+    "web": {
+      "bundler": "metro"
+    }
+  }
+}
+
+// Handling in reset password screen
 const ResetPasswordScreen = () => {
   const params = useLocalSearchParams();
-  const { resetPassword, error, successMessage, isLoading } =
-    useResetPassword();
+  const { resetPassword, error, successMessage, isLoading } = useResetPassword();
 
   useEffect(() => {
-    const resetParams = deepLinkUtils.parseResetPasswordParams(
-      Linking.createURL("auth/reset-password", { queryParams: params })
-    );
-
-    if (!deepLinkUtils.validateResetPasswordParams(resetParams)) {
-      const error = deepLinkUtils.getResetPasswordError(resetParams);
-      // Handle error
+    if (params.access_token && params.refresh_token) {
+      // Validate tokens with backend
+      validateResetSession(params.access_token, params.refresh_token);
     }
   }, [params]);
 };
