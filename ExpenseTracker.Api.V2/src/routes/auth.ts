@@ -1,96 +1,120 @@
-const express = require('express');
-const authService = require('../services/authService');
-const { validateRegister, validateLogin, validateForgotPassword, validateResetPassword } = require('../middleware/validation');
+import { Router, Request, Response, NextFunction } from "express";
+import authService from "../services/authService";
+import {
+  validateRegister,
+  validateLogin,
+  validateForgotPassword,
+  validateResetPassword,
+} from "../middleware/validation";
 
-const router = express.Router();
+const router = Router();
 
 /**
- * Health check for auth configuration
+ * Health check and configuration status
  */
-router.get('/health', (req, res) => {
+router.get("/health", (req, res) => {
   const hasSupabaseUrl = !!process.env.SUPABASE_URL;
   const hasSupabaseKey = !!process.env.SUPABASE_KEY;
   const hasAppUrl = !!process.env.APP_URL;
-  
+
   res.json({
-    status: 'ok',
+    status: "ok",
     config: {
       supabaseConfigured: hasSupabaseUrl && hasSupabaseKey,
       appUrlConfigured: hasAppUrl,
-      supabaseUrl: hasSupabaseUrl ? 'configured' : 'missing',
-      supabaseKey: hasSupabaseKey ? 'configured' : 'missing',
-      appUrl: hasAppUrl ? process.env.APP_URL : 'missing'
-    }
+      supabaseUrl: hasSupabaseUrl ? "configured" : "missing",
+      supabaseKey: hasSupabaseKey ? "configured" : "missing",
+      appUrl: hasAppUrl ? process.env.APP_URL : "missing",
+    },
   });
 });
 
 /**
  * Register a new user
  */
-router.post('/register', validateRegister, async (req, res, next) => {
-  try {
-    const { email, password } = req.body;
-    const result = await authService.register(email, password);
-    res.status(201).json(result);
-  } catch (error) {
-    next(error);
+router.post(
+  "/register",
+  validateRegister,
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { email, password } = req.body;
+      const result = await authService.register(email, password);
+      res.status(201).json(result);
+    } catch (error) {
+      next(error);
+    }
   }
-});
+);
 
 /**
  * User login
  */
-router.post('/login', validateLogin, async (req, res, next) => {
-  try {
-    const { email, password } = req.body;
-    const result = await authService.login(email, password);
-    res.json(result);
-  } catch (error) {
-    next(error);
+router.post(
+  "/login",
+  validateLogin,
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { email, password } = req.body;
+      const result = await authService.login(email, password);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
   }
-});
+);
 
 /**
  * Refresh access token
  */
-router.post('/refresh', async (req, res, next) => {
-  try {
-    const { refresh_token } = req.body;
-    
-    if (!refresh_token) {
-      return res.status(400).json({
-        error: 'Refresh token is required'
-      });
+router.post(
+  "/refresh",
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { refresh_token } = req.body;
+
+      if (!refresh_token) {
+        res.status(400).json({
+          error: "Refresh token is required",
+        });
+        return;
+      }
+
+      const result = await authService.refreshToken(refresh_token);
+      res.json(result);
+    } catch (error) {
+      next(error);
     }
-    
-    const result = await authService.refreshToken(refresh_token);
-    res.json(result);
-  } catch (error) {
-    next(error);
   }
-});
+);
 
 /**
  * Send password reset email
  */
-router.post('/forgot-password', validateForgotPassword, async (req, res, next) => {
-  try {
-    const { email } = req.body;
-    const redirectTo = `${process.env.APP_URL}/auth/callback/reset-password`;
-    const result = await authService.sendPasswordResetEmail(email, redirectTo);
-    res.json(result);
-  } catch (error) {
-    next(error);
+router.post(
+  "/forgot-password",
+  validateForgotPassword,
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { email } = req.body;
+      const redirectTo = `${process.env.APP_URL}/auth/callback/reset-password`;
+      const result = await authService.sendPasswordResetEmail(
+        email,
+        redirectTo
+      );
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
   }
-});
+);
 
 /**
  * Handle email confirmation callback from Supabase
  */
-router.get('/callback/confirm-email', async (req, res) => {
+router.get("/callback/confirm-email", async (req, res) => {
   try {
-    console.log('Email confirmation callback received');
-    
+    console.log("Email confirmation callback received");
+
     res.send(`
       <!DOCTYPE html>
       <html>
@@ -113,9 +137,8 @@ router.get('/callback/confirm-email', async (req, res) => {
       </body>
       </html>
     `);
-    
   } catch (error) {
-    console.error('Email confirmation error:', error);
+    console.error("Email confirmation error:", error);
     res.status(500).send(`
       <html>
         <body>
@@ -137,10 +160,10 @@ router.get('/callback/confirm-email', async (req, res) => {
 /**
  * Handle password reset callback from Supabase
  */
-router.get('/callback/reset-password', async (req, res) => {
+router.get("/callback/reset-password", async (req, res) => {
   try {
-    console.log('Auth callback received');
-    
+    console.log("Auth callback received");
+
     // Supabase sends tokens as URL fragments, we need to extract them client-side first
     res.send(`
       <!DOCTYPE html>
@@ -252,9 +275,8 @@ router.get('/callback/reset-password', async (req, res) => {
       </body>
       </html>
     `);
-    
   } catch (error) {
-    console.error('Auth callback error:', error);
+    console.error("Auth callback error:", error);
     res.status(500).send(`
       <html>
         <body>
@@ -270,35 +292,51 @@ router.get('/callback/reset-password', async (req, res) => {
 /**
  * Complete password reset
  */
-router.post('/reset-password', validateResetPassword, async (req, res, next) => {
-  try {
-    const { access_token, refresh_token, new_password } = req.body;
-    const result = await authService.resetPassword(access_token, refresh_token, new_password);
-    res.json(result);
-  } catch (error) {
-    next(error);
+router.post(
+  "/reset-password",
+  validateResetPassword,
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { access_token, refresh_token, new_password } = req.body;
+      const result = await authService.resetPassword(
+        access_token,
+        refresh_token,
+        new_password
+      );
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
   }
-});
+);
 
 /**
  * Validate reset session (for frontend verification)
  */
-router.post('/validate-reset-session', async (req, res, next) => {
-  try {
-    const { access_token, refresh_token, type } = req.body;
-    
-    if (!access_token || !refresh_token) {
-      return res.status(400).json({ 
-        valid: false, 
-        error: 'Missing tokens' 
-      });
+router.post(
+  "/validate-reset-session",
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { access_token, refresh_token, type } = req.body;
+
+      if (!access_token || !refresh_token) {
+        res.status(400).json({
+          valid: false,
+          error: "Missing tokens",
+        });
+        return;
+      }
+
+      const result = await authService.validateResetSession(
+        access_token,
+        refresh_token,
+        type
+      );
+      res.json(result);
+    } catch (error) {
+      next(error);
     }
-
-    const result = await authService.validateResetSession(access_token, refresh_token, type);
-    res.json(result);
-  } catch (error) {
-    next(error);
   }
-});
+);
 
-module.exports = router;
+export default router;

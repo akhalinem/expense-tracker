@@ -5,9 +5,13 @@
   "license": "ISC",
   "author": "akhalinem@gmail.com",
   "type": "commonjs",
-  "main": "app.js",
+  "main": "dist/app.js",
   "scripts": {
-    "start": "node app.js"
+    "dev": "nodemon",
+    "build": "tsc",
+    "start": "node dist/app.js",
+    "start:dev": "ts-node app.ts",
+    "clean": "rm -rf dist"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.56.1",
@@ -15,5 +19,14 @@
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
     "express-validator": "^7.2.1"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
+    "@types/express-validator": "^2.20.33",
+    "@types/node": "^24.3.1",
+    "nodemon": "^3.1.10",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2"
   }
 }
