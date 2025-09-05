@@ -7,11 +7,14 @@ import React, {
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { authService } from '~/services/auth';
+import { TOKEN_CONFIG } from '~/constants/api';
 
 export type AuthUser = {
   id: string;
   email: string;
   token: string;
+  refreshToken?: string;
+  expiresAt?: number;
 };
 
 export type AuthState = {
@@ -33,6 +36,7 @@ export type AuthState = {
   forgotPassword: (
     email: string
   ) => Promise<{ success: boolean; error?: string; message?: string }>;
+  refreshToken: () => Promise<boolean>;
 };
 
 const AuthContext = createContext<AuthState | undefined>(undefined);
@@ -65,6 +69,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         id: response.user.id,
         email: response.user.email,
         token: response.session.access_token,
+        refreshToken: response.session.refresh_token,
+        expiresAt: response.session.expires_at * 1000, // Convert to milliseconds
       };
       setUser(authUser);
       await AsyncStorage.setItem('authUser', JSON.stringify(authUser));
@@ -119,6 +125,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         id: response.user.id,
         email: response.user.email,
         token: response.session.access_token,
+        refreshToken: response.session.refresh_token,
+        expiresAt: response.session.expires_at * 1000, // Convert to milliseconds
       };
       setUser(authUser);
       await AsyncStorage.setItem('authUser', JSON.stringify(authUser));
@@ -132,9 +140,70 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const refreshToken = async (): Promise<boolean> => {
+    try {
+      if (!user?.refreshToken) {
+        console.warn('No refresh token available');
+        return false;
+      }
+
+      console.log('🔄 [AUTH_CONTEXT] Refreshing token...');
+      const response = await authService.refreshToken(user.refreshToken);
+
+      if (!response.session?.access_token) {
+        console.error(
+          '❌ [AUTH_CONTEXT] Invalid refresh response - no access token'
+        );
+        return false;
+      }
+
+      const updatedUser = {
+        ...user,
+        token: response.session.access_token,
+        refreshToken: response.session.refresh_token,
+        expiresAt: response.session.expires_at * 1000, // Convert to milliseconds
+      };
+
+      setUser(updatedUser);
+      await AsyncStorage.setItem('authUser', JSON.stringify(updatedUser));
+
+      console.log('✅ [AUTH_CONTEXT] Token refreshed successfully');
+      return true;
+    } catch (error: any) {
+      console.error('❌ [AUTH_CONTEXT] Token refresh failed:', error);
+      // If refresh fails, user needs to log in again
+      await logout();
+      return false;
+    }
+  };
+
+  // Check if token is expired or will expire soon (within configured buffer)
+  const isTokenExpired = (user: AuthUser | null): boolean => {
+    if (!user?.expiresAt) return true;
+    const now = Date.now();
+    const bufferMs = TOKEN_CONFIG.REFRESH_BUFFER_MINUTES * 60 * 1000;
+    return user.expiresAt <= now + bufferMs;
+  };
+
+  // Auto-refresh token if expired
+  React.useEffect(() => {
+    if (user && isTokenExpired(user)) {
+      console.log('🔄 [AUTH_CONTEXT] Token expired, attempting refresh...');
+      refreshToken();
+    }
+  }, [user]);
+
   return (
     <AuthContext.Provider
-      value={{ user, loading, login, logout, register, forgotPassword }}
+      value={{
+        user,
+        loading,
+        login,
+        logout,
+        register,
+        forgotPassword,
+        refreshToken,
+      }}
     >
       {children}
     </AuthContext.Provider>

@@ -119,6 +119,18 @@ export default function RootLayout() {
                   }}
                 />
                 <Stack.Screen
+                  name="sync"
+                  options={{
+                    headerTitle: 'Sync',
+                    headerBackTitle: 'Settings',
+                    headerTintColor: themeValue.theme.text,
+                    headerStyle: {
+                      backgroundColor: themeValue.theme.background,
+                    },
+                    presentation: 'card',
+                  }}
+                />
+                <Stack.Screen
                   name="categories/index"
                   options={{
                     headerTintColor: themeValue.theme.text,

@@ -245,11 +245,31 @@ Handles password reset callbacks from Supabase.
 expense-tracker://auth/reset-password?access_token=...&refresh_token=...
 ```
 
-#### POST `/auth/reset-password`
+#### POST `/auth/refresh`
 
-Completes password reset process.
+Refreshes an expired access token using a refresh token.
 
 **Request**:
+
+```json
+{
+  "refresh_token": "refresh_token_string"
+}
+```
+
+**Response** (Success):
+
+```json
+{
+  "message": "Token refreshed successfully",
+  "session": {
+    "access_token": "new_jwt_token",
+    "refresh_token": "new_refresh_token",
+    "expires_at": 1234567890,
+    "token_type": "bearer"
+  }
+}
+```
 
 ```json
 {
@@ -396,6 +416,105 @@ const errorHandler = (err, req, res, next) => {
 };
 
 module.exports = { errorHandler };
+```
+
+### API Service (`services/api.ts`)
+
+Centralized HTTP client with automatic token management:
+
+```typescript
+import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { API_CONFIG, API_ENDPOINTS } from "~/constants/api";
+
+const api = axios.create({
+  baseURL: API_CONFIG.BASE_URL,
+  timeout: API_CONFIG.TIMEOUT,
+  headers: { "Content-Type": "application/json" },
+});
+
+// Track token refresh state to prevent concurrent refresh attempts
+let isRefreshing = false;
+let failedQueue: Array<{
+  resolve: (value?: any) => void;
+  reject: (reason?: any) => void;
+}> = [];
+
+// Request interceptor - adds auth tokens automatically
+api.interceptors.request.use(async (config) => {
+  const authData = await AsyncStorage.getItem("authUser");
+  if (authData) {
+    const user = JSON.parse(authData);
+    if (user.token) {
+      config.headers.Authorization = `Bearer ${user.token}`;
+    }
+  }
+  return config;
+});
+
+// Response interceptor - handles token refresh automatically
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      if (isRefreshing) {
+        // Queue request if refresh is already in progress
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        }).then((token) => {
+          originalRequest.headers.Authorization = `Bearer ${token}`;
+          return api(originalRequest);
+        });
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        const authData = await AsyncStorage.getItem("authUser");
+        const user = JSON.parse(authData);
+
+        if (user.refreshToken) {
+          // Direct refresh call to avoid interceptor loop
+          const refreshResponse = await axios.post(
+            `${API_CONFIG.BASE_URL}${API_ENDPOINTS.AUTH_REFRESH}`,
+            { refresh_token: user.refreshToken }
+          );
+
+          if (refreshResponse.data?.session?.access_token) {
+            const updatedUser = {
+              ...user,
+              token: refreshResponse.data.session.access_token,
+              refreshToken: refreshResponse.data.session.refresh_token,
+              expiresAt: refreshResponse.data.session.expires_at * 1000,
+            };
+
+            await AsyncStorage.setItem("authUser", JSON.stringify(updatedUser));
+
+            // Retry original request with new token
+            originalRequest.headers.Authorization = `Bearer ${updatedUser.token}`;
+            processQueue(null, updatedUser.token);
+
+            return api(originalRequest);
+          }
+        }
+
+        // Refresh failed - clear auth data
+        await AsyncStorage.removeItem("authUser");
+        processQueue(error, null);
+      } catch (refreshError) {
+        await AsyncStorage.removeItem("authUser");
+        processQueue(refreshError, null);
+      } finally {
+        isRefreshing = false;
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
 ```
 
 ### Authentication Service (`src/services/authService.js`)
@@ -564,6 +683,33 @@ sequenceDiagram
     B-->>M: User + session data
     M->>M: Store session in AsyncStorage
     M->>M: Navigate to main app
+```
+
+### Token Refresh Flow
+
+```mermaid
+sequenceDiagram
+    participant M as Mobile App
+    participant A as API Service
+    participant B as Backend API
+    participant S as Supabase
+    participant AS as AsyncStorage
+
+    Note over M,AS: Automatic Token Refresh on 401
+    M->>A: API request with expired token
+    A->>B: Forward request with expired token
+    B->>A: 401 Unauthorized
+    A->>A: Detect 401, check if refresh in progress
+    A->>AS: Get stored refresh token
+    A->>B: POST /auth/refresh {refresh_token}
+    B->>S: supabase.auth.setSession(refresh_token)
+    S->>B: Return new session
+    B->>A: New access + refresh tokens
+    A->>AS: Update stored session
+    A->>A: Update Authorization header
+    A->>B: Retry original request with new token
+    B->>A: Success response
+    A->>M: Return successful response
 ```
 
 ### Password Reset Flow
@@ -772,9 +918,46 @@ sequenceDiagram
     M->>M: Navigate to main app (/(tabs))
 ````
 
-### 🔄 Password Reset Flow
+### 🔄 Token Refresh Flow
 
-This is the most complex flow, involving email redirects and deep linking:
+The most sophisticated flow, handling automatic token renewal:
+
+```mermaid
+sequenceDiagram
+    participant M as Mobile App
+    participant A as API Service
+    participant B as Backend API
+    participant S as Supabase
+    participant AS as AsyncStorage
+
+    Note over M,AS: Automatic Token Refresh on 401
+    M->>A: API request with expired token
+    A->>B: Forward request with expired token
+    B->>A: 401 Unauthorized
+    A->>A: Detect 401, check if refresh in progress
+    A->>AS: Get stored refresh token
+    A->>B: POST /auth/refresh {refresh_token}
+    B->>S: supabase.auth.setSession(refresh_token)
+    S->>B: Return new session
+    B->>A: New access + refresh tokens
+    A->>AS: Update stored session
+    A->>A: Update Authorization header
+    A->>B: Retry original request with new token
+    B->>A: Success response
+    A->>M: Return successful response
+
+    Note over M,AS: Automatic Token Refresh on App Launch
+    M->>AS: Load stored user session
+    AS->>M: Return user with expiry time
+    M->>M: Check if token expires within 5 minutes
+    M->>A: Auto-refresh via AuthContext
+    A->>B: POST /auth/refresh
+    B->>S: Validate and refresh
+    S->>B: New session
+    B->>A: Updated tokens
+    A->>AS: Store new session
+    A->>M: Session refreshed silently
+```
 
 ```mermaid
 sequenceDiagram
@@ -960,6 +1143,40 @@ sequenceDiagram
 {
   "valid": false,
   "error": "Invalid or expired reset tokens"
+}
+```
+
+#### `POST /auth/refresh`
+
+**Purpose**: Refresh an expired access token using a refresh token
+
+**Request Body**:
+
+```json
+{
+  "refresh_token": "refresh_token_string"
+}
+```
+
+**Response** (Success):
+
+```json
+{
+  "message": "Token refreshed successfully",
+  "session": {
+    "access_token": "new_jwt_token",
+    "refresh_token": "new_refresh_token",
+    "expires_at": 1234567890,
+    "token_type": "bearer"
+  }
+}
+```
+
+**Response** (Invalid):
+
+```json
+{
+  "error": "Invalid or expired refresh token"
 }
 ```
 

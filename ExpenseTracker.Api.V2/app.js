@@ -6,6 +6,8 @@ const cors = require('cors');
 // Import modularized components
 const authRoutes = require('./src/routes/auth');
 const syncRoutes = require('./src/routes/sync');
+const jobRoutes = require('./src/routes/jobs');
+const backgroundJobService = require('./src/services/backgroundJobService');
 const { errorHandler } = require('./src/middleware/errorHandler');
 
 // Environment variables validation
@@ -38,10 +40,15 @@ app.get('/', (req, res) => {
 // Use modularized routes
 app.use('/auth', authRoutes);
 app.use('/api/sync', syncRoutes);
+app.use('/api/jobs', jobRoutes);
 
 // Error handling middleware (should be last)
 app.use(errorHandler);
 
 app.listen(port, () => {
   console.log(`app listening on port ${port}`);
+  
+  // Start the background job processor
+  console.log('🚀 Starting background job processor...');
+  backgroundJobService.startProcessor();
 });

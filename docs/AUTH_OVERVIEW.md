@@ -20,6 +20,8 @@ This app uses a **hybrid authentication system** with Supabase + Node.js backend
 - ✅ **User Login** with secure session management
 - ✅ **Password Reset** via email with deep linking support
 - ✅ **Session Persistence** across app restarts using AsyncStorage
+- ✅ **Token Refresh Flow** with automatic session renewal
+- ✅ **Centralized API Service** with interceptors and error handling
 - ✅ **Local Network Support** (works with IP addresses and localhost)
 - ✅ **Input Validation** with comprehensive error handling
 - ✅ **CORS Configuration** for cross-origin requests
@@ -67,6 +69,7 @@ npx expo start
 ```env
 SUPABASE_URL=your_supabase_project_url
 SUPABASE_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 APP_URL=http://localhost:3000
 PORT=3000
 ```
@@ -119,14 +122,23 @@ See: **[AUTHENTICATION.md](./AUTHENTICATION.md)**
 8. **Backend** → Updates password in Supabase
 9. **Mobile App** → Navigate to login screen
 
+### Token Refresh Flow (Automatic)
+
+1. **Mobile App** → Detects token expiration (5-minute buffer)
+2. **API Service** → Intercepts 401 responses
+3. **API Service** → Uses refresh token to get new access token
+4. **API Service** → Updates stored session and retries original request
+5. **AuthContext** → Auto-refreshes tokens on app launch if needed
+
 ## 🛠️ Key Technologies
 
 - **Backend**: Node.js, Express, Supabase JS SDK, Express Validator
 - **Mobile**: React Native, Expo Router, AsyncStorage, React Query
-- **Auth Provider**: Supabase Auth with email confirmation
+- **Auth Provider**: Supabase Auth with email confirmation and token refresh
 - **Deep Linking**: Expo Linking with custom scheme (`expense-tracker://`)
 - **Validation**: Zod (mobile), Express Validator (backend)
 - **Storage**: AsyncStorage (sessions), SQLite (local data)
+- **API**: Centralized API service with Axios interceptors and automatic token refresh
 
 ## 🐛 Common Issues & Solutions
 
@@ -140,6 +152,8 @@ See: **[AUTHENTICATION.md](./AUTHENTICATION.md)**
 | "Invalid login credentials"       | User may need to confirm email first         |
 | Session not persisting            | Check AsyncStorage permissions               |
 | Deep links not working            | Verify URL scheme in app.json and Supabase   |
+| Token refresh failures            | Check refresh token storage and expiry       |
+| 401 errors after app restart      | Verify token refresh flow in API interceptor |
 
 ## 🔧 Health Check
 

@@ -1,11 +1,24 @@
-import { FC, PropsWithChildren } from 'react';
-import { StyleSheet, View, Alert, Text, TouchableOpacity } from 'react-native';
+import { FC, PropsWithChildren, useState } from 'react';
+import {
+  StyleSheet,
+  View,
+  Alert,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  Modal,
+} from 'react-native';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { clearDb, exportData, importData } from '~/services/data-transfer';
 import { useAuth } from '~/context/AuthContext';
 import { useTheme } from '~/theme';
 import ThemedCard from '~/components/themed/ThemedCard';
 import ThemedView from '~/components/themed/ThemedView';
+import { QuickSyncButton } from './QuickSyncButton';
+import { AdvancedSyncSettings } from './AdvancedSyncSettings';
+// TODO: Implement UserPreferences functionality later
+// import { UserPreferences } from './UserPreferences';
+import { Ionicons } from '@expo/vector-icons';
 
 export type SettingsSection = 'categories';
 
@@ -19,21 +32,23 @@ export default function Settings(props: SettingsProps) {
   const { theme } = useTheme();
   const { user, logout } = useAuth();
   const clearDbMutation = useMutation({ mutationFn: clearDb });
+  const [showAdvancedSync, setShowAdvancedSync] = useState(false);
+  const [showPreferences, setShowPreferences] = useState(false);
 
   const handleImport = async () => {
     const result = await importData();
     if (result) {
-      let message = `Import completed:\n`;
-      message += `- ${result.categories.added} categories added\n`;
-      message += `- ${result.expenses.added} expenses added\n`;
-      message += `- ${result.incomes.added} incomes added\n`;
+      let message = `Import completed successfully:\n\n`;
+      message += `✓ ${result.categories.added} categories imported\n`;
+      message += `✓ ${result.expenses.added} expenses imported\n`;
+      message += `✓ ${result.incomes.added} income entries imported\n`;
 
       if (
         result.categories.errors.length ||
         result.expenses.errors.length ||
         result.incomes.errors.length
       ) {
-        message += `\nThere were some errors during import.`;
+        message += `\n⚠️ Some items could not be imported due to formatting issues.`;
       }
 
       await queryClient.invalidateQueries();
@@ -52,23 +67,26 @@ export default function Settings(props: SettingsProps) {
   const handleExport = async () => {
     try {
       await exportData();
-      Alert.alert('Export Successful', 'Data has been exported successfully.');
+      Alert.alert(
+        'Export Complete',
+        'Your data has been saved to your device successfully.'
+      );
     } catch (error) {
-      Alert.alert('Export Failed', 'An error occurred while exporting data.');
+      Alert.alert('Export Failed', 'Unable to export data. Please try again.');
     }
   };
 
   const handleClear = async () => {
     Alert.alert(
-      'Clear Database',
-      'Are you sure you want to clear the database? This action cannot be undone.',
+      'Clear All Local Data',
+      'This will permanently delete all data stored on this device. This action cannot be undone.\n\nYour cloud data (if any) will remain safe.',
       [
         {
           text: 'Cancel',
           style: 'cancel',
         },
         {
-          text: 'OK',
+          text: 'Delete All',
           onPress: async () => {
             await clearDbMutation.mutateAsync();
             queryClient.invalidateQueries();
@@ -80,57 +98,90 @@ export default function Settings(props: SettingsProps) {
 
   const handlePressCategories = () => props.onPress?.('categories');
 
+  const handleDataOperation = (operation: 'import' | 'export' | 'clear') => {
+    switch (operation) {
+      case 'import':
+        return handleImport();
+      case 'export':
+        return handleExport();
+      case 'clear':
+        return handleClear();
+    }
+  };
+
   return (
-    <ThemedView style={styles.container}>
+    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      {/* Profile Section */}
+      {user && (
+        <>
+          <View style={styles.profileSection}>
+            <View
+              style={[styles.profileAvatar, { backgroundColor: theme.primary }]}
+            >
+              <Ionicons name="person" size={32} color="#fff" />
+            </View>
+            <View style={styles.profileInfo}>
+              <Text style={[styles.profileName, { color: theme.text }]}>
+                {user.email?.split('@')[0] || 'User'}
+              </Text>
+              <Text
+                style={[styles.profileEmail, { color: theme.textSecondary }]}
+              >
+                {user.email}
+              </Text>
+              <View
+                style={[styles.statusBadge, { backgroundColor: theme.success }]}
+              >
+                <Ionicons name="checkmark-circle" size={12} color="#fff" />
+                <Text style={styles.statusText}>Signed In</Text>
+              </View>
+            </View>
+          </View>
+          <View style={styles.sectionSpacer} />
+        </>
+      )}
+
+      {/* Cloud Sync Section */}
       <SectionHeader title="Cloud Sync" />
       <SettingsSection>
         {!user ? (
           <>
             <SettingsRow
-              icon="☁️"
+              icon="log-in-outline"
+              iconColor={theme.primary}
               title="Sign In"
-              subtitle="Keep your data synced across devices"
+              subtitle="Access your data from any device"
               onPress={() => props.onNavigate?.('auth/login')}
               showChevron
             />
             <Divider />
             <SettingsRow
-              icon="👤"
+              icon="person-add-outline"
+              iconColor={theme.primary}
               title="Create Account"
-              subtitle="New to the app?"
+              subtitle="Join to sync across devices"
               onPress={() => props.onNavigate?.('auth/register')}
               showChevron
             />
           </>
         ) : (
           <>
+            <View style={styles.syncContainer}>
+              <QuickSyncButton onPress={() => props.onNavigate?.('/sync')} />
+            </View>
+            <Divider />
             <SettingsRow
-              icon="👤"
-              title={user.email}
-              subtitle="Signed in and syncing"
-              rightElement={
-                <View style={styles.syncIndicator}>
-                  <Text
-                    style={[
-                      styles.syncText,
-                      { color: theme.success || theme.primary },
-                    ]}
-                  >
-                    ●
-                  </Text>
-                </View>
-              }
+              icon="settings-outline"
+              iconColor={theme.textSecondary}
+              title="Advanced Sync"
+              subtitle="Manual operations and sync preferences"
+              onPress={() => setShowAdvancedSync(true)}
+              showChevron
             />
             <Divider />
             <SettingsRow
-              icon="📤"
-              title="Sync Now"
-              subtitle="Manage cloud synchronization"
-              onPress={() => props.onNavigate?.('/sync')}
-            />
-            <Divider />
-            <SettingsRow
-              icon="🚪"
+              icon="log-out-outline"
+              iconColor={theme.error}
               title="Sign Out"
               titleColor={theme.error}
               onPress={() => {
@@ -148,44 +199,108 @@ export default function Settings(props: SettingsProps) {
         )}
       </SettingsSection>
 
+      {/* Data Management Section */}
       <SectionHeader title="Data Management" />
       <SettingsSection>
         <SettingsRow
-          icon="📥"
+          icon="download-outline"
+          iconColor="#34C759"
           title="Import Data"
-          subtitle="Import from JSON file"
-          onPress={handleImport}
-          showChevron
+          subtitle="Import expenses from Excel or CSV"
+          onPress={() => handleDataOperation('import')}
         />
         <Divider />
         <SettingsRow
-          icon="📤"
+          icon="share-outline"
+          iconColor="#007AFF"
           title="Export Data"
-          subtitle="Save to JSON file"
-          onPress={handleExport}
-          showChevron
+          subtitle="Download expenses as Excel file"
+          onPress={() => handleDataOperation('export')}
         />
         <Divider />
         <SettingsRow
-          icon="🗑️"
-          title="Clear Database"
-          subtitle="Delete all local data"
+          icon="trash-outline"
+          iconColor={theme.error}
+          title="Clear Local Data"
+          subtitle="Remove all data from this device"
           titleColor={theme.error}
-          onPress={handleClear}
-          showChevron
+          onPress={() => handleDataOperation('clear')}
         />
       </SettingsSection>
-      <SectionHeader title="Categories" />
+
+      {/* App Configuration */}
+      <SectionHeader title="App" />
       <SettingsSection>
         <SettingsRow
-          icon="🏷️"
-          title="Manage Categories"
-          subtitle="Add, edit, or delete categories"
+          icon="pricetag-outline"
+          iconColor="#FF9500"
+          title="Categories"
+          subtitle="Organize your expenses and income"
           onPress={handlePressCategories}
           showChevron
         />
+        {/* TODO: Implement preferences functionality later
+        <Divider />
+        <SettingsRow
+          icon="settings-outline"
+          iconColor="#8E8E93"
+          title="Preferences"
+          subtitle="Customize notifications and behavior"
+          onPress={() => setShowPreferences(true)}
+          showChevron
+        />
+        */}
       </SettingsSection>
-    </ThemedView>
+
+      {/* TODO: Implement About section functionality later
+      <SectionHeader title="About" />
+      <SettingsSection>
+        <SettingsRow
+          icon="information-circle-outline"
+          iconColor={theme.textSecondary}
+          title="Version"
+          subtitle="1.0.0 (Build 1)"
+        />
+        <Divider />
+        <SettingsRow
+          icon="help-circle-outline"
+          iconColor={theme.textSecondary}
+          title="Help & Support"
+          subtitle="FAQ, tutorials, and contact support"
+          showChevron
+        />
+        <Divider />
+        <SettingsRow
+          icon="heart-outline"
+          iconColor="#FF3B30"
+          title="Rate This App"
+          subtitle="Share your feedback on the App Store"
+          showChevron
+        />
+      </SettingsSection>
+      */}
+
+      {/* Advanced Sync Settings Modal */}
+      <Modal
+        visible={showAdvancedSync}
+        animationType="slide"
+        presentationStyle="pageSheet"
+      >
+        <AdvancedSyncSettings onClose={() => setShowAdvancedSync(false)} />
+      </Modal>
+
+      {/* TODO: Implement UserPreferences modal later
+      <Modal
+        visible={showPreferences}
+        animationType="slide"
+        presentationStyle="pageSheet"
+      >
+        <UserPreferences onClose={() => setShowPreferences(false)} />
+      </Modal>
+      */}
+
+      <View style={styles.bottomSpacer} />
+    </ScrollView>
   );
 }
 
@@ -222,6 +337,7 @@ const Divider = () => {
 // iOS-style Settings Row Component
 type SettingsRowProps = {
   icon?: string;
+  iconColor?: string;
   title: string;
   subtitle?: string;
   titleColor?: string;
@@ -232,6 +348,7 @@ type SettingsRowProps = {
 
 const SettingsRow: FC<SettingsRowProps> = ({
   icon,
+  iconColor,
   title,
   subtitle,
   titleColor,
@@ -250,7 +367,11 @@ const SettingsRow: FC<SettingsRowProps> = ({
     >
       {icon && (
         <View style={styles.iconContainer}>
-          <Text style={styles.icon}>{icon}</Text>
+          <Ionicons
+            name={icon as any}
+            size={20}
+            color={iconColor || theme.textSecondary}
+          />
         </View>
       )}
       <View style={styles.textContainer}>
@@ -265,7 +386,11 @@ const SettingsRow: FC<SettingsRowProps> = ({
       </View>
       {rightElement && <View style={styles.rightElement}>{rightElement}</View>}
       {showChevron && (
-        <Text style={[styles.chevron, { color: theme.textSecondary }]}>›</Text>
+        <Ionicons
+          name="chevron-forward"
+          size={16}
+          color={theme.textSecondary}
+        />
       )}
     </TouchableOpacity>
   );
@@ -276,6 +401,58 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 16,
     paddingTop: 20,
+  },
+  profileSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 20,
+    marginHorizontal: 16,
+    borderRadius: 16,
+    marginBottom: 8,
+  },
+  profileAvatar: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  profileInfo: {
+    flex: 1,
+  },
+  profileName: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  profileEmail: {
+    fontSize: 14,
+    marginBottom: 8,
+  },
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    alignSelf: 'flex-start',
+  },
+  statusText: {
+    color: '#fff',
+    fontSize: 11,
+    fontWeight: '600',
+    marginLeft: 4,
+  },
+  sectionSpacer: {
+    height: 16,
+  },
+  syncContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  bottomSpacer: {
+    height: 32,
   },
   sectionHeader: {
     paddingHorizontal: 16,
@@ -327,11 +504,5 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '300',
     marginLeft: 8,
-  },
-  syncIndicator: {
-    alignItems: 'center',
-  },
-  syncText: {
-    fontSize: 12,
   },
 });

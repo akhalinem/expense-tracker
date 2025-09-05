@@ -1,6 +1,31 @@
 const { supabaseClient } = require('../config/supabase');
+const { createClient } = require('@supabase/supabase-js');
 
 class AuthService {
+  /**
+   * Create a temporary Supabase client with specific session
+   * Used for operations that need to set session state
+   */
+  createTemporaryClient(accessToken, refreshToken) {
+    const supabaseUrl = process.env.SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_KEY;
+    
+    const tempClient = createClient(supabaseUrl, supabaseKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+        detectSessionInUrl: false
+      }
+    });
+    
+    // Set the session on this isolated client
+    tempClient.auth.setSession({
+      access_token: accessToken,
+      refresh_token: refreshToken,
+    });
+    
+    return tempClient;
+  }
   /**
    * Register a new user
    * @param {string} email - User email
@@ -57,6 +82,41 @@ class AuthService {
   }
 
   /**
+   * Refresh access token using refresh token
+   * @param {string} refreshToken - Valid refresh token
+   * @returns {Promise<Object>} Refresh result with new tokens
+   */
+  async refreshToken(refreshToken) {
+    try {
+      console.log('🔄 [AUTH_SERVICE] Starting token refresh...');
+      
+      const { data, error } = await supabaseClient.auth.refreshSession({
+        refresh_token: refreshToken
+      });
+
+      if (error) {
+        console.error('❌ [AUTH_SERVICE] Token refresh error:', error);
+        throw this.createAuthError(error);
+      }
+
+      if (!data.session) {
+        console.error('❌ [AUTH_SERVICE] No session returned from refresh');
+        throw this.createAuthError({ message: 'Failed to refresh session' });
+      }
+
+      console.log('✅ [AUTH_SERVICE] Token refresh successful');
+      
+      return this.formatAuthResponse(data, 'Token refreshed successfully!');
+    } catch (error) {
+      if (error.name === 'AuthError') {
+        throw error;
+      }
+      console.error('❌ [AUTH_SERVICE] Unexpected refresh error:', error);
+      throw this.createAuthError({ message: 'Token refresh failed' });
+    }
+  }
+
+  /**
    * Send password reset email
    * @param {string} email - User email
    * @param {string} redirectTo - Redirect URL after reset
@@ -99,12 +159,12 @@ class AuthService {
         throw new Error('Invalid session type for password reset. Only recovery sessions are allowed.');
       }
 
-      const { data: session, error: sessionError } = await supabaseClient.auth.setSession({
-        access_token: accessToken,
-        refresh_token: refreshToken,
-      });
+      // Use a temporary client to avoid concurrent session conflicts
+      const tempClient = this.createTemporaryClient(accessToken, refreshToken);
+      
+      const { data: session, error: sessionError } = await tempClient.auth.getSession();
 
-      if (sessionError || !session.user) {
+      if (sessionError || !session?.user) {
         throw new Error('Invalid or expired reset tokens');
       }
 
@@ -140,36 +200,31 @@ class AuthService {
         passwordLength: newPassword?.length || 0
       });
 
-      // Set the session to authenticate the request
-      console.log('Setting session with provided tokens...');
-      const { data: sessionData, error: sessionError } = await supabaseClient.auth.setSession({
-        access_token: accessToken,
-        refresh_token: refreshToken,
-      });
+      // Create a temporary client to avoid concurrent session conflicts
+      console.log('Creating temporary client for password reset...');
+      const tempClient = this.createTemporaryClient(accessToken, refreshToken);
 
-      if (sessionError) {
-        console.error('Session error details:', {
-          message: sessionError.message,
-          status: sessionError.status,
-          statusCode: sessionError.status_code,
-          code: sessionError.code,
-          fullError: sessionError
-        });
+      // Verify the session is valid
+      console.log('Verifying session...');
+      const { data: sessionData, error: sessionError } = await tempClient.auth.getSession();
+
+      if (sessionError || !sessionData?.user) {
+        console.error('Session verification failed:', sessionError);
         throw this.createAuthError({
           message: 'Invalid or expired reset link. Please request a new password reset.',
           status: 400
         });
       }
 
-      console.log('Session set successfully:', {
+      console.log('Session verified successfully:', {
         hasUser: !!sessionData?.user,
         userId: sessionData?.user?.id,
         userEmail: sessionData?.user?.email
       });
 
-      // Update the user's password
+      // Update the user's password using the temporary client
       console.log('Attempting to update password...');
-      const { data: updateData, error: updateError } = await supabaseClient.auth.updateUser({
+      const { data: updateData, error: updateError } = await tempClient.auth.updateUser({
         password: newPassword.trim(),
       });
 

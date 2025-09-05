@@ -15,20 +15,26 @@ ExpenseTracker.UI/mobile/
 │   ├── AuthInputs.tsx          # Reusable form components
 │   ├── LoginForm.tsx           # Login form component
 │   ├── RegisterForm.tsx        # Registration form component
-│   └── ForgotPasswordForm.tsx  # Password reset form
+│   ├── ForgotPasswordForm.tsx  # Password reset form
+│   └── SyncScreen.tsx          # Comprehensive sync UI component
 ├── context/
-│   ├── AuthContext.tsx         # Global authentication state
+│   ├── AuthContext.tsx         # Global authentication state with token refresh
 │   └── LoadingContext.tsx      # Loading state management
+├── constants/
+│   └── api.ts                  # Centralized API constants and types
 ├── utils/
 │   ├── auth.ts                 # Authentication utilities
 │   └── validation.ts           # Form validation utilities
 ├── services/
 │   ├── auth.ts                 # API communication service
-│   └── api.ts                  # HTTP client configuration
+│   ├── api.ts                  # HTTP client with interceptors
+│   ├── sync.ts                 # Comprehensive sync service
+│   └── realtimeSync.ts         # Progress tracking service
 └── app/
     ├── sign-in.tsx             # Sign-in screen
     ├── register.tsx            # Registration screen
     ├── forgot-password.tsx     # Forgot password screen
+    ├── sync.tsx                # Dedicated sync screen
     └── auth/
         └── reset-password.tsx  # Password reset screen
 ```
@@ -139,13 +145,15 @@ touched={touched.password}
 
 ### Authentication Context (`context/AuthContext.tsx`)
 
-Provides centralized authentication state management:
+Provides centralized authentication state management with automatic token refresh:
 
 ```typescript
 export type AuthUser = {
   id: string;
   email: string;
   token: string;
+  refreshToken?: string;
+  expiresAt?: number;
 };
 
 export type AuthState = {
@@ -155,6 +163,56 @@ export type AuthState = {
   logout: () => void;
   register: (email: string, password: string) => Promise<{success: boolean; error?: string; requiresConfirmation?: boolean}>;
   forgotPassword: (email: string) => Promise<{success: boolean; error?: string; message?: string}>;
+  refreshToken: () => Promise<boolean>;
+};
+
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  // Auto-refresh token on app launch if needed
+  React.useEffect(() => {
+    if (user && isTokenExpired(user)) {
+      console.log('🔄 [AUTH_CONTEXT] Token expired, attempting refresh...');
+      refreshToken();
+    }
+  }, [user]);
+
+  const refreshToken = async (): Promise<boolean> => {
+    try {
+      if (!user?.refreshToken) return false;
+
+      const response = await authService.refreshToken(user.refreshToken);
+
+      if (response.session?.access_token) {
+        const updatedUser = {
+          ...user,
+          token: response.session.access_token,
+          refreshToken: response.session.refresh_token,
+          expiresAt: response.session.expires_at * 1000,
+        };
+
+        setUser(updatedUser);
+        await AsyncStorage.setItem('authUser', JSON.stringify(updatedUser));
+        return true;
+      }
+
+      return false;
+    } catch (error) {
+      await logout();
+      return false;
+    }
+  };
+
+  // Check if token is expired or will expire soon (5-minute buffer)
+  const isTokenExpired = (user: AuthUser | null): boolean => {
+    if (!user?.expiresAt) return true;
+    const now = Date.now();
+    const bufferMs = TOKEN_CONFIG.REFRESH_BUFFER_MINUTES * 60 * 1000;
+    return user.expiresAt <= now + bufferMs;
+  };
+
+  // ... rest of auth methods
 };
 ````
 

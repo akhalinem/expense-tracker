@@ -10,9 +10,20 @@ const router = express.Router();
  * Upload local data to Supabase
  */
 router.post('/upload', authenticate, validateSync, async (req, res) => {
+  const startTime = Date.now();
   try {
     const userId = req.user.id;
+    const userToken = req.token;
     const { categories = [], transactions = [] } = req.body;
+
+    console.log(`🚀 [UPLOAD] Started for user ${userId}`);
+    console.log(`🔑 [UPLOAD] User token present: ${!!userToken}`);
+    console.log(`📊 [UPLOAD] Payload: ${categories.length} categories, ${transactions.length} transactions`);
+    console.log(`📦 [UPLOAD] Request size: ${JSON.stringify(req.body).length} characters`);
+
+    // Create a user-specific Supabase client with proper auth context
+    const userClient = syncService.createUserClient(userToken);
+    console.log(`🔑 [UPLOAD] Created user-specific Supabase client`);
 
     const results = {
       categories: { created: 0, updated: 0, errors: [] },
@@ -21,13 +32,28 @@ router.post('/upload', authenticate, validateSync, async (req, res) => {
 
     // Sync categories
     if (categories.length > 0) {
-      results.categories = await syncService.syncCategories(userId, categories);
+      console.log(`📁 [UPLOAD] Processing ${categories.length} categories...`);
+      const categoryStartTime = Date.now();
+      
+      results.categories = await syncService.syncCategories(userId, categories, userClient);
+      
+      const categoryDuration = Date.now() - categoryStartTime;
+      console.log(`✅ [UPLOAD] Categories processed in ${categoryDuration}ms:`, results.categories);
     }
 
     // Sync transactions
     if (transactions.length > 0) {
-      results.transactions = await syncService.syncTransactions(userId, transactions);
+      console.log(`💰 [UPLOAD] Processing ${transactions.length} transactions...`);
+      const transactionStartTime = Date.now();
+      
+      results.transactions = await syncService.syncTransactions(userId, transactions, userClient);
+      
+      const transactionDuration = Date.now() - transactionStartTime;
+      console.log(`✅ [UPLOAD] Transactions processed in ${transactionDuration}ms:`, results.transactions);
     }
+
+    const totalDuration = Date.now() - startTime;
+    console.log(`🎉 [UPLOAD] Completed successfully in ${totalDuration}ms`);
 
     res.json({
       success: true,
@@ -37,7 +63,8 @@ router.post('/upload', authenticate, validateSync, async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Upload sync error:', error);
+    const totalDuration = Date.now() - startTime;
+    console.error(`❌ [UPLOAD] Failed after ${totalDuration}ms:`, error);
     res.status(500).json({
       success: false,
       message: 'Upload sync failed',
@@ -107,39 +134,63 @@ router.post('/full', authenticate, validateSync, async (req, res) => {
 router.get('/status', authenticate, async (req, res) => {
   try {
     const userId = req.user.id;
+    console.log(`📊 [SYNC_STATUS] Getting status for user ${userId}`);
 
-    // Get counts from Supabase
-    const { data: categoryCount } = await syncService.supabase
+    // Get counts from Supabase using proper count queries
+    const { count: categoryCount, error: categoryError } = await syncService.supabase
       .from('categories')
-      .select('id', { count: 'exact' })
+      .select('*', { count: 'exact', head: true })
       .eq('user_id', userId);
 
-    const { data: transactionCount } = await syncService.supabase
+    if (categoryError) {
+      console.error('❌ [SYNC_STATUS] Category count error:', categoryError);
+      throw categoryError;
+    }
+
+    console.log(`📁 [SYNC_STATUS] Found ${categoryCount || 0} categories for user ${userId}`);
+
+    const { count: transactionCount, error: transactionError } = await syncService.supabase
       .from('transactions')
-      .select('id', { count: 'exact' })
+      .select('*', { count: 'exact', head: true })
       .eq('user_id', userId);
 
-    // Get last updated timestamp
-    const { data: lastUpdated } = await syncService.supabase
+    if (transactionError) {
+      console.error('❌ [SYNC_STATUS] Transaction count error:', transactionError);
+      throw transactionError;
+    }
+
+    console.log(`💰 [SYNC_STATUS] Found ${transactionCount || 0} transactions for user ${userId}`);
+
+    // Get last updated timestamp (handle case where no transactions exist)
+    const { data: lastUpdated, error: lastUpdatedError } = await syncService.supabase
       .from('transactions')
       .select('updated_at')
       .eq('user_id', userId)
       .order('updated_at', { ascending: false })
       .limit(1)
-      .single();
+      .maybeSingle();
+
+    // Don't throw error if no transactions exist, just log warning
+    if (lastUpdatedError && lastUpdatedError.code !== 'PGRST116') {
+      console.warn('⚠️ [SYNC_STATUS] Last updated query error:', lastUpdatedError);
+    }
+
+    const statusResponse = {
+      categoriesCount: categoryCount || 0,
+      transactionsCount: transactionCount || 0,
+      lastSync: lastUpdated?.updated_at || null,
+      serverTime: new Date().toISOString()
+    };
+
+    console.log(`✅ [SYNC_STATUS] Returning status for user ${userId}:`, statusResponse);
 
     res.json({
       success: true,
-      status: {
-        categoriesCount: categoryCount?.length || 0,
-        transactionsCount: transactionCount?.length || 0,
-        lastSync: lastUpdated?.updated_at || null,
-        serverTime: new Date().toISOString()
-      }
+      status: statusResponse
     });
 
   } catch (error) {
-    console.error('Sync status error:', error);
+    console.error('❌ [SYNC_STATUS] Error for user', req.user?.id, ':', error);
     res.status(500).json({
       success: false,
       message: 'Failed to get sync status',

@@ -1,4 +1,10 @@
-import { api } from './api';
+import api from './api';
+import {
+  API_ENDPOINTS,
+  ERROR_MESSAGES,
+  isNetworkError,
+  type ApiResponse,
+} from '~/constants/api';
 
 export interface LoginRequest {
   email: string;
@@ -34,6 +40,10 @@ export interface AuthResponse {
   confirmation_sent_at?: string;
 }
 
+export interface RefreshTokenRequest {
+  refresh_token: string;
+}
+
 export interface AuthError {
   error: string;
   code?: string;
@@ -46,13 +56,14 @@ export interface AuthError {
 export const authService = {
   async login(credentials: LoginRequest): Promise<AuthResponse> {
     try {
-      const response = await api.post<AuthResponse>('/auth/login', credentials);
+      const response = await api.post<AuthResponse>(
+        API_ENDPOINTS.AUTH_LOGIN,
+        credentials
+      );
       return response.data;
     } catch (error: any) {
-      if (error.code === 'NETWORK_ERROR' || error.message === 'Network Error') {
-        throw new Error(
-          'Cannot connect to server. Please check your network connection.'
-        );
+      if (isNetworkError(error)) {
+        throw new Error(ERROR_MESSAGES.NETWORK_ERROR);
       }
 
       const errorData = error.response?.data as AuthError;
@@ -73,15 +84,13 @@ export const authService = {
   async register(credentials: RegisterRequest): Promise<AuthResponse> {
     try {
       const response = await api.post<AuthResponse>(
-        '/auth/register',
+        API_ENDPOINTS.AUTH_REGISTER,
         credentials
       );
       return response.data;
     } catch (error: any) {
-      if (error.code === 'NETWORK_ERROR' || error.message === 'Network Error') {
-        throw new Error(
-          'Cannot connect to server. Please check your network connection.'
-        );
+      if (isNetworkError(error)) {
+        throw new Error(ERROR_MESSAGES.NETWORK_ERROR);
       }
 
       const errorData = error.response?.data as AuthError;
@@ -106,15 +115,13 @@ export const authService = {
   ): Promise<ForgotPasswordResponse> {
     try {
       const response = await api.post<ForgotPasswordResponse>(
-        '/auth/forgot-password',
+        API_ENDPOINTS.AUTH_FORGOT_PASSWORD,
         request
       );
       return response.data;
     } catch (error: any) {
-      if (error.code === 'NETWORK_ERROR' || error.message === 'Network Error') {
-        throw new Error(
-          'Cannot connect to server. Please check your network connection.'
-        );
+      if (isNetworkError(error)) {
+        throw new Error(ERROR_MESSAGES.NETWORK_ERROR);
       }
 
       const errorData = error.response?.data as AuthError;
@@ -124,6 +131,27 @@ export const authService = {
 
       throw new Error(
         errorData?.error || error.message || 'Password reset failed'
+      );
+    }
+  },
+
+  async refreshToken(refreshToken: string): Promise<AuthResponse> {
+    try {
+      const response = await api.post<AuthResponse>(
+        API_ENDPOINTS.AUTH_REFRESH,
+        {
+          refresh_token: refreshToken,
+        }
+      );
+      return response.data;
+    } catch (error: any) {
+      if (isNetworkError(error)) {
+        throw new Error(ERROR_MESSAGES.NETWORK_ERROR);
+      }
+
+      const errorData = error.response?.data as AuthError;
+      throw new Error(
+        errorData?.error || error.message || 'Token refresh failed'
       );
     }
   },

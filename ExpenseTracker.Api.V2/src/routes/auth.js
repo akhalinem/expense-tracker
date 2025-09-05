@@ -51,6 +51,26 @@ router.post('/login', validateLogin, async (req, res, next) => {
 });
 
 /**
+ * Refresh access token
+ */
+router.post('/refresh', async (req, res, next) => {
+  try {
+    const { refresh_token } = req.body;
+    
+    if (!refresh_token) {
+      return res.status(400).json({
+        error: 'Refresh token is required'
+      });
+    }
+    
+    const result = await authService.refreshToken(refresh_token);
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
  * Send password reset email
  */
 router.post('/forgot-password', validateForgotPassword, async (req, res, next) => {
