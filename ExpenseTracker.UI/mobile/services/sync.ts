@@ -305,14 +305,19 @@ class SyncService {
   }
 
   /**
-   * Monitor a job until completion
+   * Monitor a job until completion with improved error handling
    */
   private async monitorJob(
     jobId: string,
     onProgress?: JobProgressCallback
   ): Promise<SyncResults> {
-    const maxAttempts = 300; // 5 minutes with 1-second intervals
+    const maxAttempts = 360; // 6 minutes with 1-second intervals
     let attempts = 0;
+    let consecutiveErrors = 0;
+
+    console.log(
+      `📊 Starting to monitor job ${jobId} (max attempts: ${maxAttempts})`
+    );
 
     while (attempts < maxAttempts) {
       try {
@@ -325,7 +330,12 @@ class SyncService {
         }
 
         const job: SyncJob = statusResponse.data.job;
-        console.log(`📊 Job ${jobId} status: ${job.status} (${job.progress}%)`);
+        console.log(
+          `📊 Job ${jobId} status: ${job.status} (${job.progress}%) - Attempt ${attempts + 1}/${maxAttempts}`
+        );
+
+        // Reset consecutive errors on successful response
+        consecutiveErrors = 0;
 
         // Call progress callback if provided
         if (onProgress) {
@@ -334,7 +344,9 @@ class SyncService {
 
         switch (job.status) {
           case 'completed':
-            console.log(`🎉 Job ${jobId} completed successfully`);
+            console.log(
+              `🎉 Job ${jobId} completed successfully after ${attempts + 1} attempts`
+            );
             return {
               success: true,
               message: 'Operation completed successfully',
@@ -342,7 +354,9 @@ class SyncService {
             };
 
           case 'failed':
-            console.error(`❌ Job ${jobId} failed: ${job.error_message}`);
+            console.error(
+              `❌ Job ${jobId} failed after ${attempts + 1} attempts: ${job.error_message}`
+            );
             return {
               success: false,
               message: job.error_message || 'Job failed',
@@ -361,18 +375,52 @@ class SyncService {
         attempts++;
         await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait 1 second
       } catch (error) {
-        console.error(`❌ Error monitoring job ${jobId}:`, error);
+        consecutiveErrors++;
+        console.error(
+          `❌ Error monitoring job ${jobId} (attempt ${attempts + 1}, consecutive errors: ${consecutiveErrors}):`,
+          error
+        );
+
+        // If we have too many consecutive errors, give up
+        if (consecutiveErrors >= 10) {
+          console.error(
+            `🛑 Too many consecutive errors for job ${jobId}, giving up`
+          );
+          return {
+            success: false,
+            message: 'Job monitoring failed due to repeated network errors',
+            error:
+              'Network connectivity issues - please check your connection and try again',
+          };
+        }
+
         attempts++;
 
         if (attempts >= maxAttempts) {
-          throw new Error('Job monitoring timed out');
+          console.error(
+            `⏰ Job ${jobId} monitoring timed out after ${maxAttempts} attempts`
+          );
+          return {
+            success: false,
+            message: 'Job monitoring timed out',
+            error:
+              'The sync operation is taking longer than expected. Please try again.',
+          };
         }
 
         await new Promise((resolve) => setTimeout(resolve, 1000));
       }
     }
 
-    throw new Error('Job monitoring timed out');
+    console.error(
+      `⏰ Job ${jobId} monitoring timed out after ${maxAttempts} attempts`
+    );
+    return {
+      success: false,
+      message: 'Job monitoring timed out',
+      error:
+        'The sync operation is taking longer than expected. Please try again.',
+    };
   }
 
   /**

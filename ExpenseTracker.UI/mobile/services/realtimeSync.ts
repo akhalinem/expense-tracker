@@ -3,9 +3,13 @@ import { JobProgressCallback, SyncJob } from './sync';
 import { API_ENDPOINTS, POLLING_CONFIG } from '~/constants/api';
 
 class PollingProgressService {
-  private activePolls: Map<string, NodeJS.Timeout> = new Map();
+  private activePolls: Map<
+    string,
+    { intervalId: NodeJS.Timeout; startTime: number }
+  > = new Map();
   private pollInterval: number = POLLING_CONFIG.INTERVAL_MS;
   private adaptivePolling: boolean = true;
+  private readonly POLLING_TIMEOUT_MS = 360000; // 6 minutes timeout for polling
 
   constructor() {
     // No external dependencies needed
@@ -24,26 +28,50 @@ class PollingProgressService {
     // Stop any existing polling for this job
     this.stopPolling(jobId);
 
+    const startTime = Date.now();
+    let pollCount = 0;
+
     const poll = async () => {
       try {
+        pollCount++;
+        const elapsed = Date.now() - startTime;
+
+        // Check for timeout
+        if (elapsed > this.POLLING_TIMEOUT_MS) {
+          console.error(
+            `⏰ Polling timeout for job ${jobId} after ${elapsed}ms (${pollCount} polls)`
+          );
+          this.stopPolling(jobId);
+          if (onError) {
+            onError(
+              new Error(
+                `Job polling timed out after ${Math.round(elapsed / 1000)} seconds`
+              )
+            );
+          }
+          return;
+        }
+
         const response = await api.get(API_ENDPOINTS.JOBS_STATUS(jobId));
 
         if (response.data.success) {
           const job: SyncJob = response.data.job;
           console.log(
-            `📊 Polling update for job ${jobId}: ${job.status} (${job.progress}%)`
+            `📊 Job ${jobId} status: ${job.status} (${job.progress}%) - Poll #${pollCount}, Elapsed: ${Math.round(elapsed / 1000)}s`
           );
 
           onUpdate(job);
 
           // Stop polling when job is completed or failed
           if (job.status === 'completed' || job.status === 'failed') {
-            console.log(`✅ Job ${jobId} finished, stopping polling`);
+            console.log(
+              `✅ Job ${jobId} finished (${job.status}), stopping polling after ${pollCount} polls`
+            );
             this.stopPolling(jobId);
           }
         } else {
           console.error(
-            `❌ Failed to poll job ${jobId}:`,
+            `❌ Failed to poll job ${jobId} (poll #${pollCount}):`,
             response.data.message
           );
           if (onError) {
@@ -51,7 +79,19 @@ class PollingProgressService {
           }
         }
       } catch (error) {
-        console.error(`❌ Error polling job ${jobId}:`, error);
+        console.error(
+          `❌ Error polling job ${jobId} (poll #${pollCount}):`,
+          error
+        );
+
+        // If we get repeated errors, stop polling after a while
+        if (pollCount > 10) {
+          console.error(
+            `🛑 Stopping polling for job ${jobId} due to repeated errors`
+          );
+          this.stopPolling(jobId);
+        }
+
         if (onError) {
           onError(error);
         }
@@ -63,18 +103,18 @@ class PollingProgressService {
 
     // Set up interval polling
     const intervalId = setInterval(poll, this.pollInterval);
-    this.activePolls.set(jobId, intervalId);
+    this.activePolls.set(jobId, { intervalId, startTime });
   }
 
   /**
    * Stop polling for a specific job
    */
   stopPolling(jobId: string) {
-    const intervalId = this.activePolls.get(jobId);
+    const pollData = this.activePolls.get(jobId);
 
-    if (intervalId) {
+    if (pollData) {
       console.log(`⏹️ Stopping polling for job ${jobId}`);
-      clearInterval(intervalId);
+      clearInterval(pollData.intervalId);
       this.activePolls.delete(jobId);
     }
   }
@@ -85,8 +125,8 @@ class PollingProgressService {
   stopAllPolling() {
     console.log(`⏹️ Stopping all ${this.activePolls.size} active polls`);
 
-    for (const [jobId, intervalId] of this.activePolls) {
-      clearInterval(intervalId);
+    for (const [jobId, pollData] of this.activePolls) {
+      clearInterval(pollData.intervalId);
     }
 
     this.activePolls.clear();

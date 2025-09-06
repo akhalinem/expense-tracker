@@ -168,49 +168,70 @@ class BackgroundJobService {
   }
 
   /**
-   * Process a specific job
+   * Process a specific job with timeout handling
    */
   async processJob(job: IJob): Promise<void> {
+    const JOB_TIMEOUT_MS = 300000; // 5 minutes timeout
+
     try {
+      console.log(
+        `🔧 Processing job ${job.id} for user ${job.user_id} (type: ${job.job_type})`
+      );
+
       // Mark job as processing
       await this.updateJobStatus(job.id, "processing", {
         started_at: new Date().toISOString(),
       });
 
+      // Create a timeout promise
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => {
+          reject(
+            new Error(
+              `Job ${job.id} timed out after ${JOB_TIMEOUT_MS / 1000} seconds`
+            )
+          );
+        }, JOB_TIMEOUT_MS);
+      });
+
       let jobResults: Record<string, unknown> = {};
 
-      switch (job.job_type) {
-        case "upload":
-          jobResults = (await this.processUploadJob(job)) as Record<
-            string,
-            unknown
-          >;
-          break;
-        case "download":
-          jobResults = (await this.processDownloadJob(job)) as Record<
-            string,
-            unknown
-          >;
-          break;
-        case "full_sync":
-          jobResults = (await this.processFullSyncJob(job)) as Record<
-            string,
-            unknown
-          >;
-          break;
-        default:
-          throw new Error(`Unknown job type: ${job.job_type}`);
-      }
+      // Race the job processing against timeout
+      const jobProcessingPromise = (async () => {
+        switch (job.job_type) {
+          case "upload":
+            return (await this.processUploadJob(job)) as Record<
+              string,
+              unknown
+            >;
+          case "download":
+            return (await this.processDownloadJob(job)) as Record<
+              string,
+              unknown
+            >;
+          case "full_sync":
+            return (await this.processFullSyncJob(job)) as Record<
+              string,
+              unknown
+            >;
+          default:
+            throw new Error(`Unknown job type: ${job.job_type}`);
+        }
+      })();
+
+      jobResults = await Promise.race([jobProcessingPromise, timeoutPromise]);
 
       // Mark job as completed
       await this.updateJobStatus(job.id, "completed", {
         results: jobResults,
         progress: 100,
-        processed_items: job.total_items,
+        processed_items: job.total_items || 1, // Ensure at least 1 for empty jobs
         completed_at: new Date().toISOString(),
       });
 
-      console.log(`✅ Job ${job.id} completed successfully`);
+      console.log(
+        `✅ Job ${job.id} completed successfully in ${Date.now() - new Date(job.created_at).getTime()}ms`
+      );
     } catch (error) {
       console.error(`❌ Job ${job.id} failed:`, error);
 
@@ -218,6 +239,7 @@ class BackgroundJobService {
       await this.updateJobStatus(job.id, "failed", {
         error_message: error instanceof Error ? error.message : "Unknown error",
         completed_at: new Date().toISOString(),
+        progress: 0, // Reset progress on failure
       });
     }
   }
@@ -360,11 +382,16 @@ class BackgroundJobService {
   ): Promise<unknown> {
     console.log(`📥 Processing download for job ${job.id}`);
 
+    // For download jobs, we don't know the total items beforehand, so we show progress differently
+    await this.updateJobProgress(job.id, 0, 1); // Start with 0/1 (0%)
+
     const userData = await syncService.getUserData(job.user_id);
-    await this.updateJobProgress(
-      job.id,
-      job.total_items || 0,
-      job.total_items || 0
+
+    // Complete the download
+    await this.updateJobProgress(job.id, 1, 1); // Complete with 1/1 (100%)
+
+    console.log(
+      `✅ Download job ${job.id} completed, fetched ${userData.categories?.length || 0} categories and ${userData.transactions?.length || 0} transactions`
     );
 
     return { download: userData };
@@ -379,7 +406,39 @@ class BackgroundJobService {
   ): Promise<unknown> {
     console.log(`🔄 Processing full sync for job ${job.id}`);
 
-    // First upload
+    const typedPayload = job.payload as {
+      categories?: ICategory[];
+      transactions?: ITransaction[];
+    };
+    const { categories = [], transactions = [] } = typedPayload;
+
+    // Handle case where there are no items to process (e.g., "Check for Updates" when already synced)
+    if (categories.length === 0 && transactions.length === 0) {
+      console.log(
+        `ℹ️ Full sync job ${job.id} has no items to process, performing download only`
+      );
+
+      // Update progress to show we're starting
+      await this.updateJobProgress(job.id, 0, 1); // Use 1 as total to show progress
+
+      // Just download to check for updates
+      const downloadResults = (await this.processDownloadJob(job)) as {
+        download?: unknown;
+      };
+
+      // Complete the job
+      await this.updateJobProgress(job.id, 1, 1); // Show 100% completion
+
+      return {
+        upload: {
+          categories: { created: 0, updated: 0, errors: [] },
+          transactions: { created: 0, updated: 0, errors: [] },
+        },
+        download: downloadResults.download,
+      };
+    }
+
+    // First upload (if there are items)
     const uploadResults = (await this.processUploadJob(job)) as {
       upload?: unknown;
     };
@@ -431,8 +490,14 @@ class BackgroundJobService {
     totalItems: number
   ): Promise<void> {
     try {
-      const progress =
-        totalItems > 0 ? Math.round((processedItems / totalItems) * 100) : 0;
+      // Handle edge case where totalItems is 0 (no items to process)
+      let progress = 0;
+      if (totalItems > 0) {
+        progress = Math.round((processedItems / totalItems) * 100);
+      } else {
+        // If no items to process, consider it 100% complete
+        progress = processedItems > 0 || totalItems === 0 ? 100 : 0;
+      }
 
       await this.updateJobStatus(jobId, "processing", {
         processed_items: processedItems,
