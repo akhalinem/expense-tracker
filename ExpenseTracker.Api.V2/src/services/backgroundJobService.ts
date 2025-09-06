@@ -1,4 +1,3 @@
-import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import {
   IJob,
   ISyncResults,
@@ -7,6 +6,7 @@ import {
   ISyncResult,
 } from "../types";
 import syncService from "./syncService";
+import { prisma } from "../config/prisma";
 
 interface IJobUpdateFields {
   started_at?: string;
@@ -18,34 +18,13 @@ interface IJobUpdateFields {
 }
 
 class BackgroundJobService {
-  public supabase: SupabaseClient;
   private isProcessing: boolean;
   private processingInterval: NodeJS.Timeout | null;
 
   constructor() {
-    // Use service role key for backend operations, fallback to regular key
-    const supabaseKey =
-      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY;
-
-    if (!supabaseKey) {
-      throw new Error(
-        "Missing SUPABASE_SERVICE_ROLE_KEY or SUPABASE_KEY environment variable"
-      );
-    }
-
-    console.log(
-      "🔑 Using Supabase key type:",
-      process.env.SUPABASE_SERVICE_ROLE_KEY ? "SERVICE_ROLE" : "ANON"
-    );
-
-    this.supabase = createClient(process.env.SUPABASE_URL!, supabaseKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
-    });
     this.isProcessing = false;
     this.processingInterval = null;
+    console.log("🔑 Background job service initialized with Prisma");
   }
 
   /**
@@ -100,27 +79,20 @@ class BackgroundJobService {
       if (typedPayload.transactions)
         totalItems += typedPayload.transactions.length;
 
-      const { data, error } = await this.supabase
-        .from("sync_jobs")
-        .insert({
+      const data = await prisma.sync_jobs.create({
+        data: {
           user_id: userId,
           job_type: jobType,
           status: "pending",
-          payload: payload,
+          payload: payload as any,
           total_items: totalItems,
           processed_items: 0,
           progress: 0,
-        })
-        .select()
-        .single();
-
-      if (error) {
-        console.error("❌ Error creating sync job:", error);
-        throw error;
-      }
+        },
+      });
 
       console.log(`✅ Created sync job ${data.id} for user ${userId}`);
-      return data;
+      return data as IJob;
     } catch (error) {
       console.error("❌ Failed to create sync job:", error);
       throw error;
@@ -132,19 +104,14 @@ class BackgroundJobService {
    */
   async getJobStatus(jobId: string, userId: string): Promise<IJob | null> {
     try {
-      const { data, error } = await this.supabase
-        .from("sync_jobs")
-        .select("*")
-        .eq("id", jobId)
-        .eq("user_id", userId)
-        .maybeSingle();
+      const data = await prisma.sync_jobs.findFirst({
+        where: {
+          id: jobId,
+          user_id: userId,
+        },
+      });
 
-      if (error) {
-        console.error("❌ Error getting job status:", error);
-        throw error;
-      }
-
-      return data; // Will be null if no job found
+      return data as IJob | null;
     } catch (error) {
       console.error("❌ Failed to get job status:", error);
       throw error;
@@ -156,19 +123,13 @@ class BackgroundJobService {
    */
   async getUserJobs(userId: string, limit = 10): Promise<IJob[]> {
     try {
-      const { data, error } = await this.supabase
-        .from("sync_jobs")
-        .select("*")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false })
-        .limit(limit);
+      const data = await prisma.sync_jobs.findMany({
+        where: { user_id: userId },
+        orderBy: { created_at: "desc" },
+        take: limit,
+      });
 
-      if (error) {
-        console.error("❌ Error getting user jobs:", error);
-        throw error;
-      }
-
-      return data;
+      return data as IJob[];
     } catch (error) {
       console.error("❌ Failed to get user jobs:", error);
       throw error;
@@ -187,18 +148,10 @@ class BackgroundJobService {
 
     try {
       // Get the oldest pending job
-      const { data: job, error } = await this.supabase
-        .from("sync_jobs")
-        .select("*")
-        .eq("status", "pending")
-        .order("created_at", { ascending: true })
-        .limit(1)
-        .maybeSingle();
-
-      if (error) {
-        console.error("❌ Error fetching pending jobs:", error);
-        return;
-      }
+      const job = await prisma.sync_jobs.findFirst({
+        where: { status: "pending" },
+        orderBy: { created_at: "asc" },
+      });
 
       if (!job) {
         // No pending jobs
@@ -206,7 +159,7 @@ class BackgroundJobService {
       }
 
       console.log(`🔧 Processing job ${job.id} for user ${job.user_id}`);
-      await this.processJob(job);
+      await this.processJob(job as IJob);
     } catch (error) {
       console.error("❌ Error in processNextJob:", error);
     } finally {
@@ -224,31 +177,26 @@ class BackgroundJobService {
         started_at: new Date().toISOString(),
       });
 
-      // Create user client for this job
-      // Note: For background jobs, we need to use the service role
-      // since we don't have user session context
-      const userClient = this.supabase;
-
       let jobResults: Record<string, unknown> = {};
 
       switch (job.job_type) {
         case "upload":
-          jobResults = (await this.processUploadJob(job, userClient)) as Record<
+          jobResults = (await this.processUploadJob(job)) as Record<
             string,
             unknown
           >;
           break;
         case "download":
-          jobResults = (await this.processDownloadJob(
-            job,
-            userClient
-          )) as Record<string, unknown>;
+          jobResults = (await this.processDownloadJob(job)) as Record<
+            string,
+            unknown
+          >;
           break;
         case "full_sync":
-          jobResults = (await this.processFullSyncJob(
-            job,
-            userClient
-          )) as Record<string, unknown>;
+          jobResults = (await this.processFullSyncJob(job)) as Record<
+            string,
+            unknown
+          >;
           break;
         default:
           throw new Error(`Unknown job type: ${job.job_type}`);
@@ -279,7 +227,6 @@ class BackgroundJobService {
    */
   async processUploadJob(
     job: IJob,
-    userClient: SupabaseClient,
     syncServiceParam: unknown = syncService
   ): Promise<ISyncResults> {
     const typedPayload = job.payload as {
@@ -312,8 +259,7 @@ class BackgroundJobService {
       try {
         results.categories = await syncService.syncCategories(
           job.user_id,
-          categories,
-          userClient
+          categories
         );
         processedItems += categories.length;
 
@@ -359,8 +305,7 @@ class BackgroundJobService {
         // OPTIMIZATION: Process with minimal progress updates
         results.transactions = await syncService.syncTransactions(
           job.user_id,
-          transactions,
-          userClient
+          transactions
         );
         processedItems += transactions.length;
 
@@ -411,7 +356,6 @@ class BackgroundJobService {
    */
   async processDownloadJob(
     job: IJob,
-    userClient: SupabaseClient,
     syncServiceParam: unknown = syncService
   ): Promise<unknown> {
     console.log(`📥 Processing download for job ${job.id}`);
@@ -431,21 +375,19 @@ class BackgroundJobService {
    */
   async processFullSyncJob(
     job: IJob,
-    userClient: SupabaseClient,
     syncServiceParam: unknown = syncService
   ): Promise<unknown> {
     console.log(`🔄 Processing full sync for job ${job.id}`);
 
     // First upload
-    const uploadResults = (await this.processUploadJob(job, userClient)) as {
+    const uploadResults = (await this.processUploadJob(job)) as {
       upload?: unknown;
     };
 
     // Then download
-    const downloadResults = (await this.processDownloadJob(
-      job,
-      userClient
-    )) as { download?: unknown };
+    const downloadResults = (await this.processDownloadJob(job)) as {
+      download?: unknown;
+    };
 
     return {
       upload: uploadResults.upload,
@@ -464,19 +406,14 @@ class BackgroundJobService {
     try {
       const updateData = {
         status,
-        updated_at: new Date().toISOString(),
+        updated_at: new Date(),
         ...additionalFields,
       };
 
-      const { error } = await this.supabase
-        .from("sync_jobs")
-        .update(updateData)
-        .eq("id", jobId);
-
-      if (error) {
-        console.error(`❌ Error updating job ${jobId} status:`, error);
-        throw error;
-      }
+      await prisma.sync_jobs.update({
+        where: { id: jobId },
+        data: updateData,
+      });
 
       console.log(`📊 Job ${jobId} status updated to: ${status}`);
     } catch (error) {
@@ -518,16 +455,12 @@ class BackgroundJobService {
       const cutoffDate = new Date();
       cutoffDate.setDate(cutoffDate.getDate() - daysOld);
 
-      const { error } = await this.supabase
-        .from("sync_jobs")
-        .delete()
-        .in("status", ["completed", "failed"])
-        .lt("completed_at", cutoffDate.toISOString());
-
-      if (error) {
-        console.error("❌ Error cleaning up old jobs:", error);
-        throw error;
-      }
+      await prisma.sync_jobs.deleteMany({
+        where: {
+          status: { in: ["completed", "failed"] },
+          completed_at: { lt: cutoffDate },
+        },
+      });
 
       console.log(`🧹 Cleaned up jobs older than ${daysOld} days`);
     } catch (error) {

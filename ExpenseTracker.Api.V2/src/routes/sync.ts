@@ -2,12 +2,14 @@ import express, { Request, Response } from "express";
 import { syncService } from "../services/syncService";
 import { authenticate } from "../middleware/auth";
 import { validateSync } from "../middleware/validation";
+import type { Transaction } from "../generated/prisma";
+import { prisma } from "../config/prisma";
 
 const router = express.Router();
 
 /**
  * POST /api/sync/upload
- * Upload local data to Supabase
+ * Upload local data to database via Prisma
  */
 router.post(
   "/upload",
@@ -29,10 +31,6 @@ router.post(
         `📦 [UPLOAD] Request size: ${JSON.stringify(req.body).length} characters`
       );
 
-      // Create a user-specific Supabase client with proper auth context
-      const userClient = syncService.createUserClient(userToken!);
-      console.log(`🔑 [UPLOAD] Created user-specific Supabase client`);
-
       const results: any = {
         categories: { created: 0, updated: 0, errors: [] },
         transactions: { created: 0, updated: 0, errors: [] },
@@ -47,8 +45,7 @@ router.post(
 
         results.categories = await syncService.syncCategories(
           userId,
-          categories,
-          userClient
+          categories
         );
 
         const categoryDuration = Date.now() - categoryStartTime;
@@ -67,8 +64,7 @@ router.post(
 
         results.transactions = await syncService.syncTransactions(
           userId,
-          transactions,
-          userClient
+          transactions
         );
 
         const transactionDuration = Date.now() - transactionStartTime;
@@ -165,62 +161,40 @@ router.get("/status", authenticate, async (req: Request, res: Response) => {
     const userId = req.user.id;
     console.log(`📊 [SYNC_STATUS] Getting status for user ${userId}`);
 
-    // Get counts from Supabase using proper count queries
-    const { count: categoryCount, error: categoryError } =
-      await syncService.supabase
-        .from("categories")
-        .select("*", { count: "exact", head: true })
-        .eq("user_id", userId);
-
-    if (categoryError) {
-      console.error("❌ [SYNC_STATUS] Category count error:", categoryError);
-      throw categoryError;
-    }
+    // Get counts from database using Prisma
+    const categoryCount = await prisma.category.count({
+      where: { user_id: userId },
+    });
 
     console.log(
-      `📁 [SYNC_STATUS] Found ${categoryCount || 0} categories for user ${userId}`
+      `📁 [SYNC_STATUS] Found ${categoryCount} categories for user ${userId}`
     );
 
-    const { count: transactionCount, error: transactionError } =
-      await syncService.supabase
-        .from("transactions")
-        .select("*", { count: "exact", head: true })
-        .eq("user_id", userId);
-
-    if (transactionError) {
-      console.error(
-        "❌ [SYNC_STATUS] Transaction count error:",
-        transactionError
-      );
-      throw transactionError;
-    }
+    const transactionCount = await prisma.transaction.count({
+      where: { user_id: userId },
+    });
 
     console.log(
-      `💰 [SYNC_STATUS] Found ${transactionCount || 0} transactions for user ${userId}`
+      `💰 [SYNC_STATUS] Found ${transactionCount} transactions for user ${userId}`
     );
 
-    // Get last updated timestamp (handle case where no transactions exist)
-    const { data: lastUpdated, error: lastUpdatedError } =
-      await syncService.supabase
-        .from("transactions")
-        .select("updated_at")
-        .eq("user_id", userId)
-        .order("updated_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+    // Get last updated timestamp
+    const lastUpdatedTransaction: Pick<Transaction, "updated_at"> | null =
+      await prisma.transaction.findFirst({
+        where: { user_id: userId },
+        select: { updated_at: true },
+        orderBy: { updated_at: "desc" },
+      });
 
-    // Don't throw error if no transactions exist, just log warning
-    if (lastUpdatedError && lastUpdatedError.code !== "PGRST116") {
-      console.warn(
-        "⚠️ [SYNC_STATUS] Last updated query error:",
-        lastUpdatedError
-      );
-    }
-
-    const statusResponse = {
-      categoriesCount: categoryCount || 0,
-      transactionsCount: transactionCount || 0,
-      lastSync: lastUpdated?.updated_at || null,
+    const statusResponse: {
+      categoriesCount: number;
+      transactionsCount: number;
+      lastSync: Date | null;
+      serverTime: string;
+    } = {
+      categoriesCount: categoryCount,
+      transactionsCount: transactionCount,
+      lastSync: lastUpdatedTransaction?.updated_at || null,
       serverTime: new Date().toISOString(),
     };
 

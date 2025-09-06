@@ -1,4 +1,32 @@
 // Central type definitions for the expense tracker API
+// Import Prisma-generated types for type safety
+import type {
+  User as PrismaUser,
+  Category as PrismaCategory,
+  Transaction as PrismaTransaction,
+  TransactionCategory as PrismaTransactionCategory,
+  VoiceRecording as PrismaVoiceRecording,
+  Profile as PrismaProfile,
+  sync_jobs as PrismaSyncJob,
+  sync_performance_stats as PrismaSyncPerformanceStats,
+} from "../generated/prisma";
+
+// Re-export Prisma types with our naming conventions
+export type IPrismaUser = PrismaUser;
+export type IPrismaCategory = PrismaCategory;
+export type IPrismaTransaction = PrismaTransaction;
+export type IPrismaTransactionCategory = PrismaTransactionCategory;
+export type IPrismaVoiceRecording = PrismaVoiceRecording;
+export type IPrismaProfile = PrismaProfile;
+export type IPrismaSyncJob = PrismaSyncJob;
+export type IPrismaSyncPerformanceStats = PrismaSyncPerformanceStats;
+
+// Transaction with categories (common query result)
+export type ITransactionWithCategories = PrismaTransaction & {
+  transaction_categories: (PrismaTransactionCategory & {
+    category: PrismaCategory;
+  })[];
+};
 
 // User interfaces
 export interface IUser {
@@ -73,7 +101,7 @@ export interface IValidateResetSessionRequest {
   type: string;
 }
 
-// Database interfaces
+// Database interfaces (compatible with Prisma types)
 export interface IProfile {
   id: string;
   email: string;
@@ -185,6 +213,48 @@ export interface IJobResponse {
   job?: IJob;
   jobs?: IJob[];
   total?: number;
+}
+
+// Service layer types that combine Prisma and business logic
+export interface ICategoryService {
+  getUserCategories(userId: string): Promise<IPrismaCategory[]>;
+  getCategory(
+    categoryId: string,
+    userId: string
+  ): Promise<IPrismaCategory | null>;
+  createCategory(categoryData: ICategory): Promise<IPrismaCategory>;
+  updateCategory(
+    categoryId: string,
+    userId: string,
+    updateData: Partial<ICategory>
+  ): Promise<IPrismaCategory>;
+  deleteCategory(categoryId: string, userId: string): Promise<boolean>;
+}
+
+export interface ITransactionService {
+  getUserTransactions(
+    userId: string,
+    options?: {
+      limit?: number;
+      offset?: number;
+      type?: "income" | "expense";
+      startDate?: Date;
+      endDate?: Date;
+    }
+  ): Promise<ITransactionWithCategories[]>;
+  getTransaction(
+    transactionId: string,
+    userId: string
+  ): Promise<ITransactionWithCategories | null>;
+  createTransaction(
+    transactionData: ITransaction
+  ): Promise<ITransactionWithCategories>;
+  updateTransaction(
+    transactionId: string,
+    userId: string,
+    updateData: Partial<ITransaction>
+  ): Promise<ITransactionWithCategories>;
+  deleteTransaction(transactionId: string, userId: string): Promise<boolean>;
 }
 
 // Deprecated interfaces - use I-prefixed versions above

@@ -1,6 +1,9 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { ISyncResult, ICategory, ITransaction } from "../types";
 import { supabaseClient } from "../config/supabase";
+import prisma from "../config/prisma";
+import categoryService from "./categoryService";
+import transactionService from "./transactionService";
 
 class SyncService {
   public supabase: SupabaseClient;
@@ -10,7 +13,7 @@ class SyncService {
   }
 
   /**
-   * Log performance metrics for monitoring
+   * Log performance metrics for monitoring using Prisma
    */
   async logPerformanceMetrics(
     userId: string,
@@ -22,23 +25,16 @@ class SyncService {
     errorCount: number
   ): Promise<void> {
     try {
-      // Use service role client for performance logging
-      const serviceClient = createClient(
-        process.env.SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY!,
-        {
-          auth: { autoRefreshToken: false, persistSession: false },
-        }
-      );
-
-      await serviceClient.from("sync_performance_stats").insert({
-        user_id: userId,
-        operation_type: operationType,
-        item_count: itemCount,
-        duration_ms: durationMs,
-        created_items: created,
-        updated_items: updated,
-        error_count: errorCount,
+      await prisma.sync_performance_stats.create({
+        data: {
+          user_id: userId,
+          operation_type: operationType,
+          item_count: itemCount,
+          duration_ms: durationMs,
+          created_items: created,
+          updated_items: updated,
+          error_count: errorCount,
+        },
       });
 
       console.log(
@@ -74,18 +70,15 @@ class SyncService {
   }
 
   /**
-   * Sync categories using Supabase's built-in upsert
+   * Sync categories using Prisma
    */
   async syncCategories(
     userId: string,
-    categories: ICategory[],
-    userClient: SupabaseClient | null = null
+    categories: ICategory[]
   ): Promise<ISyncResult> {
-    const client = userClient || this.supabase;
-
     try {
       console.log(
-        `📁 [SYNC_CATEGORIES] Starting upsert sync for ${categories.length} categories (User: ${userId})`
+        `📁 [SYNC_CATEGORIES] Starting Prisma sync for ${categories.length} categories (User: ${userId})`
       );
       const startTime = Date.now();
 
@@ -93,50 +86,59 @@ class SyncService {
         return { created: 0, updated: 0, errors: [] };
       }
 
-      // Prepare data for upsert
-      const categoriesToSync = categories.map((cat) => ({
-        user_id: userId,
-        name: cat.name,
-        color: cat.color || "#000000",
-      }));
-
-      console.log(
-        `📁 [SYNC_CATEGORIES] Upserting ${categoriesToSync.length} categories...`
-      );
-
-      // Let Supabase handle duplicates automatically with upsert!
-      const { data, error } = await client
-        .from("categories")
-        .upsert(categoriesToSync, {
-          onConflict: "user_id,name", // Use existing unique constraint
-          ignoreDuplicates: false, // Update existing records
-        })
-        .select("id, created_at, updated_at");
-
-      if (error) {
-        console.error(`❌ [SYNC_CATEGORIES] Upsert error:`, error);
-        throw error;
-      }
-
-      // Simple way to distinguish created vs updated
-      const now = new Date();
-      const createdCount =
-        data?.filter((item) => {
-          const createdAt = new Date(item.created_at);
-          const updatedAt = new Date(item.updated_at);
-          // If created and updated timestamps are very close, it's a new record
-          return Math.abs(createdAt.getTime() - updatedAt.getTime()) < 1000;
-        }).length || 0;
-
-      const results = {
-        created: createdCount,
-        updated: (data?.length || 0) - createdCount,
+      const results: ISyncResult = {
+        created: 0,
+        updated: 0,
         errors: [],
       };
 
+      // Process categories individually to handle upsert logic
+      for (const categoryData of categories) {
+        try {
+          // Check if category exists by name for this user
+          const existingCategory = await prisma.category.findFirst({
+            where: {
+              user_id: userId,
+              name: categoryData.name,
+            },
+          });
+
+          if (existingCategory) {
+            // Update existing category
+            await prisma.category.update({
+              where: { id: existingCategory.id },
+              data: {
+                color: categoryData.color || existingCategory.color,
+                updated_at: new Date(),
+              },
+            });
+            results.updated++;
+          } else {
+            // Create new category
+            await prisma.category.create({
+              data: {
+                user_id: userId,
+                name: categoryData.name,
+                color: categoryData.color || "#000000",
+              },
+            });
+            results.created++;
+          }
+        } catch (error) {
+          console.error(
+            `❌ [SYNC_CATEGORIES] Error syncing category ${categoryData.name}:`,
+            error
+          );
+          results.errors.push({
+            category: categoryData.name,
+            error: error instanceof Error ? error.message : "Unknown error",
+          });
+        }
+      }
+
       const duration = Date.now() - startTime;
       console.log(
-        `✅ [SYNC_CATEGORIES] sync completed in ${duration}ms: ${results.created} created, ${results.updated} updated`
+        `✅ [SYNC_CATEGORIES] sync completed in ${duration}ms: ${results.created} created, ${results.updated} updated, ${results.errors.length} errors`
       );
 
       // Log performance metrics
@@ -147,7 +149,7 @@ class SyncService {
         duration,
         results.created,
         results.updated,
-        0
+        results.errors.length
       );
 
       return results;
@@ -163,18 +165,15 @@ class SyncService {
   }
 
   /**
-   * Sync transactions using Supabase's built-in upsert
+   * Sync transactions using Prisma
    */
   async syncTransactions(
     userId: string,
-    transactions: ITransaction[],
-    userClient: SupabaseClient | null = null
+    transactions: ITransaction[]
   ): Promise<ISyncResult> {
-    const client = userClient || this.supabase;
-
     try {
       console.log(
-        `💰 [SYNC_TRANSACTIONS] Starting upsert sync for ${transactions.length} transactions (User: ${userId})`
+        `💰 [SYNC_TRANSACTIONS] Starting Prisma sync for ${transactions.length} transactions (User: ${userId})`
       );
       const startTime = Date.now();
 
@@ -182,88 +181,37 @@ class SyncService {
         return { created: 0, updated: 0, errors: [] };
       }
 
-      // Prepare data for upsert
-      const transactionsToSync = transactions.map((trans) => ({
-        user_id: userId,
-        amount: trans.amount,
-        description: trans.description || "",
-        date: trans.date,
-        type: trans.type,
-      }));
-
-      console.log(
-        `💰 [SYNC_TRANSACTIONS] Inserting ${transactionsToSync.length} transactions...`
-      );
-
-      // Use regular insert - let database handle constraint violations
-      const { data, error } = await client
-        .from("transactions")
-        .insert(transactionsToSync)
-        .select("id, created_at, updated_at");
-
-      if (error) {
-        console.error(`❌ [SYNC_TRANSACTIONS] Upsert error:`, error);
-        throw error;
-      }
-
-      // Handle category associations for all transactions using BATCH processing (OPTIMIZED)
-      console.log(
-        `💰 [SYNC_TRANSACTIONS] Processing categories for ${data?.length || 0} transactions in batch...`
-      );
-      if (data?.length > 0) {
-        // Prepare batch data for category processing
-        const transactionCategoryData = [];
-        for (let i = 0; i < transactions.length && i < data.length; i++) {
-          if (
-            transactions[i]?.categories?.length &&
-            transactions[i]?.categories!.length > 0
-          ) {
-            transactionCategoryData.push({
-              transactionId: data[i].id,
-              categoryNames: transactions[i].categories,
-            });
-          }
-        }
-
-        // Process all transaction categories in one batch
-        if (transactionCategoryData.length > 0) {
-          try {
-            await this.syncTransactionCategoriesBatch(
-              transactionCategoryData,
-              client
-            );
-            console.log(
-              `✅ [SYNC_TRANSACTIONS] Batch category processing completed for ${transactionCategoryData.length} transactions`
-            );
-          } catch (error) {
-            console.warn(
-              `⚠️ [SYNC_TRANSACTIONS] Batch category sync failed:`,
-              error
-            );
-            // Don't fail the whole sync for category issues, but log the error
-          }
-        }
-      }
-
-      // Simple way to distinguish created vs updated
-      const now = new Date();
-      const createdCount =
-        data?.filter((item) => {
-          const createdAt = new Date(item.created_at);
-          const updatedAt = new Date(item.updated_at);
-          // If created and updated timestamps are very close, it's a new record
-          return Math.abs(createdAt.getTime() - updatedAt.getTime()) < 1000;
-        }).length || 0;
-
-      const results = {
-        created: createdCount,
-        updated: (data?.length || 0) - createdCount,
+      const results: ISyncResult = {
+        created: 0,
+        updated: 0,
         errors: [],
       };
 
+      // Process transactions individually to handle complex category logic
+      for (const transactionData of transactions) {
+        try {
+          // For sync, we'll create new transactions - let the app handle duplicates
+          const transaction = await transactionService.createTransaction({
+            ...transactionData,
+            user_id: userId,
+          });
+
+          results.created++;
+        } catch (error) {
+          console.error(
+            `❌ [SYNC_TRANSACTIONS] Error syncing transaction:`,
+            error
+          );
+          results.errors.push({
+            transaction: `${transactionData.amount} ${transactionData.type}`,
+            error: error instanceof Error ? error.message : "Unknown error",
+          });
+        }
+      }
+
       const duration = Date.now() - startTime;
       console.log(
-        `✅ [SYNC_TRANSACTIONS] sync completed in ${duration}ms: ${results.created} created, ${results.updated} updated`
+        `✅ [SYNC_TRANSACTIONS] sync completed in ${duration}ms: ${results.created} created, ${results.updated} updated, ${results.errors.length} errors`
       );
 
       // Log performance metrics
@@ -274,7 +222,7 @@ class SyncService {
         duration,
         results.created,
         results.updated,
-        0
+        results.errors.length
       );
 
       return results;
@@ -290,193 +238,54 @@ class SyncService {
   }
 
   /**
-   * Sync transaction categories in batch (OPTIMIZED)
-   */
-  async syncTransactionCategoriesBatch(
-    transactionData: unknown[],
-    userClient: SupabaseClient | null = null
-  ): Promise<void> {
-    const client = userClient || this.supabase;
-
-    try {
-      console.log(
-        `🔗 [SYNC_TRANSACTION_CATEGORIES_BATCH] Processing categories for ${transactionData.length} transactions...`
-      );
-      const startTime = Date.now();
-
-      // Type guard for transaction data
-      const typedTransactionData = transactionData as Array<{
-        transactionId: string;
-        categoryNames?: string[];
-      }>;
-
-      // Collect all unique category names from all transactions
-      const allCategoryNames = new Set();
-      typedTransactionData.forEach(({ categoryNames }) => {
-        if (categoryNames && categoryNames.length > 0) {
-          categoryNames.forEach((name: string) => allCategoryNames.add(name));
-        }
-      });
-
-      if (allCategoryNames.size === 0) {
-        console.log(
-          `🔗 [SYNC_TRANSACTION_CATEGORIES_BATCH] No categories to process`
-        );
-        return;
-      }
-
-      console.log(
-        `🔗 [SYNC_TRANSACTION_CATEGORIES_BATCH] Found ${allCategoryNames.size} unique categories`
-      );
-
-      // Get all category IDs in one query
-      const { data: categories, error: categoryError } = await client
-        .from("categories")
-        .select("id, name")
-        .in("name", Array.from(allCategoryNames));
-
-      if (categoryError) throw categoryError;
-
-      // Create name-to-id mapping
-      const categoryNameToIdMap = new Map();
-      categories?.forEach((cat) => {
-        categoryNameToIdMap.set(cat.name, cat.id);
-      });
-
-      console.log(
-        `🔗 [SYNC_TRANSACTION_CATEGORIES_BATCH] Mapped ${categoryNameToIdMap.size} categories`
-      );
-
-      // Collect all transaction IDs for deletion
-      const transactionIds = typedTransactionData.map(
-        ({ transactionId }) => transactionId
-      );
-
-      // Delete all existing associations for these transactions in one query
-      if (transactionIds.length > 0) {
-        const { error: deleteError } = await client
-          .from("transaction_categories")
-          .delete()
-          .in("transaction_id", transactionIds);
-
-        if (deleteError) throw deleteError;
-        console.log(
-          `🔗 [SYNC_TRANSACTION_CATEGORIES_BATCH] Deleted existing associations for ${transactionIds.length} transactions`
-        );
-      }
-
-      // Prepare all associations for batch insert
-      const allAssociations: unknown[] = [];
-      typedTransactionData.forEach(({ transactionId, categoryNames }) => {
-        if (categoryNames && categoryNames.length > 0) {
-          categoryNames.forEach((categoryName: string) => {
-            const categoryId = categoryNameToIdMap.get(categoryName);
-            if (categoryId) {
-              allAssociations.push({
-                transaction_id: transactionId,
-                category_id: categoryId,
-              });
-            } else {
-              console.warn(
-                `⚠️ [SYNC_TRANSACTION_CATEGORIES_BATCH] Category not found: ${categoryName}`
-              );
-            }
-          });
-        }
-      });
-
-      // Insert all associations in one batch
-      if (allAssociations.length > 0) {
-        const { error: insertError } = await client
-          .from("transaction_categories")
-          .insert(allAssociations);
-
-        if (insertError) throw insertError;
-
-        const duration = Date.now() - startTime;
-        console.log(
-          `✅ [SYNC_TRANSACTION_CATEGORIES_BATCH] Inserted ${allAssociations.length} category associations in ${duration}ms`
-        );
-      } else {
-        console.log(
-          `🔗 [SYNC_TRANSACTION_CATEGORIES_BATCH] No valid category associations to insert`
-        );
-      }
-    } catch (error) {
-      console.error(`❌ [SYNC_TRANSACTION_CATEGORIES_BATCH] Error:`, error);
-      throw new Error(
-        `Batch transaction categories sync failed: ${error instanceof Error ? error.message : "Unknown error"}`
-      );
-    }
-  }
-
-  /**
-   * Get all user data from Supabase (for downloading to mobile)
+   * Get all user data from Prisma (for downloading to mobile)
    */
   async getUserData(
     userId: string
   ): Promise<{ categories: ICategory[]; transactions: ITransaction[] }> {
     try {
-      console.log(`📥 [GET_USER_DATA] Starting data fetch for user ${userId}`);
+      console.log(`� [GET_USER_DATA] Starting data fetch for user ${userId}`);
 
-      // Get categories
-      const { data: categories, error: categoriesError } = await this.supabase
-        .from("categories")
-        .select("*")
-        .eq("user_id", userId)
-        .order("created_at");
-
-      if (categoriesError) {
-        console.error(`❌ [GET_USER_DATA] Categories error:`, categoriesError);
-        throw categoriesError;
-      }
+      // Get categories using Prisma
+      const categories = await categoryService.getUserCategories(userId);
 
       console.log(
-        `📁 [GET_USER_DATA] Found ${categories?.length || 0} categories for user ${userId}`
+        `� [GET_USER_DATA] Found ${categories.length} categories for user ${userId}`
       );
 
-      // Get transactions with categories
-      const { data: transactions, error: transactionsError } =
-        await this.supabase
-          .from("transactions")
-          .select(
-            `
-          *,
-          transaction_categories (
-            categories (
-              name,
-              color
-            )
-          )
-        `
-          )
-          .eq("user_id", userId)
-          .order("created_at");
+      // Get transactions with categories using Prisma
+      const transactionsWithCategories =
+        await transactionService.getUserTransactions(userId);
 
-      if (transactionsError) {
-        console.error(
-          `❌ [GET_USER_DATA] Transactions error:`,
-          transactionsError
-        );
-        throw transactionsError;
-      }
+      // Transform transactions to match the expected interface format
+      const transformedTransactions: ITransaction[] =
+        transactionsWithCategories.map((transaction) => ({
+          id: transaction.id,
+          user_id: transaction.user_id,
+          amount: Number(transaction.amount),
+          description: transaction.description || "",
+          date: transaction.date,
+          type: transaction.type as "income" | "expense",
+          categories: transaction.transaction_categories.map(
+            (tc) => tc.category.id
+          ),
+          created_at: transaction.created_at || new Date(),
+          updated_at: transaction.updated_at || new Date(),
+        }));
 
       console.log(
-        `💰 [GET_USER_DATA] Found ${transactions?.length || 0} transactions for user ${userId}`
+        `� [GET_USER_DATA] Found ${transformedTransactions.length} transactions for user ${userId}`
       );
-
-      // Transform transactions to include category names
-      const transformedTransactions =
-        transactions?.map((transaction) => ({
-          ...transaction,
-          categories:
-            transaction.transaction_categories?.map(
-              (tc: any) => tc.categories?.name
-            ) || [],
-        })) || [];
 
       const result = {
-        categories: categories || [],
+        categories: categories.map((cat) => ({
+          id: cat.id,
+          user_id: cat.user_id,
+          name: cat.name,
+          color: cat.color || "#000000",
+          created_at: cat.created_at || new Date(),
+          updated_at: cat.updated_at || new Date(),
+        })),
         transactions: transformedTransactions,
       };
 
@@ -511,7 +320,7 @@ class SyncService {
         timestamp: new Date().toISOString(),
       };
 
-      // Upload local data to Supabase
+      // Upload local data using Prisma
       const typedLocalData = localData as {
         categories?: ICategory[];
         transactions?: ITransaction[];
@@ -534,7 +343,7 @@ class SyncService {
         );
       }
 
-      // Download updated data from Supabase
+      // Download updated data using Prisma
       const userData = await this.getUserData(userId);
       syncResults.download = userData;
 

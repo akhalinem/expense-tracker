@@ -68,11 +68,14 @@ npx expo start
 
 ```env
 SUPABASE_URL=your_supabase_project_url
-SUPABASE_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+SUPABASE_ANON_KEY=your_supabase_anon_key
+DATABASE_URL=your_postgres_connection_string
+DIRECT_URL=your_postgres_direct_connection_string
 APP_URL=http://localhost:3000
 PORT=3000
 ```
+
+**Note:** We use Supabase only for authentication. Database operations use Prisma with direct PostgreSQL connection.
 
 **Mobile (.env)**:
 
