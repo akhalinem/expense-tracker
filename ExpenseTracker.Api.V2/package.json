@@ -1,0 +1,47 @@
+{
+  "name": "expense-tracker.api.v2",
+  "version": "1.0.0",
+  "description": "This is a backend for expense tracker mobile app",
+  "license": "ISC",
+  "author": "akhalinem@gmail.com",
+  "type": "commonjs",
+  "main": "dist/app.js",
+  "scripts": {
+    "dev": "nodemon",
+    "build": "tsc",
+    "start": "node dist/app.js",
+    "start:dev": "ts-node app.ts",
+    "clean": "rm -rf dist",
+    "db:generate": "npx prisma generate",
+    "db:migrate": "npx prisma migrate dev",
+    "db:migrate:deploy": "npx prisma migrate deploy",
+    "db:migrate:status": "npx prisma migrate status",
+    "db:migrate:reset": "npx prisma migrate reset",
+    "db:studio": "npx prisma studio",
+    "db:seed": "npx prisma db seed",
+    "db:push": "npx prisma db push",
+    "db:introspect": "npx prisma db pull",
+    "db:format": "npx prisma format"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.15.0",
+    "@supabase/supabase-js": "^2.56.1",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.1",
+    "express": "^5.1.0",
+    "express-validator": "^7.2.1",
+    "prisma": "^6.15.0"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
+    "@types/express-validator": "^2.20.33",
+    "@types/node": "^24.3.1",
+    "nodemon": "^3.1.10",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2"
+  },
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
+  }
+}

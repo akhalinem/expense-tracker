@@ -12,9 +12,13 @@ export default function SettingsScreen() {
     }
   };
 
+  const handleNavigate = (screen: string) => {
+    router.push(screen);
+  };
+
   return (
     <ThemedView as={SafeAreaView} style={{ flex: 1 }}>
-      <Settings onPress={handlePress} />
+      <Settings onPress={handlePress} onNavigate={handleNavigate} />
     </ThemedView>
   );
 }

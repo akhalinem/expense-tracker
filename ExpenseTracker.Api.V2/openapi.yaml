@@ -1,0 +1,560 @@
+openapi: 3.0.3
+info:
+  title: Expense Tracker Sync API
+  description: |
+    API for synchronizing expense tracking data between mobile app and cloud storage (Supabase).
+
+    This API provides endpoints for:
+    - User authentication with Supabase
+    - Uploading local data to cloud
+    - Downloading cloud data to local
+    - Full bidirectional synchronization
+    - Sync status monitoring
+
+    ## Authentication
+    All sync endpoints require a valid JWT token obtained from the authentication endpoints.
+    Include the token in the Authorization header: `Bearer YOUR_JWT_TOKEN`
+
+    ## Base URL
+    - Development: `http://localhost:3000`
+    - Production: Update with your deployed URL
+  version: 1.0.0
+  contact:
+    name: Expense Tracker API
+    email: support@expense-tracker.com
+
+servers:
+  - url: http://localhost:3000
+    description: Local development server
+  - url: https://your-production-domain.com
+    description: Production server (update with actual URL)
+
+security:
+  - BearerAuth: []
+
+paths:
+  /:
+    get:
+      summary: Health Check
+      description: Simple health check endpoint to verify server is running
+      tags:
+        - Health
+      security: []
+      responses:
+        "200":
+          description: Server is running
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "Let's rock!"
+
+  /auth/register:
+    post:
+      summary: Register New User
+      description: Register a new user account with Supabase authentication
+      tags:
+        - Authentication
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthRequest"
+            examples:
+              example1:
+                summary: Sample registration
+                value:
+                  email: "user@example.com"
+                  password: "securepassword123"
+      responses:
+        "201":
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Invalid request or user already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/login:
+    post:
+      summary: User Login
+      description: Authenticate user and receive JWT token for API access
+      tags:
+        - Authentication
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthRequest"
+            examples:
+              example1:
+                summary: Sample login
+                value:
+                  email: "user@example.com"
+                  password: "securepassword123"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/sync/status:
+    get:
+      summary: Get Sync Status
+      description: Retrieve current synchronization status and statistics from the cloud
+      tags:
+        - Sync
+      responses:
+        "200":
+          description: Sync status retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  status:
+                    $ref: "#/components/schemas/SyncStatus"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+  /api/sync/upload:
+    post:
+      summary: Upload Local Data
+      description: Upload local categories and transactions to the cloud
+      tags:
+        - Sync
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SyncData"
+            examples:
+              sampleData:
+                summary: Sample sync data
+                value:
+                  categories:
+                    - name: "Food & Dining"
+                      color: "#FF6B6B"
+                      created_at: "2025-09-01T10:00:00.000Z"
+                      updated_at: "2025-09-01T10:00:00.000Z"
+                    - name: "Transportation"
+                      color: "#4ECDC4"
+                      created_at: "2025-09-01T10:00:00.000Z"
+                      updated_at: "2025-09-01T10:00:00.000Z"
+                  transactions:
+                    - amount: 25.50
+                      description: "Lunch at restaurant"
+                      date: "2025-09-01"
+                      type: "expense"
+                      categories: ["Food & Dining"]
+                      created_at: "2025-09-01T12:00:00.000Z"
+                      updated_at: "2025-09-01T12:00:00.000Z"
+                    - amount: 1000.00
+                      description: "Salary"
+                      date: "2025-09-01"
+                      type: "income"
+                      categories: []
+                      created_at: "2025-09-01T09:00:00.000Z"
+                      updated_at: "2025-09-01T09:00:00.000Z"
+      responses:
+        "200":
+          description: Data uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UploadResponse"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+  /api/sync/download:
+    get:
+      summary: Download Cloud Data
+      description: Download all user data from the cloud
+      tags:
+        - Sync
+      responses:
+        "200":
+          description: Data downloaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Data downloaded successfully"
+                  data:
+                    $ref: "#/components/schemas/UserData"
+                  timestamp:
+                    type: string
+                    format: date-time
+                    example: "2025-09-01T12:30:00.000Z"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+  /api/sync/full:
+    post:
+      summary: Full Sync Operation
+      description: Complete bidirectional sync - upload local data then download updated cloud data
+      tags:
+        - Sync
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SyncData"
+      responses:
+        "200":
+          description: Full sync completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FullSyncResponse"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token obtained from login endpoint
+
+  schemas:
+    AuthRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: "user@example.com"
+          description: User email address
+        password:
+          type: string
+          minLength: 6
+          example: "securepassword123"
+          description: User password (minimum 6 characters)
+
+    AuthResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Login successful"
+        user:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+              example: "123e4567-e89b-12d3-a456-426614174000"
+            email:
+              type: string
+              format: email
+              example: "user@example.com"
+        session:
+          type: object
+          properties:
+            access_token:
+              type: string
+              example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+              description: JWT token for API authentication
+            refresh_token:
+              type: string
+              example: "refresh_token_here"
+            expires_in:
+              type: integer
+              example: 3600
+
+    Category:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          example: "Food & Dining"
+          description: Category name
+        color:
+          type: string
+          example: "#FF6B6B"
+          pattern: "^#[0-9A-Fa-f]{6}$"
+          description: Hex color code
+        created_at:
+          type: string
+          format: date-time
+          example: "2025-09-01T10:00:00.000Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2025-09-01T10:00:00.000Z"
+
+    Transaction:
+      type: object
+      required:
+        - amount
+        - date
+        - type
+      properties:
+        amount:
+          type: number
+          format: decimal
+          example: 25.50
+          description: Transaction amount
+        description:
+          type: string
+          example: "Lunch at restaurant"
+          description: Transaction description
+        date:
+          type: string
+          format: date
+          example: "2025-09-01"
+          description: Transaction date (YYYY-MM-DD)
+        type:
+          type: string
+          enum: ["income", "expense"]
+          example: "expense"
+          description: Transaction type
+        categories:
+          type: array
+          items:
+            type: string
+          example: ["Food & Dining"]
+          description: Array of category names
+        created_at:
+          type: string
+          format: date-time
+          example: "2025-09-01T12:00:00.000Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2025-09-01T12:00:00.000Z"
+
+    SyncData:
+      type: object
+      properties:
+        categories:
+          type: array
+          items:
+            $ref: "#/components/schemas/Category"
+          description: Array of categories to sync
+        transactions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Transaction"
+          description: Array of transactions to sync
+
+    UserData:
+      type: object
+      properties:
+        categories:
+          type: array
+          items:
+            allOf:
+              - $ref: "#/components/schemas/Category"
+              - type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+        transactions:
+          type: array
+          items:
+            allOf:
+              - $ref: "#/components/schemas/Transaction"
+              - type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+
+    SyncStatus:
+      type: object
+      properties:
+        categoriesCount:
+          type: integer
+          example: 5
+          description: Number of categories in cloud
+        transactionsCount:
+          type: integer
+          example: 150
+          description: Number of transactions in cloud
+        lastSync:
+          type: string
+          format: date-time
+          nullable: true
+          example: "2025-09-01T12:00:00.000Z"
+          description: Last sync timestamp
+        serverTime:
+          type: string
+          format: date-time
+          example: "2025-09-01T12:30:00.000Z"
+          description: Current server time
+
+    SyncResults:
+      type: object
+      properties:
+        created:
+          type: integer
+          example: 3
+          description: Number of items created
+        updated:
+          type: integer
+          example: 2
+          description: Number of items updated
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              item:
+                type: string
+                example: "Food category"
+              error:
+                type: string
+                example: "Duplicate name"
+
+    UploadResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Data uploaded successfully"
+        results:
+          type: object
+          properties:
+            categories:
+              $ref: "#/components/schemas/SyncResults"
+            transactions:
+              $ref: "#/components/schemas/SyncResults"
+        timestamp:
+          type: string
+          format: date-time
+          example: "2025-09-01T12:30:00.000Z"
+
+    FullSyncResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Full sync completed successfully"
+        results:
+          type: object
+          properties:
+            upload:
+              type: object
+              properties:
+                categories:
+                  $ref: "#/components/schemas/SyncResults"
+                transactions:
+                  $ref: "#/components/schemas/SyncResults"
+            download:
+              $ref: "#/components/schemas/UserData"
+            timestamp:
+              type: string
+              format: date-time
+              example: "2025-09-01T12:30:00.000Z"
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+          example: "Error message"
+        details:
+          type: object
+          description: Additional error details
+
+  responses:
+    UnauthorizedError:
+      description: Authentication required or token invalid
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            success: false
+            error: "Invalid or expired token"
+
+    ValidationError:
+      description: Request validation failed
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            success: false
+            error: "Invalid sync data format"
+            details:
+              categories: "Categories must be an array"
+
+    ServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            success: false
+            error: "Internal server error"
+
+tags:
+  - name: Health
+    description: Server health check endpoints
+  - name: Authentication
+    description: User authentication and authorization
+  - name: Sync
+    description: Data synchronization between mobile app and cloud
