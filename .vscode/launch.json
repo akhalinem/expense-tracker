@@ -8,6 +8,13 @@
             "name": ".NET Core Attach",
             "type": "coreclr",
             "request": "attach"
+        },
+        {
+            "type": "node-terminal",
+            "name": "Run Script: dev (ExpenseTracker.Api.V2)",
+            "request": "launch",
+            "command": "npm run dev",
+            "cwd": "${workspaceFolder}/ExpenseTracker.Api.V2"
         }
     ]
 }
