@@ -1,3 +1,13 @@
+/**
+ * Data Transfer Service
+ *
+ * Handles import/export of expense data via XLSX files and database clearing.
+ *
+ * ⚠️  QUERY INVALIDATION: This service automatically invalidates React Query cache
+ * after import/clear operations to ensure UI consistency. When adding new query keys
+ * to the app, update ~/services/queryInvalidation.ts - see ~/docs/QUERY_INVALIDATION.md
+ */
+
 import { Alert } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
@@ -25,6 +35,7 @@ import { transactionsTable, categoriesTable } from '~/db/schema';
 import { db } from '~/services/db';
 import { categoriesService } from '~/services/categories';
 import { transactionsService } from '~/services/transactions';
+import { queryInvalidationService } from '~/services/queryInvalidation';
 
 export const exportData = async (): Promise<void> => {
   try {
@@ -248,6 +259,26 @@ export const importData = async (): Promise<ImportResult | null> => {
       );
     }
 
+    // Invalidate queries after successful import to refresh UI with imported data
+    // This ensures all screens immediately show the newly imported expenses, categories, etc.
+    // See ~/docs/QUERY_INVALIDATION.md for maintenance requirements
+    if (
+      importResult.categories.added > 0 ||
+      importResult.expenses.added > 0 ||
+      importResult.incomes.added > 0
+    ) {
+      console.log('🔄 Invalidating queries after successful import...');
+      console.log('📊 Import result:', {
+        categoriesAdded: importResult.categories.added,
+        expensesAdded: importResult.expenses.added,
+        incomesAdded: importResult.incomes.added,
+      });
+      await queryInvalidationService.invalidateAfterImport();
+      console.log('✅ Query invalidation completed after import');
+    } else {
+      console.log('⏭️  Skipping query invalidation - no data was imported');
+    }
+
     return importResult;
   } catch (error) {
     Alert.alert(
@@ -262,6 +293,13 @@ export const clearDb = async (): Promise<void> => {
   try {
     await db.delete(transactionsTable);
     await db.delete(categoriesTable);
+
+    // Invalidate queries after clearing database to show empty state across all screens
+    // This ensures no stale cached data remains visible after database clear
+    // See ~/docs/QUERY_INVALIDATION.md for maintenance requirements
+    console.log('🔄 Invalidating queries after database clear...');
+    await queryInvalidationService.invalidateAllQueries();
+    console.log('✅ Query invalidation completed after database clear');
   } catch (error) {
     console.error('Error clearing database:', error);
     throw new Error('Failed to clear database');

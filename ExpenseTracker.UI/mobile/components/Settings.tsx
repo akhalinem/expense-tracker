@@ -8,7 +8,7 @@ import {
   ScrollView,
   Modal,
 } from 'react-native';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { clearDb, exportData, importData } from '~/services/data-transfer';
 import { useAuth } from '~/context/AuthContext';
 import { useTheme } from '~/theme';
@@ -28,10 +28,23 @@ export type SettingsProps = {
 };
 
 export default function Settings(props: SettingsProps) {
-  const queryClient = useQueryClient();
   const { theme } = useTheme();
   const { user, logout } = useAuth();
-  const clearDbMutation = useMutation({ mutationFn: clearDb });
+  const clearDbMutation = useMutation({
+    mutationFn: clearDb,
+    onSuccess: () => {
+      Alert.alert(
+        'Data Cleared',
+        'All local data has been successfully removed from this device.'
+      );
+    },
+    onError: (error) => {
+      Alert.alert(
+        'Clear Failed',
+        `Failed to clear data: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    },
+  });
   const [showAdvancedSync, setShowAdvancedSync] = useState(false);
   const [showPreferences, setShowPreferences] = useState(false);
 
@@ -51,14 +64,10 @@ export default function Settings(props: SettingsProps) {
         message += `\n⚠️ Some items could not be imported due to formatting issues.`;
       }
 
-      await queryClient.invalidateQueries();
-
       Alert.alert('Import Successful', message, [
         {
           text: 'OK',
-          onPress: () => {
-            queryClient.invalidateQueries();
-          },
+          onPress: () => {},
         },
       ]);
     }
@@ -87,9 +96,16 @@ export default function Settings(props: SettingsProps) {
         },
         {
           text: 'Delete All',
+          style: 'destructive',
           onPress: async () => {
-            await clearDbMutation.mutateAsync();
-            queryClient.invalidateQueries();
+            try {
+              await clearDbMutation.mutateAsync();
+              // Success feedback is handled by the mutation's onSuccess callback
+              // Query invalidation is handled automatically by the clearDb service
+            } catch (error) {
+              // Error handling is managed by the mutation's onError callback
+              console.error('Clear database failed:', error);
+            }
           },
         },
       ]
@@ -219,12 +235,22 @@ export default function Settings(props: SettingsProps) {
         />
         <Divider />
         <SettingsRow
-          icon="trash-outline"
+          icon={
+            clearDbMutation.isPending ? 'hourglass-outline' : 'trash-outline'
+          }
           iconColor={theme.error}
           title="Clear Local Data"
-          subtitle="Remove all data from this device"
+          subtitle={
+            clearDbMutation.isPending
+              ? 'Clearing data...'
+              : 'Remove all data from this device'
+          }
           titleColor={theme.error}
-          onPress={() => handleDataOperation('clear')}
+          onPress={
+            clearDbMutation.isPending
+              ? undefined
+              : () => handleDataOperation('clear')
+          }
         />
       </SettingsSection>
 

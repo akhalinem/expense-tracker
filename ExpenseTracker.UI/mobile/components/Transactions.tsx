@@ -11,6 +11,7 @@ import { Transaction, TransactionTypeEnum } from '~/types';
 import { DEFAULT_CATEGORY_COLOR } from '~/constants';
 import { displayCurrency, displayDate } from '~/utils';
 import { transactionsService } from '~/services/transactions';
+import { queryInvalidationService } from '~/services/queryInvalidation';
 import { Theme, useTheme } from '~/theme';
 import ThemedView from '~/components/themed/ThemedView';
 import ThemedText from '~/components/themed/ThemedText';
@@ -91,8 +92,8 @@ const TransactionItem: FC<{ transaction: Transaction }> = ({ transaction }) => {
 
   const deleteMutation = useMutation({
     mutationFn: transactionsService.deleteTransaction,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+    onSuccess: async () => {
+      await queryInvalidationService.invalidateTransactions();
     },
     onError: (error) => {
       Alert.alert('Error', 'Failed to delete the expense: ' + error.message);

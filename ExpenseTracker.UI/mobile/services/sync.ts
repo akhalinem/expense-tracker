@@ -1,3 +1,14 @@
+/**
+ * Sync Service
+ *
+ * Handles synchronization between local SQLite database and remote server.
+ * Supports upload, download, and full sync operations with progress tracking.
+ *
+ * ⚠️  QUERY INVALIDATION: This service automatically invalidates React Query cache
+ * after sync operations to ensure UI consistency. When adding new query keys
+ * to the app, update ~/services/queryInvalidation.ts - see ~/docs/QUERY_INVALIDATION.md
+ */
+
 import api from './api';
 import { db } from './db';
 import {
@@ -9,6 +20,7 @@ import {
 import { eq, desc } from 'drizzle-orm';
 import { Category, Transaction, TransactionTypeEnum } from '~/types';
 import { progressService } from './realtimeSync';
+import { queryInvalidationService } from './queryInvalidation';
 
 // Import new utility classes
 import { SYNC_CONFIG, ERROR_MESSAGES } from '../constants/sync';
@@ -166,7 +178,21 @@ class SyncService {
           DataTransformer.getDataSummary(localData)
         );
 
-        return await this.createAndMonitorJob('upload', localData, onProgress);
+        const result = await this.createAndMonitorJob(
+          'upload',
+          localData,
+          onProgress
+        );
+
+        // Invalidate queries after successful upload to refresh UI with synced data
+        // This ensures all screens show the latest state after upload completes
+        // See ~/docs/QUERY_INVALIDATION.md for maintenance requirements
+        if (result.success) {
+          console.log('🔄 Invalidating queries after successful upload...');
+          await queryInvalidationService.invalidateAfterSync();
+        }
+
+        return result;
       },
       {
         maxAttempts: SYNC_CONFIG.MAX_RETRY_ATTEMPTS,
@@ -471,7 +497,21 @@ class SyncService {
       async () => {
         console.log('⬇️ Starting download process...');
 
-        return await this.createAndMonitorJob('download', {}, onProgress);
+        const result = await this.createAndMonitorJob(
+          'download',
+          {},
+          onProgress
+        );
+
+        // Invalidate queries after successful download to refresh UI with new data from server
+        // This ensures all screens show the latest downloaded data immediately
+        // See ~/docs/QUERY_INVALIDATION.md for maintenance requirements
+        if (result.success) {
+          console.log('🔄 Invalidating queries after successful download...');
+          await queryInvalidationService.invalidateAfterSync();
+        }
+
+        return result;
       },
       {
         maxAttempts: SYNC_CONFIG.MAX_RETRY_ATTEMPTS,
@@ -546,6 +586,12 @@ class SyncService {
               '⚠️ Full sync completed but no download data received, keeping local data intact'
             );
           }
+
+          // Invalidate all queries after successful sync to refresh UI with latest data
+          // This ensures all screens are updated with the synchronized data
+          // See ~/docs/QUERY_INVALIDATION.md for maintenance requirements
+          console.log('🔄 Invalidating queries after successful sync...');
+          await queryInvalidationService.invalidateAfterSync();
         }
 
         return result;

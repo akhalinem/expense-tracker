@@ -10,14 +10,22 @@ import { db, expoSqliteDb } from '~/services/db';
 import migrations from '~/drizzle/migrations';
 import { theme, ThemeContext } from '~/theme';
 import { AuthProvider } from '~/context/AuthContext';
+import { queryInvalidationService } from '~/services/queryInvalidation';
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      refetchOnMount: false,
+      refetchOnMount: false, // Keep this to prevent unnecessary refetches on mount
+      refetchOnWindowFocus: false, // Disable refetch on window focus for mobile
+      staleTime: 5 * 60 * 1000, // 5 minutes - consider data stale after this time
+      gcTime: 10 * 60 * 1000, // 10 minutes - keep data in cache for this long (formerly cacheTime)
+      retry: 1, // Only retry failed queries once
     },
   },
 });
+
+// Initialize query invalidation service
+queryInvalidationService.setQueryClient(queryClient);
 
 export default function RootLayout() {
   const migration = useMigrations(db, migrations);

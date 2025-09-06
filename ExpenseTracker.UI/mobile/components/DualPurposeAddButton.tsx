@@ -9,6 +9,7 @@ import {
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useQueryClient } from '@tanstack/react-query';
+import { queryInvalidationService } from '~/services/queryInvalidation';
 import { useTheme } from '~/theme';
 import { useVoiceRecording } from '~/hooks/useVoiceRecording';
 
@@ -29,9 +30,7 @@ export const DualPurposeAddButton = ({}: DualPurposeAddButtonProps) => {
       try {
         await stopRecording();
         Alert.alert('Success', 'Voice recording saved!');
-        await queryClient.invalidateQueries({
-          queryKey: ['voiceRecordings'],
-        });
+        await queryInvalidationService.invalidateVoiceRecordings();
       } catch (error) {
         Alert.alert('Error', 'Failed to save recording');
       }
@@ -51,9 +50,7 @@ export const DualPurposeAddButton = ({}: DualPurposeAddButtonProps) => {
       await startRecording();
 
       Alert.alert('Success', 'Voice recording saved!');
-      await queryClient.invalidateQueries({
-        queryKey: ['voiceRecordings'],
-      });
+      await queryInvalidationService.invalidateVoiceRecordings();
     } catch (error) {
       Alert.alert('Error', 'Failed to start recording');
     }

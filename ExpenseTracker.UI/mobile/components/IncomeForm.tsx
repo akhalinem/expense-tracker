@@ -7,6 +7,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { Income, IncomeFormData, IncomeFormSchema } from '~/types';
 import { transactionsService } from '~/services/transactions';
+import { queryInvalidationService } from '~/services/queryInvalidation';
 import ThemedText from '~/components/themed/ThemedText';
 import ThemedButton from '~/components/themed/ThemedButton';
 import ThemedTextInput from '~/components/themed/ThemedTextInput';
@@ -33,16 +34,16 @@ export default function IncomeForm({ data, onClose }: IncomeFormProps) {
 
   const addMutation = useMutation({
     mutationFn: transactionsService.createIncome,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+    onSuccess: async () => {
+      await queryInvalidationService.invalidateTransactions();
       onClose();
     },
   });
 
   const updateMutation = useMutation({
     mutationFn: transactionsService.updateIncome,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+    onSuccess: async () => {
+      await queryInvalidationService.invalidateTransactions();
       onClose();
     },
   });

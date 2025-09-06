@@ -13,6 +13,7 @@ import {
   UpdateExpenseDto,
 } from '~/types';
 import { transactionsService } from '~/services/transactions';
+import { queryInvalidationService } from '~/services/queryInvalidation';
 import { useCategoriesToggle } from '~/hooks/useCategoriesToggle';
 import { useExpenseSuggestions } from '~/hooks/useExpenseSuggestions';
 import ThemedText from '~/components/themed/ThemedText';
@@ -75,16 +76,16 @@ export default function ExpenseForm({ data, onClose }: ExpenseFormProps) {
 
   const addExpenseMutation = useMutation({
     mutationFn: transactionsService.createExpense,
-    onSuccess: () => {
+    onSuccess: async () => {
       form.reset(getDefaultFormValues());
-      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      await queryInvalidationService.invalidateTransactions();
     },
   });
 
   const updateExpenseMutation = useMutation({
     mutationFn: transactionsService.updateExpense,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+    onSuccess: async () => {
+      await queryInvalidationService.invalidateTransactions();
       onClose();
     },
   });

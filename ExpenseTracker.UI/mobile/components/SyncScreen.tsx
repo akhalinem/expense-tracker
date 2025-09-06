@@ -101,6 +101,8 @@ export const SyncScreen: React.FC<SyncScreenProps> = ({
     localStats: any,
     cloudStatus: any
   ): SyncStatusInfo => {
+    console.debug('Local Stats:', localStats);
+    console.debug('Cloud Status:', cloudStatus);
     const localCount =
       localStats.categoriesCount + localStats.transactionsCount;
     const cloudCount = cloudStatus

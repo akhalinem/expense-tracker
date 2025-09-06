@@ -9,6 +9,7 @@ import {
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { DEFAULT_CATEGORY_COLOR } from '~/constants';
 import { categoriesService } from '~/services/categories';
+import { queryInvalidationService } from '~/services/queryInvalidation';
 import { useTheme } from '~/theme';
 import ThemedText from '~/components/themed/ThemedText';
 import ColorPicker from '~/components/ColorPicker';
@@ -44,10 +45,8 @@ export default function CategoryForm({
   const createCategoryMutation = useMutation({
     mutationFn: ({ name, color }: { name: string; color: string }) =>
       categoriesService.createCategory({ name, color }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ['categoriesWithTransactionsCount'],
-      });
+    onSuccess: async () => {
+      await queryInvalidationService.invalidateCategories();
       onSuccess();
     },
   });
@@ -62,21 +61,20 @@ export default function CategoryForm({
       name: string;
       color: string;
     }) => categoriesService.updateCategory({ id, name, color }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ['categoriesWithTransactionsCount'],
-      });
-      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+    onSuccess: async () => {
+      // Category updates can affect transaction display, so invalidate both
+      await Promise.all([
+        queryInvalidationService.invalidateCategories(),
+        queryInvalidationService.invalidateTransactions(),
+      ]);
       onSuccess();
     },
   });
 
   const deleteCategoryMutation = useMutation({
     mutationFn: (id: number) => categoriesService.deleteCategory(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ['categoriesWithTransactionsCount'],
-      });
+    onSuccess: async () => {
+      await queryInvalidationService.invalidateCategories();
       onSuccess();
     },
     onError: (error) => {
